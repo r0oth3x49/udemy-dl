@@ -1,4 +1,4 @@
-from Output import *
+from .Output import *
 
 def banner():
     banner = '''

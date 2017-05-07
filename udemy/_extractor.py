@@ -1,7 +1,11 @@
 #!/usr/bin/python
 
-import os,sys,time
-from colorized import *
+import os
+import sys
+import time
+from . import __author__
+from . import __version__
+from .colorized import *
 from pprint import pprint
 from ._compat import (
     re,
@@ -12,8 +16,10 @@ from ._compat import (
     std_headers,
     login_popup,
     num_lectures,
+    conn_error,
+    attached_file_url,
     )
-from _utils import (
+from ._utils import (
                     extract_attributes,
                     extract_videojs_data,
                     unescapeHTML,
@@ -31,10 +37,10 @@ class Session:
 
     def set_auth_headers(self, access_token, client_id):
         """Setting up authentication headers."""
-        self.headers['X-Udemy-Bearer-Token'] = access_token
-        self.headers['X-Udemy-Client-Id'] = client_id
-        self.headers['Authorization'] = "Bearer " + access_token
-        self.headers['X-Udemy-Authorization'] = "Bearer " + access_token
+        self.headers['X-Udemy-Bearer-Token']    = access_token
+        self.headers['X-Udemy-Client-Id']       = client_id
+        self.headers['Authorization']           = "Bearer {}".format(access_token)
+        self.headers['X-Udemy-Authorization']   = "Bearer {}".format(access_token)
   
     def get(self, url):
         """Retrieving content of a given url."""
@@ -88,8 +94,13 @@ class UdemyInfoExtractor:
             sys.exit(0)
 
     def login(self, username, password):
-        csrf_token = self._get_csrf_token()
-        session.get('http://www.udemy.com/user/logout')
+        try:
+            csrf_token = self._get_csrf_token()
+            session.get('http://www.udemy.com/user/logout')
+        except conn_error as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+            time.sleep(0.8)
+            sys.exit(0)
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login as " + fm + sb +"(%s)" % (username) +  fg + sb +"...\n")
         payload = {'isSubmitted': 1, 'email': username, 'password': password,
                'displayType': 'ajax', 'csrfmiddlewaretoken': csrf_token}
@@ -126,6 +137,14 @@ class UdemyInfoExtractor:
                     asset_type = asset.get('asset_type') or asset.get('assetType')
                     if asset_type == 'Video':
                         count += 1
+                    elif asset_type == 'E-Book':
+                        count += 1
+                    elif asset_type == 'File':
+                        count += 1
+                    elif asset_type == 'Presentation':
+                        count += 1
+                    elif asset_type == 'Article':
+                        count += 1
                     else:
                         count = count
         return count
@@ -156,38 +175,178 @@ class UdemyInfoExtractor:
         course_id = self._regex_course_id(url)
         if not course_id:
             course_id = self._get_course_id(url)
-        curl = course_url % (course_id)
-        response = session.get(curl).json()
-        num_lect = int(self._extract_course_info(response))
-        sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) video lectures ...\n" % (num_lect))
+        _course_url = course_url.format(course_id=course_id)
+        response = session.get(_course_url).json()
+        num_lect =  int(self._extract_course_info(response))
+        sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (num_lect))
         
         udemy_dict = {}
         chapter, chapter_number = [None] * 2
-        counter = 1
+        counter = 0
         
         for entry in response['results']:
             clazz = entry.get('_class')
             if clazz == 'lecture':
-                asset = entry.get('asset')
+                
+                asset                = entry.get('asset')
+                lecture_id           = entry.get("id")
+                supplementary_assets = entry.get('supplementary_assets')
+                
                 if isinstance(asset, dict):
+                    
                     asset_type = asset.get('asset_type') or asset.get('assetType')
-                    if asset_type != 'Video':
-                        continue
-                    else:
-                        self.Progress(counter, num_lect, fileSize = str(num_lect), downloaded = str(counter), barLength = 40)
-                        time.sleep(0.1)
+                    if asset_type == 'Article':
+                        if len(supplementary_assets) != 0:
+                            
+                            if isinstance(supplementary_assets, list):
+                                for _asset in supplementary_assets:
+                                    _file_id        = _asset.get('id')
+                                    _filename       = _asset.get('filename')
+                                    _download_urls  = _asset.get('download_urls')
+                                    _external_url   = _asset.get('external_url')
+                                    _slide_url      = _asset.get('slide_urls')
+                                    _asset_type     = _asset.get('asset_type')
+
+                                if _asset_type == 'ExternalLink':
+                                    if lecture_id not in udemy_dict[chap]:
+                                        src         = {'external_url'   :   _external_url}
+                                        title       = _filename
+                                        udemy_dict[chap][title] = {}
+                                        if _filename not in udemy_dict[chap][title]:
+                                            udemy_dict[chap][title] = src
+                                            
+                                elif _asset_type == 'File':
+                                    if isinstance(_download_urls, dict):
+                                        src     =   _download_urls.get('File')[0]
+                                    if lecture_id not in udemy_dict[chap]:
+                                        ind         = entry.get('object_index')
+                                        title       = "{0:03d} {1!s}".format(ind, _filename)
+                                        udemy_dict[chap][title] = {}
+                                        if _filename not in udemy_dict[chap][title]:
+                                            udemy_dict[chap][title] = src
+
+                                elif _asset_type == 'SourceCode':
+                                    if isinstance(_download_urls, dict):
+                                        src     =   _download_urls.get('SourceCode')[0]
+                                    if lecture_id not in udemy_dict[chap]:
+                                        ind         = entry.get('object_index')
+                                        title       = "{0:03d} {1!s}".format(ind, _filename)
+                                        udemy_dict[chap][title] = {}
+                                        if _filename not in udemy_dict[chap][title]:
+                                            udemy_dict[chap][title] = src
+                            counter += 1
+                            
+                        else:
+                            counter += 1
+                        
+                    elif asset_type == 'Video':
+                        
+                        if len(supplementary_assets) != 0:
+                            
+                            if isinstance(supplementary_assets, list):
+                                for _asset in supplementary_assets:
+                                    _file_id        = _asset.get('id')
+                                    _filename       = _asset.get('filename')
+                                    _download_urls  = _asset.get('download_urls')
+                                    _external_url   = _asset.get('external_url')
+                                    _slide_url      = _asset.get('slide_urls')
+                                    _asset_type     = _asset.get('asset_type')
+
+
+                            if _asset_type == 'ExternalLink':
+                                if lecture_id not in udemy_dict[chap]:
+                                    src         = {'external_url'   :   _external_url}
+                                    title       = _filename
+                                    udemy_dict[chap][title] = {}
+                                    if _filename not in udemy_dict[chap][title]:
+                                        udemy_dict[chap][title] = src
+
+                            elif _asset_type == 'File':
+                                if isinstance(_download_urls, dict):
+                                    src     =   _download_urls.get('File')[0]
+                                if lecture_id not in udemy_dict[chap]:
+                                    ind         = entry.get('object_index')
+                                    title       = "{0:03d} {1!s}".format(ind, _filename)
+                                    udemy_dict[chap][title] = {}
+                                    if _filename not in udemy_dict[chap][title]:
+                                        udemy_dict[chap][title] = src
+
+                            elif _asset_type == 'SourceCode':
+                                if isinstance(_download_urls, dict):
+                                    src     =   _download_urls.get('SourceCode')[0]
+                                if lecture_id not in udemy_dict[chap]:
+                                    ind         = entry.get('object_index')
+                                    title       = "{0:03d} {1!s}".format(ind, _filename)
+                                    udemy_dict[chap][title] = {}
+                                    if _filename not in udemy_dict[chap][title]:
+                                        udemy_dict[chap][title] = src
+                                    
+                            counter += 1
+                        else:
+                            counter += 1
+                        
+                    elif asset_type == 'E-Book':
+                        _items      = asset.get('download_urls')
+                        _filename   = asset.get('filename')
+                        if isinstance(_items, dict):
+                            src       = _items.get('E-Book')[0]
+
+                        if lecture_id not in udemy_dict[chap]:
+                            ind         = entry.get('object_index')
+                            title       = "{0:03d} {1!s}".format(ind, _filename)
+                            udemy_dict[chap][title] = {}
+                            
+                            if _filename not in udemy_dict[chap][title]:
+                                udemy_dict[chap][title] = src
+                                
                         counter += 1
-                lecture_id = entry.get("id")
+                        
+                    elif asset_type == 'File':
+                        
+                        _items      = asset.get('download_urls')
+                        _filename   = asset.get('filename')
+                        if isinstance(_items, dict):
+                            src       = _items.get('File')[0]
+
+                        if lecture_id not in udemy_dict[chap]:
+                            ind         = entry.get('object_index')
+                            title       = "{0:03d} {1!s}".format(ind, _filename)
+                            udemy_dict[chap][title] = {}
+                            
+                            if _filename not in udemy_dict[chap][title]:
+                                udemy_dict[chap][title] = src
+                                
+                        counter += 1
+
+                        
+                    elif asset_type == 'Presentation':
+                        
+                        __items     = asset.get('download_urls')
+                        _items      = asset.get('slide_urls')
+                        _filename   = asset.get('filename')
+                        if __items:
+                            if isinstance(_items, dict):
+                                src       = _items.get('Presentation')[0]
+                        else:
+                            src           = _items
+
+                        if lecture_id not in udemy_dict[chap]:
+                            ind         = entry.get('object_index')
+                            title       = "{0:03d} {1!s}".format(ind, _filename)
+                            udemy_dict[chap][title] = {}
+                            
+                            if _filename not in udemy_dict[chap][title]:
+                                udemy_dict[chap][title] = src
+                                
+                        counter += 1
+                        
+                    else:
+                        counter = counter
+                        
+                self.Progress(counter, num_lect, fileSize = str(num_lect), downloaded = str(counter), barLength = 40)
+                time.sleep(0.1)
                 if lecture_id:
                     if lecture_id not in udemy_dict[chap]:
-                        ind = entry.get('object_index')
-                        t = (''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')]))
-                        title = "{0:03d} {1!s}".format(ind, t)
-                        udemy_dict[chap][title] = []
-                        asset = entry['asset']
-                        video_id = asset['id']
-                        
-
                         outputs = asset.get('data', {}).get('outputs')
                         if not isinstance(outputs, dict):
                             outputs = {}
@@ -203,43 +362,51 @@ class UdemyInfoExtractor:
 
                         view_html = entry.get('view_html')
                         if view_html:
-                            webpage = (view_html.split('videojs-setup-data="')[1].split('"')[0]).replace('\n', '') if '\n' else view_html.split('videojs-setup-data="')[1].split('"')[0]
-                            view_html_urls = set()
-                            urls_dict   = _convert_to_dict(
-                                            unescapeHTML(
-                                                _search_regex(
-                                                        r'(?<=&quot;sources&quot;:)\s*\[(.+?)\]',
-                                                        webpage).group(0)
-                                                        ))
-                            if isinstance(urls_dict, tuple):
-                                for source in urls_dict:
-                                    res = source.get('label')
+                            try:
+                                webpage = (view_html.split('videojs-setup-data="')[1].split('"')[0]).replace('\n', '') if '\n' else view_html.split('videojs-setup-data="')[1].split('"')[0]
+                            except IndexError as e:
+                                pass
+                            else:
+                                ind = entry.get('object_index')
+                                t = (''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')]))
+                                title = "{0:03d} {1!s}".format(ind, t if '.' not in t else t.replace('.', '_'))
+                                udemy_dict[chap][title] = {}
+                                urls_dict   = _convert_to_dict(
+                                                unescapeHTML(
+                                                    _search_regex(
+                                                            r'(?<=&quot;sources&quot;:)\s*\[(.+?)\]',
+                                                            webpage).group(0)
+                                                            ))
+                                if isinstance(urls_dict, tuple):
+                                    for source in urls_dict:
+                                        res = source.get('label')
+                                        src = source.get('src').replace('\u0026','&')
+                                        if not src:
+                                            continue
+                                        height = res if res else None
+                                        if source.get('type') == 'application/x-mpegURL' or 'm3u8' in src:
+                                            continue
+                                        else:
+                                            if height not in udemy_dict[chap][title]:
+                                                udemy_dict[chap][title][src] = height
+                                        
+                                if isinstance(urls_dict, dict):
                                     src = source.get('src').replace('\u0026','&')
+                                    res = source.get('label')
                                     if not src:
                                         continue
                                     height = res if res else None
                                     if source.get('type') == 'application/x-mpegURL' or 'm3u8' in src:
                                         continue
                                     else:
-                                        udemy_dict[chap][title].append(add_output_format_meta({
-                                            height: src,}, res))
-                                    
-                            if isinstance(urls_dict, dict):
-                                src = source.get('src').replace('\u0026','&')
-                                res = source.get('label')
-                                if not src:
-                                    continue
-                                height = res if res else None
-                                if source.get('type') == 'application/x-mpegURL' or 'm3u8' in src:
-                                    continue
-                                else:
-                                    udemy_dict[chap][title].append(add_output_format_meta({
-                                        height: src,}, res))
+                                        if height not in udemy_dict[chap][title]:
+                                                udemy_dict[chap][title][src] = height
                                 
                     if chapter_number:
                         entry['chapter_number'] = chapter_number
                     if chapter:
                         entry['chapter'] = chapter
+                        
             elif clazz == 'chapter':
                 chapter_number = entry.get('object_index')
                 title = ''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')])
@@ -247,5 +414,5 @@ class UdemyInfoExtractor:
                 chap = "{0:02d} {1!s}".format(chapter_number, chapter)
                 if chapter_number not in udemy_dict:
                     udemy_dict[chap] = {}
-                    
+        
         return udemy_dict

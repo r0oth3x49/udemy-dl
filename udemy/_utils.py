@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 
-
+from . import __author__
+from . import __version__
 from ._compat import (
                         compat_HTMLParser,
                         re,

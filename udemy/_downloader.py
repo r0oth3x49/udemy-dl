@@ -1,8 +1,11 @@
 #!/usr/bin/python
 
+import os
+import sys
 import time
-import os,sys
-from colorized import *
+from . import __author__
+from . import __version__
+from .colorized import *
 from ._compat import (
     compat_request,
     compat_urlopen,
@@ -24,7 +27,10 @@ class Downloader:
             ok = re.compile(r'[^\\/:*?"<>|,]')
 
         filename = "".join(x if ok.match(x) else "_" for x in title)
-        filename += ".mp4"
+        if '.' not in filename:
+            filename += ".mp4"
+        else:
+            filename = filename
 
         return filename
     

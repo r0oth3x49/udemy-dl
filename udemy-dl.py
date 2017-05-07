@@ -2,13 +2,20 @@
 # -*- coding: utf-8 -*-
 
 
+import os
+import time
+import udemy
+import optparse
+
 from sys import *
 from requests import get
 from pprint import pprint
 from udemy.colorized import *
-import udemy,os,time,optparse
-from udemy.colorized.banner import banner
+from udemy import __author__
+from udemy import __version__
 
+
+from udemy.colorized.banner import banner
 
 extract_info = udemy.UdemyInfoExtractor()
 course_dl = udemy.Downloader()
@@ -36,16 +43,25 @@ class UdemyDownload:
         filledLength    = int(round(barLength * iteration / float(total)))
         percents        = format(100.00 * (iteration / float(total)), '.2f')
         bar             = fc + sd + ('█' if os.name == 'posix' else '#') * filledLength + fg + sd +'-' * (barLength - filledLength)
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + str(fileSize) + '/' + str(downloaded) + ' ' + percents + '% |' + bar + fg + sb + '| ' + str(rate) + ' ' + str(suffix) + 's ETA                                      \r')
+        stdout.write('{}{}[{}{}*{}{}] : {}{}{}/{} {}% |{}{}{}| {} {}s ETA                                \r'.format(fc,sd,fm,sb,fc,sd,fg,sb,fileSize,downloaded,percents,bar,fg,sb,rate,suffix))
         stdout.flush()
 
     def Download(self, total, recvd, ratio, rate, eta):
-        TotalSize = round(float(total) / 1048576, 2)
-        Receiving = round(float(recvd) / 1048576, 2)
-        Size = format(TotalSize if TotalSize < 1024.00 else TotalSize/1024.00, '.2f')
-        Received = format(Receiving if Receiving < 1024.00 else Receiving/1024.00,'.2f')
-        SGb_SMb = 'MB' if TotalSize < 1024.00 else 'GB'
-        RGb_RMb = 'MB ' if Receiving < 1024.00 else 'GB '
+        if total <= 1048576:
+            TotalSize = round(float(total) / 1024, 2)
+            Receiving = round(float(recvd) / 1024, 2)
+            Size = format(TotalSize if TotalSize < 1024.00 else TotalSize/1024.00, '.2f')
+            Received = format(Receiving if Receiving < 1024.00 else Receiving/1024.00,'.2f')
+            SGb_SMb = 'KB' if TotalSize < 1024.00 else 'MB'
+            RGb_RMb = 'KB ' if Receiving < 1024.00 else 'MB '
+        else:
+            TotalSize = round(float(total) / 1048576, 2)
+            Receiving = round(float(recvd) / 1048576, 2)
+            Size = format(TotalSize if TotalSize < 1024.00 else TotalSize/1024.00, '.2f')
+            Received = format(Receiving if Receiving < 1024.00 else Receiving/1024.00,'.2f')
+            SGb_SMb = 'MB' if TotalSize < 1024.00 else 'GB'
+            RGb_RMb = 'MB ' if Receiving < 1024.00 else 'GB '
+
         Dl_Speed = round(float(rate) , 2)
         dls = format(Dl_Speed if Dl_Speed < 1024.00 else Dl_Speed/1024.00, '.2f')
         Mb_kB = 'kB/s ' if Dl_Speed < 1024.00 else 'MB/s '
@@ -62,13 +78,13 @@ class UdemyDownload:
     def Downloader(self, url, title, path):
         out = course_dl.download(url, title, filepath=path, quiet=True, callback=self.Download)
         if 'EXISTS' in out:
-            return 'already_exist'
+            return ('already_exist')
         elif out == '401':
-            stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says (HTTP Error 401 : Unauthorized)\n")
-            stdout.write(fc + sd + "[" + fw + sb + "*" + fc + sd + "] : " + fw + sd + "Try to run the udemy-dl again...\n")
+            print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says (HTTP Error 401 : Unauthorized)")
+            print (fc + sd + "[" + fw + sb + "*" + fc + sd + "] : " + fw + sd + "Try to run the udemy-dl again...")
             exit(0)
             
-    def SaveLinks(self, path=None):
+    def SaveLinks(self, quality=None, path=None):
         if not path:
             current_dir = os.getcwd()
         else:
@@ -77,82 +93,144 @@ class UdemyDownload:
                 os.chdir(current_dir)
             else:
                 current_dir = os.getcwd()
-                stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Path '%s' does not exist, saving to '%s'" % (path, current_dir))
+                print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Path '%s' does not exist, saving to '%s'" % (path, current_dir))
                 
-        stdout.write(fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..\n")
+        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
         time.sleep(2)
         course_path = extract_info.match_id(self.url)
         course      = "%s" % (course_path) 
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting course information..\n")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting course information..")
         time.sleep(2)
-        course_name = current_dir + '\\' + course_path if os.name == 'nt' else current_dir + '/' + course_path
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading " + fb + sb + "'%s'.\n" % (course.replace('-',' ')))
+        course_name = current_dir + '\\' + course_path if os.name is 'nt' else current_dir + '/' + course_path
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading " + fb + sb + "'%s'." % (course.replace('-',' ')))
         self.login()
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..\n")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..")
         videos_dict = extract_info.real_extract(self.url, course_name, course_path)
         self.logout()
         if isinstance(videos_dict, dict):
             if os.name == 'nt':
-                stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saving links under '%s\\%s.txt'\n" % (current_dir, course))
+                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saving links under '%s\\%s.txt'" % (current_dir, course))
             else:
-                stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saving links under '%s/%s.txt'\n" % (current_dir, course))
+                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saving links under '%s/%s.txt'" % (current_dir, course))
             for chap in sorted(videos_dict):
-                for lecture,dl_links in sorted(videos_dict[chap].iteritems()):
-                    hd =  max(dl_links)
-                    for kay,value in hd.iteritems():
-                        hdVideo = value
-                    if hdVideo:
+                for lecture_name,urls in sorted(videos_dict[chap].items()):
+                    try:
+                        _file = urls.get('file')
+                        _external_url   = urls.get('external_url') 
+                    except AttributeError as e:
+                        pass
+                    else:
+                        if _external_url and not _file:
+                            _url = _external_url
+                        if _file and not _external_url:
+                            _url = _file
+                        elif not _external_url and not _file:
+                            if not quality:
+                                _url = max(urls, key=urls.get)
+                            else:
+                                found = False
+                                for url,res in urls.items():
+                                    if res == quality:
+                                        _url = url
+                                        found = True
+                                    else:
+                                        continue
+                                    
+                                if not found:
+                                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Requested quality is not available for (%s)" % (lecture_name))
+                                    if version_info[:2] >= (3, 0):
+                                        askUser = input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality (y/n): ")
+                                    else:
+                                        askUser = raw_input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality (y/n): ")
+                                    if askUser == 'y' or askUser == 'Y' or askUser == '':
+                                        _url = max(urls, key=urls.get)
+                                    else:
+                                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Continuing to check for the next lecture..\n")
+                                        continue
+                        
+                    if _url:
                         with open("%s.txt" % (course), "a") as f:
-                            f.write("%s\n%s\n" % (lecture, hdVideo))
+                            f.write("[+] -- name : %s\n[+] -- link : %s\n" % (lecture_name, _url))
                             f.close()
-            stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Saved successfully.\n")
+            print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Saved successfully.")
                             
                             
     def get_filsize(self, url):
-        req = get(url, stream=True)
-        size = round(float(req.headers.get('Content-Length')) / 1048576, 2)
-        sz = size if size < 1024.00 else round(size/1024.00,2)
-        in_MB = "MB " if size < 1024.00 else 'GB '
+        req             = get(url, stream=True)
+        content_length  = float(req.headers.get('Content-Length'))
+        if content_length <= 1048576.00:
+            size = round(content_length / 1024, 2)
+            sz = size
+            in_MB = "KB "
+        else:
+            size = round(content_length / 1048576, 2)
+            sz = size if size < 1024.00 else round(size/1024.00,2)
+            in_MB = "MB " if size < 1024.00 else 'GB '
+
         return sz,in_MB
             
     def ListDown(self):
         current_dir = os.getcwd()
-        stdout.write(fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..\n")
+        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
         time.sleep(2)
         course_path = extract_info.match_id(self.url)
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting course information..\n")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting course information..")
         time.sleep(2)
-        course_name = current_dir + '\\' + course_path if os.name == 'nt' else current_dir + '/' + course_path
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading " + fb + sb + "'%s'.\n" % (course_path.replace('-',' ')))
+        course_name = current_dir + '\\' + course_path if os.name is 'nt' else current_dir + '/' + course_path
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading " + fb + sb + "'%s'." % (course_path.replace('-',' ')))
         self.login()
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..\n")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..")
         videos_dict = extract_info.real_extract(self.url, course_name, course_path)
         self.logout()
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting chapters & lectures information..\n")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting chapters & lectures information..")
         if isinstance(videos_dict, dict):
             for chap in sorted(videos_dict):
-                stdout.write(fc + sd + "\n[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chap))
-                for lecture,dl_links in sorted(videos_dict[chap].iteritems()):
-                    stdout.write(fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
-                    stdout.write(fy + sb + "\n+--------------------------------------------------------+\n")
-                    stdout.write(fy + sb + "|     {:<6} {:<8} {:<7} {:<12} {:<14}|\n".format("Stream", "Type", "Format", "Quality", "Size"))
-                    stdout.write(fy + sb + "|     {:<6} {:<8} {:<7} {:<10} {:<16}|\n".format("------", "-----", "------", "-------", "--------"))
-                    itr = len(dl_links)
-                    for i in range(0, itr):
-                        sid         = i + 1
-                        quality     = dl_links[i].keys()[0]
-                        url         = dl_links[i].get(quality)
-                        sz,in_MB    = self.get_filsize(url)
-                        media       = 'video'
-                        Format      = 'mp4'
-                        stdout.write(fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<10} {:<7}{:<9}{}{}|\n".format(sid, media, Format , str(quality) + 'p', sz, in_MB, fy, sb))
-                    stdout.write(fy + sb + "+--------------------------------------------------------+\n")
+                print (fc + sd + "\n[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)" % (chap))
+                for lecture,urls in sorted(videos_dict[chap].items()):
+                    try:
+                        _file           = urls.get('file')
+                        _external_url   = urls.get('external_url')
+                    except AttributeError as e:
+                        pass
+                    else:
+                        if _external_url and not _file:
+                            _external_url = urls.get('external_url')
+                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                            print  (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Visit " + fg + sd + "(" + str(_external_url)+ fg + sb + ")\n")
+                        elif _file and not _external_url:
+                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                            print  (fy + sb + "+--------------------------------------------+")
+                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("Stream", "Type", "Format", "Size"))
+                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("------", "-----", "------","-------"))
+                            sid         = 1
+                            url         = _file
+                            sz,in_MB    = self.get_filsize(url)
+                            media       = 'file' 
+                            Format      = lecture.split('.')[-1]
+                            print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<5} {:<9}{}{}|".format(sid, media, Format , sz, in_MB, fy, sb))
+                            print  (fy + sb + "+--------------------------------------------+")
+                        elif not _external_url and not _file:
+                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                            print  (fy + sb + "+--------------------------------------------------------+")
+                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<12} {:<14}|".format("Stream", "Type", "Format", "Quality", "Size"))
+                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<10} {:<16}|".format("------", "-----", "------", "-------", "--------"))
+                            i = 0
+                            for _url,res in urls.items():
+                                sid         = i + 1
+                                quality     = res
+                                url         = _url
+                                sz,in_MB    = self.get_filsize(url)
+                                media       = 'video' 
+                                Format      = 'mp4'
+                                print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<10} {:<7}{:<9}{}{}|".format(sid, media, Format , str(quality) + 'p', sz, in_MB, fy, sb))
+                                i += 1
+                            print  (fy + sb + "+--------------------------------------------------------+")
 
         
     def ExtractAndDownload(self, path=None, quality=None):
         current_dir = os.getcwd()
-        stdout.write(fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..\n")
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting course information..\n")
+        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting course information..")
         time.sleep(2)
         course = extract_info.match_id(self.url)
         if not path:
@@ -162,19 +240,18 @@ class UdemyDownload:
             course_path = "%s\\%s" % (path, extract_info.match_id(self.url)) if os.name == 'nt' else "%s/%s" % (path, extract_info.match_id(self.url))
             course_name = course_path
             
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading " + fb + sb + "'%s'.\n" % (course.replace('-',' ')))
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading " + fb + sb + "'%s'." % (course.replace('-',' ')))
         self.login()
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..\n")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..")
         videos_dict = extract_info.real_extract(self.url, course_name, course_path)
         self.logout()
-        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Counting no of chapters..\n")
-        time.sleep(0.5)
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Counting no of chapters..")
         if isinstance(videos_dict, dict):
-            stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fw + sd + "Found ('%s') chapter(s).\n" % (len(videos_dict)))
+            print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fw + sd + "Found ('%s') chapter(s).\n" % (len(videos_dict)))
             j = 1
             for chap in sorted(videos_dict):
-                stdout.write(fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fm + sb + "Downloading chapter : (%s of %s)\n" % (j, len(videos_dict)))
-                stdout.write(fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chap))
+                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fm + sb + "Downloading chapter : (%s of %s)" % (j, len(videos_dict)))
+                print (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)" % (chap))
                 chapter_path = course_path + '\\' + chap if os.name == 'nt' else course_path + '/' + chap
                 try:
                     os.makedirs(chapter_path)
@@ -183,53 +260,74 @@ class UdemyDownload:
                 chapter_path = course_name + '\\' + chap if os.name == 'nt' else course_name + '/' + chap
                 if os.path.exists(chapter_path):
                     os.chdir(chapter_path)
-                stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fc + sd + "Found ('%s') lecture(s).\n" % (len(videos_dict[chap])))
+                print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fc + sd + "Found ('%s') lecture(s)." % (len(videos_dict[chap])))
                 i = 1
-                for lecture_name, dl_links in sorted(videos_dict[chap].iteritems()):
-                    if not quality:
-                        hd =  max(dl_links)
-                        for kay,value in hd.iteritems():
-                            hdVideo = value
+                for lecture_name,urls in sorted(videos_dict[chap].items()):
+                    try:
+                        _file           = urls.get('file')
+                        _external_url   = urls.get('external_url')
+                    except AttributeError as e:
+                        pass
                     else:
-                        found = False
-                        itr = len(dl_links)
-                        for i in range(0, itr):
-                            res     = dl_links[i].keys()[0]
-                            if res == quality:
-                                hdVideo = dl_links[i].get(res)
-                                found = True
+                        if _file and not _external_url:
+                            _url = _file
+                        elif not _external_url and not _file:
+                            if not quality:
+                                _url = max(urls, key=urls.get)
                             else:
-                                continue
-                        if not found:
-                            stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Request quality is not available for (%s)\n" % (lecture_name))
-                            askUser = raw_input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality (y/n) : ")
-                            if askUser == 'y' or askUser == 'Y' or askUser == '':
-                                hd =  max(dl_links)
-                                for kay,value in hd.iteritems():
-                                    hdVideo = value
-                            else:
-                                i += 1
-                                stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Continuing to check for the next lecture..\n")
-                                continue
-                    if hdVideo:
-                        stdout.write(fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading lecture : (%s of %s)\n" % (i, len(videos_dict[chap])))
-                        stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)\n" % (lecture_name))
-                        out = self.Downloader(hdVideo, lecture_name, chapter_path)
+                                found = False
+                                for url,res in urls.items():
+                                    if res == quality:
+                                        _url = url
+                                        found = True
+                                    else:
+                                        continue
+                                    
+                                if not found:
+                                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Request quality is not available for (%s)" % (lecture_name))
+                                    if version_info[:2] >= (3, 0):
+                                        askUser = input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality : ")
+                                    else:
+                                        askUser = raw_input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality : ")
+                                    if askUser == 'y' or askUser == 'Y' or askUser == '':
+                                        _url = max(urls, key=urls.get)
+                                    else:
+                                        i += 1
+                                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Continuing to check for the next lecture..\n")
+                                        continue
+                    if _external_url and not _file:
+                        _url = _external_url
+                        _external_links = "links-to-visit.txt"
+                        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saving external links to file : {}".format(_external_links))
+                        f = open(_external_links, "a")
+                        f.write("[+] -- name {}\n[+] -- Visit {}\n".format(lecture_name, _url))
+                        f.close()
+                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saved successfully..")
+                    elif _url:
+                        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading lecture : (%s of %s)" % (i, len(videos_dict[chap])))
+                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)" % (lecture_name))
+                        out = self.Downloader(_url, lecture_name, chapter_path)
                         if out == 'already_exist':
-                            stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).\n")
+                            print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
                         else:
-                            stdout.write(fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)\n" % (lecture_name))
+                            print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
                         i += 1
                 j += 1
-                stdout.write('\n')
+                print ('')
                 os.chdir(current_dir)
+                
+        
+
+
 
 def main():
-    stdout.write(banner())
-    us = '''%prog [-h] [-u "username"] [-p "password"] COURSE_URL
-                   [-s] [-l] [-o OUTPUT] [-r VIDEO_QUALITY]'''
-    version = "%prog version 0.1"
-    parser = optparse.OptionParser(usage=us,version=version,conflict_handler="resolve")
+    ban = banner()
+    print (ban)
+    usage       = '''%prog [-h] [-u "username"] [-p "password"] COURSE_URL
+                   [-s] [-l] [-r VIDEO_QUALITY] [-o OUTPUT]'''
+    version     = "%prog version {}".format(__version__)
+    description = 'A cross-platform python based utility to download courses from udemy for personal offline use.'
+    parser = optparse.OptionParser(usage=usage,version=version,conflict_handler="resolve", description=description)
 
     general = optparse.OptionGroup(parser, 'General')
     general.add_option(
@@ -261,7 +359,7 @@ def main():
         "-l", "--list-infos", 
         action='store_true',
         dest='list',\
-        help="Just list all lectures and their name with resolution.")
+        help="Just list all lectures and their ids with resolution.")
     downloader.add_option(
         "-r", "--resolution", 
         action='store_true',
@@ -294,6 +392,14 @@ def main():
         links   = options.save_links
         udemy   =  UdemyDownload(url, email, passwd)
         udemy.SaveLinks()
+    elif options.email and options.password and options.save_links and not options.list and not options.output and options.quality:
+        email   = args[0]
+        passwd  = args[1]
+        url     = args[2]
+        res     = args[3]
+        links   = options.save_links
+        udemy   =  UdemyDownload(url, email, passwd)
+        udemy.SaveLinks(quality=res)
     elif options.email and options.password and options.save_links and not options.list and options.output and not options.quality:
         email   = args[0]
         passwd  = args[1]
@@ -302,6 +408,15 @@ def main():
         links   = options.save_links
         udemy   =  UdemyDownload(url, email, passwd)
         udemy.SaveLinks(path=outto)
+    elif options.email and options.password and options.save_links and not options.list and options.output and options.quality:
+        email   = args[0]
+        passwd  = args[1]
+        url     = args[2]
+        res     = args[3]
+        outto   = args[4]
+        links   = options.save_links
+        udemy   =  UdemyDownload(url, email, passwd)
+        udemy.SaveLinks(quality=res, path=outto)
     elif options.email and options.password and not options.save_links and options.list and not options.output and not options.quality:
         email   = args[0]
         passwd  = args[1]
@@ -334,15 +449,16 @@ def main():
     else:
         parser.print_help()
 
+    
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        stdout.write(fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..")
+        print (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..")
         time.sleep(0.8)
     except IndexError:
-        stdout.write(fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "Required fields seems empty please fill with proper input of username,password and course url..")
+        print (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "Required fields seems empty please fill with proper input of username,password and course url..")
 
         
         

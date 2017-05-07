@@ -5,7 +5,8 @@
 
 ### Requirements
 
-- Python 2.7.x
+- Python (2 or 3)
+- Python pip
 - Python module requests
 - Python module colorama
 
@@ -34,7 +35,10 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 Author: Nasir khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)
 
 Usage: udemy-dl.py [-h] [-u "username"] [-p "password"] COURSE_URL
-                   [-s] [-l] [-r VIDEO_QUALITY] [-o OUTPUT] 
+                   [-s] [-l] [-r VIDEO_QUALITY] [-o OUTPUT]
+
+A cross-platform python based utility to download courses from udemy for
+personal offline use.
 
 Options:
   General:
@@ -45,7 +49,7 @@ Options:
     -u, --username    Username in udemy.
     -p, --password    Password of your account.
     -s, --save-links  Do not download but save links to a file.
-    -l, --list-infos  Just list all lectures and their name with resolution.
+    -l, --list-infos  Just list all lectures and their ids with resolution.
     -r, --resolution  Download video resolution, default resolution is 720p.
     -o, --output      Output directory where the videos will be saved, default
                       is current directory.

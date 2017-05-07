@@ -1,2 +1,2 @@
-from Output import *
-import banner
+from .Output import *
+from . import banner
