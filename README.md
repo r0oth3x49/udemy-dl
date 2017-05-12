@@ -6,14 +6,13 @@
 ### Requirements
 
 - Python (2 or 3)
-- Python pip
-- Python module requests
-- Python module colorama
+- Python `pip`
+- Python module `requests`
+- Python module `colorama`
 
 ### Install modules
 
 	pip install -r requirements.txt
-
 	
 ### Tested on
 
@@ -28,6 +27,45 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 
 	git clone https://github.com/r0oth3x49/udemy-dl.git
 
+
+### Usage 
+
+***Downloading course***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME
+	
+***Downloading Course with specific resolution***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -r 720
+	
+***Downloading course to a specific location***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -o "/path/to/directory/"
+	
+***Downloading course with specific resolution to a specific location***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -o -r 720 "/path/to/directory/"
+
+***Saving download links***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -s
+
+***Saving specific resolution download links***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -s -r 720
+
+***Saving download links to specific location***
+	
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -s -o "/path/to/directory/"
+	
+***Saving specific resolution download links to specific location***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -s -r 720 -o "/path/to/directory/"
+
+***Listing course's video informtion***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -l
+the above command will list down the size of video and attached files and available resolutions for a video in a course.
 
 ### Advanced Usage
 
@@ -57,3 +95,7 @@ Options:
   Example:
 	python udemy-dl.py -u user@domain.com -p P45sw0rd https://www.udemy.com/course_name/
 </code></pre>
+
+
+### Note 
+<pre><code>Do not change the position of any argument as given under the Usage, this may cause an error or failur in downloading of course.</code></pre>
