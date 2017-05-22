@@ -55,7 +55,7 @@ class Downloader:
         filepath = os.path.join(savedir, filename)
 
         if os.path.isfile(filepath):
-            return 'EXISTS'
+            return ('EXISTS')
 
         temp_filepath = filepath + ".part"
 
@@ -74,6 +74,8 @@ class Downloader:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "URLError  : %s.\n" % (e))
         except compat_httperr as e:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "HTTPError : %s.\n" % (e.code))
+            if e.code == 401:
+                return (e.code)
         else:
             total = int(response.info()['Content-Length'].strip())
             chunksize, bytesdone, t0 = 16384, 0, time.time()
@@ -93,8 +95,12 @@ class Downloader:
                                             ("Range", "bytes=%s-" % offset)]
                 try:
                     response = resume_opener.open(url)
-                except (compat_urlerr, compat_httperr) as e:
-                    return e
+                except compat_urlerr as e:
+                    sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "URLError  : %s.\n" % (e))
+                except compat_httperr as e:
+                    sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "HTTPError : %s.\n" % (e.code))
+                    if e.code == 401:
+                        return (e.code)
                 else:
                     bytesdone = offset
 

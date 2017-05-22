@@ -17,15 +17,16 @@ from ._compat import (
     login_popup,
     num_lectures,
     conn_error,
+    course_list,
+    compat_str,
     attached_file_url,
     )
 from ._utils import (
-                    extract_attributes,
-                    extract_videojs_data,
-                    unescapeHTML,
-                    _search_regex,
-                    _convert_to_dict,
-                    )
+    _parse_json,
+    _search_regex,
+    _search_simple_regex,
+    unescapeHTML,
+    )
 early_py_version = sys.version_info[:2] < (2, 7)
 
 class Session:
@@ -61,11 +62,10 @@ class UdemyInfoExtractor:
     def _get_csrf_token(self):
         try:
            response = session.get(login_popup)
-           match = re.search(r"name='csrfmiddlewaretoken'\s+value='(.*)'", response.text)
+           match = _search_simple_regex(r"name='csrfmiddlewaretoken'\s+value='(.*)'", response.text)
            return match.group(1)
         except AttributeError:
-            session.get(logout)
-            response = re.search(r"name='csrfmiddlewaretoken'\s+value='(.*)'", response.text)
+            response = _search_simple_regex(r"name='csrfmiddlewaretoken'\s+value='(.*)'", response.text)
             return match.group(1)
 
     def _get_course_id(self, url):
@@ -87,7 +87,7 @@ class UdemyInfoExtractor:
     def _regex_course_id(self, url):
         response = session.get(url)
         webpage = response.text
-        course_id = unescapeHTML(_search_regex(r'(?<=&quot;id&quot;:\s)(\d+)',webpage).group())
+        course_id = unescapeHTML(_search_simple_regex(r'(?<=&quot;id&quot;:\s)(\d+)',webpage).group())
         if course_id:
             return course_id
         else:
@@ -131,7 +131,6 @@ class UdemyInfoExtractor:
         for entry in response['results']:
             clazz = entry.get('_class')
             if clazz == 'lecture':
-                html = entry.get('view_html')
                 asset = entry.get('asset')
                 if isinstance(asset, dict):
                     asset_type = asset.get('asset_type') or asset.get('assetType')
@@ -177,6 +176,11 @@ class UdemyInfoExtractor:
             course_id = self._get_course_id(url)
         _course_url = course_url.format(course_id=course_id)
         response = session.get(_course_url).json()
+        _isenrolled = response.get('detail')
+        if _isenrolled:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "You are not enrolled in this course Udemy Says : {}.".format(_isenrolled))
+            self.logout()
+            exit(0)
         num_lect =  int(self._extract_course_info(response))
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (num_lect))
         
@@ -191,7 +195,7 @@ class UdemyInfoExtractor:
                 asset                = entry.get('asset')
                 lecture_id           = entry.get("id")
                 supplementary_assets = entry.get('supplementary_assets')
-                
+
                 if isinstance(asset, dict):
                     
                     asset_type = asset.get('asset_type') or asset.get('assetType')
@@ -237,7 +241,8 @@ class UdemyInfoExtractor:
                             counter += 1
                             
                         else:
-                            counter += 1
+                            counter += 1 
+                            continue
                         
                     elif asset_type == 'Video':
                         
@@ -347,65 +352,61 @@ class UdemyInfoExtractor:
                 time.sleep(0.1)
                 if lecture_id:
                     if lecture_id not in udemy_dict[chap]:
-                        outputs = asset.get('data', {}).get('outputs')
-                        if not isinstance(outputs, dict):
-                            outputs = {}
-
-
-                        def add_output_format_meta(f, key):
-                            output = outputs.get(key)
-                            if isinstance(output, dict):
-                                output_format = extract_output_format(output)
-                                output_format.update(f)
-                                return output_format
-                            return f
-
                         view_html = entry.get('view_html')
                         if view_html:
-                            try:
-                                webpage = (view_html.split('videojs-setup-data="')[1].split('"')[0]).replace('\n', '') if '\n' else view_html.split('videojs-setup-data="')[1].split('"')[0]
-                            except IndexError as e:
-                                pass
-                            else:
-                                ind = entry.get('object_index')
-                                t = (''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')]))
-                                title = "{0:03d} {1!s}".format(ind, t if '.' not in t else t.replace('.', '_'))
-                                udemy_dict[chap][title] = {}
-                                urls_dict   = _convert_to_dict(
-                                                unescapeHTML(
-                                                    _search_regex(
-                                                            r'(?<=&quot;sources&quot;:)\s*\[(.+?)\]',
-                                                            webpage).group(0)
-                                                            ))
-                                if isinstance(urls_dict, tuple):
-                                    for source in urls_dict:
-                                        res = source.get('label')
-                                        src = source.get('src').replace('\u0026','&')
+                            ind = entry.get('object_index')
+                            t = (''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')]))
+                            title = "{0:03d} {1!s}".format(ind, t if '.' not in t else t.replace('.', '_'))
+                            udemy_dict[chap][title] = {}
+                            data   = _parse_json(
+                                                _search_regex(
+                                                        r'videojs-setup-data=(["\'])(?P<data>{.+?})\1',
+                                                        view_html,
+                                                        'setup data',
+                                                        default='{}',
+                                                        group='data'),
+                                                lecture_id,
+                                                transform_source=unescapeHTML,
+                                                fatal=False,
+                                )
+                            if data and isinstance(data, dict):
+                                sources  = data.get('sources')
+                                tracks   = data.get('tracks')
+                                duration = data.get('durations') if not None else None
+                                if isinstance(sources, list):
+                                    for source in sources:
+                                        res  = source.get('label')
+                                        src  = source.get('src')
                                         if not src:
                                             continue
                                         height = res if res else None
                                         if source.get('type') == 'application/x-mpegURL' or 'm3u8' in src:
                                             continue
                                         else:
-                                            if height not in udemy_dict[chap][title]:
-                                                udemy_dict[chap][title][src] = height
-                                        
-                                if isinstance(urls_dict, dict):
-                                    src = source.get('src').replace('\u0026','&')
-                                    res = source.get('label')
-                                    if not src:
-                                        continue
-                                    height = res if res else None
-                                    if source.get('type') == 'application/x-mpegURL' or 'm3u8' in src:
-                                        continue
-                                    else:
-                                        if height not in udemy_dict[chap][title]:
-                                                udemy_dict[chap][title][src] = height
+                                            udemy_dict[chap][title][src] = height
+
+                                            
+                                if isinstance(tracks, list):
+                                    for track in tracks:
+                                        if not isinstance(track, dict):
+                                            continue
+                                        if track.get('kind') != 'captions':
+                                            continue
+                                        src = track.get('src')
+                                        if not src or not isinstance(src, compat_str):
+                                            continue
+                                        lang = track.get('language') or track.get('srclang') or track.get('label')
+                                        autogenerated = track.get('autogenerated')
+                                        ext      = src.rsplit('.', 1)[-1].replace('%22', '') if '%22' in src.rsplit('.', 1)[-1] else src.rsplit('.', 1)[-1]
+                                        subtitle = "{}-subtitle.{}".format(title, ext)
+                                        if not subtitle in udemy_dict[chap]:
+                                            udemy_dict[chap][subtitle] = {'subtitle' : src}
                                 
                     if chapter_number:
                         entry['chapter_number'] = chapter_number
                     if chapter:
                         entry['chapter'] = chapter
+
                         
             elif clazz == 'chapter':
                 chapter_number = entry.get('object_index')
@@ -414,5 +415,4 @@ class UdemyInfoExtractor:
                 chap = "{0:02d} {1!s}".format(chapter_number, chapter)
                 if chapter_number not in udemy_dict:
                     udemy_dict[chap] = {}
-        
         return udemy_dict

@@ -21,7 +21,7 @@ if sys.version_info[:2] >= (3, 0):
     from html.parser            import HTMLParser       as compat_HTMLParser
     from requests.exceptions    import ConnectionError  as conn_error
 
-    uni, pyver = str, 3
+    compat_str, pyver = str, 3
     
 else:
     import re
@@ -40,12 +40,13 @@ else:
     from HTMLParser          import HTMLParser      as compat_HTMLParser
     from requests.exceptions import ConnectionError as conn_error
 
-    uni, pyver = unicode, 2
+    compat_str, pyver = unicode, 2
 
-
+NO_DEFAULT          = object()
 login_url           = 'https://www.udemy.com/join/login-popup/?displayType=ajax&display_type=popup&showSkipButton=1&returnUrlAfterLogin=https%3A%2F%2Fwww.udemy.com%2F&next=https%3A%2F%2Fwww.udemy.com%2F&locale=en_US'
 login_popup         = 'https://www.udemy.com/join/login-popup'
 logout              = 'http://www.udemy.com/user/logout'
+course_list         = 'https://www.udemy.com/api-2.0/courses/?page_size=10000'
 course_url          = 'https://www.udemy.com/api-2.0/courses/{course_id}/cached-subscriber-curriculum-items?fields[asset]=results,external_url,download_urls,slide_urls,filename,asset_type&fields[chapter]=object_index,title,sort_order&fields[lecture]=id,title,object_index,asset,supplementary_assets,view_html,sort_order&page_size=100000'
 get_url             = 'https://www.udemy.com/api-2.0/users/me/subscribed-courses/{course_id}/lectures/{lecture_id}?fields[lecture]=view_html,asset'
 attached_file_url   = 'https://www.udemy.com/api-2.0/users/me/subscribed-courses/{course_id}/lectures/{lecture_id}/supplementary-assets/{asset_id}?fields[asset]=download_urls'
@@ -59,6 +60,7 @@ std_headers         =   {
                         }
 
 __ALL__ =[
+            "course_list"
             "conn_error",
             "attached_file_url"
             "compat_ConvertToDict",
@@ -67,7 +69,9 @@ __ALL__ =[
             "compat_get",
             "requests",
             "logout",
+            "json",
             "re",
+            "compat_str",
             "login_popup",
             "compat_urllib",
             "compat_urlparse",
@@ -81,4 +85,5 @@ __ALL__ =[
             "compat_opener",
             "user_agent",
             "compat_HTMLParser",
+            "NO_DEFAULT",
     ]

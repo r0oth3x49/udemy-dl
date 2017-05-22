@@ -4,71 +4,61 @@
 from . import __author__
 from . import __version__
 from ._compat import (
-                        compat_HTMLParser,
                         re,
-                        compat_ConvertToDict,
+                        json,
+                        NO_DEFAULT,
+                        compat_HTMLParser,
                         )
 
-class HTMLAttributeParser(compat_HTMLParser):
-    """Trivial HTML parser to gather the attributes for a single element"""
-    def __init__(self):
-        self.attrs = {}
-        compat_HTMLParser.__init__(self)
 
-    def handle_starttag(self, tag, attrs):
-        self.attrs = dict(attrs)
-
-
-
-def extract_attributes(html_element):
-    """Given a string for an HTML element such as
-    <el
-         a="foo" B="bar" c="&98;az" d=boz
-         empty= noval entity="&amp;"
-         sq='"' dq="'"
-    >
-    Decode and return a dictionary of attributes.
-    {
-        'a': 'foo', 'b': 'bar', c: 'baz', d: 'boz',
-        'empty': '', 'noval': None, 'entity': '&',
-        'sq': '"', 'dq': '\''
-    }.
-    NB HTMLParser is stricter in Python 2.6 & 3.2 than in later versions,
-    but the cases in the unit test will work for all of 2.6, 2.7, 3.2-3.5.
-    """
-    parser = HTMLAttributeParser()
-    parser.feed(html_element)
-    parser.close()
-    return parser.attrs
-
-def extract_videojs_data(html_element):
-    parser          = compat_HTMLParser()
-    data            = html_element.strip().split('videojs-setup-data="')[1].split('"')[0]
-    html_escape     = parser.unescape(data)
-    clean           = re.findall(r'(.ources":.*\}])', html_escape if not "\n" in html_escape else html_escape.replace("\n", ''), re.M|re.I)[0] if not None else "None"#re.findall(r'"sources":(.*}])', html_escape, re.M|re.I)[0] if not None else "None"
-    cleaned_data    = clean[10:-1]
-    Val             = cleaned_data.split('],') if "]" in cleaned_data else cleaned_data
-    retVal          = Val[0] if type(Val) is list else Val
-    try:
-        vid_dict    = compat_ConvertToDict(retVal)
-    except Exception as e:
-        pass
-    else:
-        if type(vid_dict) is dict:
-            return vid_dict
-        else:
-            return vid_dict
-
-def unescapeHTML(json_data):
+def unescapeHTML(s):
     clean   = compat_HTMLParser()
-    data    = clean.unescape(json_data)
+    data    = clean.unescape(s)
     return data
 
-def _search_regex(regex, webpage):
+def _search_regex(pattern, string, name, default=NO_DEFAULT, fatal=True, flags=0, group=None):
+    """
+    Perform a regex search on the given string, using a single or a list of
+    patterns returning the first matching group.
+    In case of failure return a default value or raise a WARNING or a
+    RegexNotFoundError, depending on fatal, specifying the field name.
+    """
+    if isinstance(pattern, str):
+        mobj = re.search(pattern, string, flags)
+    else:
+        for p in pattern:
+            mobj = re.search(p, string, flags)
+            if mobj:
+                break
+
+    _name = name
+
+    if mobj:
+        if group is None:
+            # return the first matching group
+            return next(g for g in mobj.groups() if g is not None)
+        else:
+            return mobj.group(group)
+    elif default is not NO_DEFAULT:
+        return default
+    elif fatal:
+        print('[-] Unable to extract %s' % _name)
+    else:
+        print('[-] unable to extract %s' % _name)
+        return None
+
+def _parse_json(json_string, video_id, transform_source=None, fatal=True):
+    if transform_source:
+        json_string = transform_source(json_string)
+    try:
+        return json.loads(json_string)
+    except ValueError as ve:
+        errmsg = '[-] %s: Failed to parse JSON ' % video_id
+        if fatal:
+            print(errmsg, ve)
+        else:
+            print(errmsg + str(ve))
+
+def _search_simple_regex(regex, webpage):
     _extract = re.search(regex, webpage)
     return _extract
-
-def _convert_to_dict(data):
-    _dict = compat_ConvertToDict(str(data[1:-1]))
-    return _dict
-    
