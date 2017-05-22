@@ -77,9 +77,9 @@ class UdemyDownload:
 
     def Downloader(self, url, title, path):
         out = course_dl.download(url, title, filepath=path, quiet=True, callback=self.Download)
-        if 'EXISTS' in out:
+        if out == 'EXISTS':
             return ('already_exist')
-        elif out == '401':
+        elif out == 401:
             print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says (HTTP Error 401 : Unauthorized)")
             print (fc + sd + "[" + fw + sb + "*" + fc + sd + "] : " + fw + sd + "Try to run the udemy-dl again...")
             exit(0)
@@ -116,14 +116,17 @@ class UdemyDownload:
                 for lecture_name,urls in sorted(videos_dict[chap].items()):
                     try:
                         _file = urls.get('file')
-                        _external_url   = urls.get('external_url') 
+                        _external_url   = urls.get('external_url')
+                        _subtitle       = urls.get('subtitle')
                     except AttributeError as e:
                         pass
                     else:
-                        if _external_url and not _file:
+                        if _external_url and not _file and not _subtitle:
                             _url = _external_url
-                        if _file and not _external_url:
+                        elif _file and not _external_url and not _subtitle:
                             _url = _file
+                        elif _subtitle and not _file and not _external_url:
+                            _url = _subtitle
                         elif not _external_url and not _file:
                             if not quality:
                                 _url = max(urls, key=urls.get)
@@ -190,14 +193,15 @@ class UdemyDownload:
                     try:
                         _file           = urls.get('file')
                         _external_url   = urls.get('external_url')
+                        _subtitle       = urls.get('subtitle')
                     except AttributeError as e:
                         pass
                     else:
-                        if _external_url and not _file:
+                        if _external_url and not _file and not _subtitle:
                             _external_url = urls.get('external_url')
                             print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
                             print  (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Visit " + fg + sd + "(" + str(_external_url)+ fg + sb + ")\n")
-                        elif _file and not _external_url:
+                        elif _file and not _external_url and not _subtitle:
                             print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
                             print  (fy + sb + "+--------------------------------------------+")
                             print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("Stream", "Type", "Format", "Size"))
@@ -209,7 +213,19 @@ class UdemyDownload:
                             Format      = lecture.split('.')[-1]
                             print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<5} {:<9}{}{}|".format(sid, media, Format , sz, in_MB, fy, sb))
                             print  (fy + sb + "+--------------------------------------------+")
-                        elif not _external_url and not _file:
+                        elif _subtitle and not _file and not _external_url:
+                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                            print  (fy + sb + "+--------------------------------------------+")
+                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("Stream", "Type", "Format", "Size"))
+                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("------", "-----", "------","-------"))
+                            sid         = 1
+                            url         = _subtitle
+                            sz,in_MB    = self.get_filsize(url)
+                            media       = 'file' 
+                            Format      = lecture.split('.')[-1]
+                            print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<5} {:<9}{}{}|".format(sid, media, Format , sz, in_MB, fy, sb))
+                            print  (fy + sb + "+--------------------------------------------+")
+                        elif not _external_url and not _file and not _subtitle:
                             print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
                             print  (fy + sb + "+--------------------------------------------------------+")
                             print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<12} {:<14}|".format("Stream", "Type", "Format", "Quality", "Size"))
@@ -266,12 +282,15 @@ class UdemyDownload:
                     try:
                         _file           = urls.get('file')
                         _external_url   = urls.get('external_url')
+                        _subtitle       = urls.get('subtitle')
                     except AttributeError as e:
                         pass
                     else:
-                        if _file and not _external_url:
+                        if _file and not _external_url and not _subtitle:
                             _url = _file
-                        elif not _external_url and not _file:
+                        elif _subtitle and not _file and not _external_url:
+                            _url = _subtitle
+                        elif not _external_url and not _file and not _subtitle:
                             if not quality:
                                 _url = max(urls, key=urls.get)
                             else:

@@ -415,4 +415,5 @@ class UdemyInfoExtractor:
                 chap = "{0:02d} {1!s}".format(chapter_number, chapter)
                 if chapter_number not in udemy_dict:
                     udemy_dict[chap] = {}
+
         return udemy_dict
