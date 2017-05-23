@@ -87,8 +87,8 @@ Options:
     -u, --username    Username in udemy.
     -p, --password    Password of your account.
     -s, --save-links  Do not download but save links to a file.
-    -l, --list-infos  Just list all lectures and their ids with resolution.
-    -r, --resolution  Download video resolution, default resolution is 720p.
+    -l, --list-infos  List all lectures with available resolution.
+    -r, --resolution  Download video resolution, by default it gets the available highest resolution.
     -o, --output      Output directory where the videos will be saved, default
                       is current directory.
   

@@ -378,12 +378,12 @@ def main():
         "-l", "--list-infos", 
         action='store_true',
         dest='list',\
-        help="Just list all lectures and their ids with resolution.")
+        help="List all lectures with available resolution.")
     downloader.add_option(
         "-r", "--resolution", 
         action='store_true',
         dest='quality',\
-        help="Download video resolution, default resolution is 720p.")
+        help="Download video resolution, by default it gets the available highest resolution")
     downloader.add_option(
         "-o", "--output", 
         action='store_true',
