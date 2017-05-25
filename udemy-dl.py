@@ -383,7 +383,7 @@ def main():
         "-r", "--resolution", 
         action='store_true',
         dest='quality',\
-        help="Download video resolution, by default it gets the available highest resolution")
+        help="Download video resolution, default resolution is 720p.")
     downloader.add_option(
         "-o", "--output", 
         action='store_true',
