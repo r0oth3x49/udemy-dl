@@ -197,7 +197,6 @@ class UdemyInfoExtractor:
                 supplementary_assets = entry.get('supplementary_assets')
 
                 if isinstance(asset, dict):
-                    
                     asset_type = asset.get('asset_type') or asset.get('assetType')
                     if asset_type == 'Article':
                         if len(supplementary_assets) != 0:
@@ -241,8 +240,7 @@ class UdemyInfoExtractor:
                             counter += 1
                             
                         else:
-                            counter += 1 
-                            continue
+                            counter += 1
                         
                     elif asset_type == 'Video':
                         
@@ -329,11 +327,14 @@ class UdemyInfoExtractor:
                         __items     = asset.get('download_urls')
                         _items      = asset.get('slide_urls')
                         _filename   = asset.get('filename')
-                        if __items:
-                            if isinstance(_items, dict):
-                                src       = _items.get('Presentation')[0]
-                        else:
-                            src           = _items
+                        if __items and isinstance(__items, dict):
+                            src     = __items.get('Presentation')[0]
+                        elif _items and isinstance(_items, list):
+                            ext_list = ['.png', '.jpg', '.jpeg']
+                            src     = {'file' : compat_str(_items[0]), 'label' : 'download'}
+                            matching = [ext for ext in ext_list if ext in src.get('file')]
+                            if matching:
+                                _filename = '{}{}'.format(_filename.split('.')[0],matching[0])
 
                         if lecture_id not in udemy_dict[chap]:
                             ind         = entry.get('object_index')

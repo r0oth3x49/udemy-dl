@@ -292,7 +292,10 @@ class UdemyDownload:
                             _url = _subtitle
                         elif not _external_url and not _file and not _subtitle:
                             if not quality:
-                                _url = max(urls, key=urls.get)
+                                try:
+                                    _url = max(urls, key=urls.get)
+                                except ValueError as e:
+                                    continue
                             else:
                                 found = False
                                 for url,res in urls.items():
@@ -309,7 +312,10 @@ class UdemyDownload:
                                     else:
                                         askUser = raw_input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality : ")
                                     if askUser == 'y' or askUser == 'Y' or askUser == '':
-                                        _url = max(urls, key=urls.get)
+                                        try:
+                                            _url = max(urls, key=urls.get)
+                                        except ValueError as e:
+                                            continue
                                     else:
                                         i += 1
                                         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Continuing to check for the next lecture..\n")
