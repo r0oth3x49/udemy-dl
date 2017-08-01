@@ -185,7 +185,7 @@ class UdemyInfoExtractor:
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (num_lect))
         
         udemy_dict = {}
-        chapter, chapter_number = [None] * 2
+        chap, chapter_number = [None] * 2
         counter = 0
         
         for entry in response['results']:
@@ -352,61 +352,64 @@ class UdemyInfoExtractor:
                 self.Progress(counter, num_lect, fileSize = str(num_lect), downloaded = str(counter), barLength = 40)
                 time.sleep(0.1)
                 if lecture_id:
-                    if lecture_id not in udemy_dict[chap]:
-                        view_html = entry.get('view_html')
-                        if view_html:
-                            ind = entry.get('object_index')
-                            t = (''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')]))
-                            title = "{0:03d} {1!s}".format(ind, t if '.' not in t else t.replace('.', '_'))
-                            udemy_dict[chap][title] = {}
-                            data   = _parse_json(
-                                                _search_regex(
-                                                        r'videojs-setup-data=(["\'])(?P<data>{.+?})\1',
-                                                        view_html,
-                                                        'setup data',
-                                                        default='{}',
-                                                        group='data'),
-                                                lecture_id,
-                                                transform_source=unescapeHTML,
-                                                fatal=False,
-                                )
-                            if data and isinstance(data, dict):
-                                sources  = data.get('sources')
-                                tracks   = data.get('tracks')
-                                duration = data.get('durations') if not None else None
-                                if isinstance(sources, list):
-                                    for source in sources:
-                                        res  = source.get('label')
-                                        src  = source.get('src')
-                                        if not src:
-                                            continue
-                                        height = res if res else None
-                                        if source.get('type') == 'application/x-mpegURL' or 'm3u8' in src:
-                                            continue
-                                        else:
-                                            udemy_dict[chap][title][src] = height
+                    try:
+                        if lecture_id not in udemy_dict[chap]:
+                            view_html = entry.get('view_html')
+                            if view_html:
+                                ind = entry.get('object_index')
+                                t = (''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')]))
+                                title = "{0:03d} {1!s}".format(ind, t if '.' not in t else t.replace('.', '_'))
+                                udemy_dict[chap][title] = {}
+                                data   = _parse_json(
+                                                    _search_regex(
+                                                            r'videojs-setup-data=(["\'])(?P<data>{.+?})\1',
+                                                            view_html,
+                                                            'setup data',
+                                                            default='{}',
+                                                            group='data'),
+                                                    lecture_id,
+                                                    transform_source=unescapeHTML,
+                                                    fatal=False,
+                                    )
+                                if data and isinstance(data, dict):
+                                    sources  = data.get('sources')
+                                    tracks   = data.get('tracks')
+                                    duration = data.get('durations') if not None else None
+                                    if isinstance(sources, list):
+                                        for source in sources:
+                                            res  = source.get('label')
+                                            src  = source.get('src')
+                                            if not src:
+                                                continue
+                                            height = res if res else None
+                                            if source.get('type') == 'application/x-mpegURL' or 'm3u8' in src:
+                                                continue
+                                            else:
+                                                udemy_dict[chap][title][src] = height
 
-                                            
-                                if isinstance(tracks, list):
-                                    for track in tracks:
-                                        if not isinstance(track, dict):
-                                            continue
-                                        if track.get('kind') != 'captions':
-                                            continue
-                                        src = track.get('src')
-                                        if not src or not isinstance(src, compat_str):
-                                            continue
-                                        lang = track.get('language') or track.get('srclang') or track.get('label')
-                                        autogenerated = track.get('autogenerated')
-                                        ext      = 'vtt' if 'vtt' in src.rsplit('.', 1)[-1] else 'srt'
-                                        subtitle = "{}-subtitle-{}.{}".format(title,lang, ext)
-                                        if not subtitle in udemy_dict[chap]:
-                                            udemy_dict[chap][subtitle] = {'subtitle' : src}
-                                
-                    if chapter_number:
-                        entry['chapter_number'] = chapter_number
-                    if chapter:
-                        entry['chapter'] = chapter
+                                                
+                                    if isinstance(tracks, list):
+                                        for track in tracks:
+                                            if not isinstance(track, dict):
+                                                continue
+                                            if track.get('kind') != 'captions':
+                                                continue
+                                            src = track.get('src')
+                                            if not src or not isinstance(src, compat_str):
+                                                continue
+                                            lang = track.get('language') or track.get('srclang') or track.get('label')
+                                            autogenerated = track.get('autogenerated')
+                                            ext      = 'vtt' if 'vtt' in src.rsplit('.', 1)[-1] else 'srt'
+                                            subtitle = "{}-subtitle-{}.{}".format(title,lang, ext)
+                                            if not subtitle in udemy_dict[chap]:
+                                                udemy_dict[chap][subtitle] = {'subtitle' : src}
+                                    
+                        if chapter_number:
+                            entry['chapter_number'] = chapter_number
+                        if chapter:
+                            entry['chapter'] = chapter
+                    except Exception as e:
+                        pass
 
                         
             elif clazz == 'chapter':
