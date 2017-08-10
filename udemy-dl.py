@@ -14,11 +14,13 @@ from udemy.colorized import *
 from udemy import __author__
 from udemy import __version__
 
-
 from udemy.colorized.banner import banner
 
-extract_info = udemy.UdemyInfoExtractor()
-course_dl = udemy.Downloader()
+extract_info        = udemy.UdemyInfoExtractor()
+course_dl           = udemy.Downloader()
+getpass             = udemy.GetPass()
+cache_creds         = udemy.cache_credentials
+use_cached_creds    = udemy.use_cached_credentials
 
 class UdemyDownload:
 
@@ -45,6 +47,13 @@ class UdemyDownload:
         bar             = fc + sd + ('█' if os.name == 'posix' else '#') * filledLength + fg + sd +'-' * (barLength - filledLength)
         stdout.write('{}{}[{}{}*{}{}] : {}{}{}/{} {}% |{}{}{}| {} {}s ETA                                \r'.format(fc,sd,fm,sb,fc,sd,fg,sb,fileSize,downloaded,percents,bar,fg,sb,rate,suffix))
         stdout.flush()
+
+    def clean_dict(self, udemy_dict):
+        if not isinstance(udemy_dict, (dict, list)):
+            return udemy_dict
+        if isinstance(udemy_dict, list):
+            return [v for v in (self.clean_dict(v) for v in udemy_dict) if v]
+        return {k: v for k, v in ((k, self.clean_dict(v)) for k, v in udemy_dict.items()) if v}
 
     def Download(self, total, recvd, ratio, rate, eta):
         if total <= 1048576:
@@ -84,7 +93,7 @@ class UdemyDownload:
             print (fc + sd + "[" + fw + sb + "*" + fc + sd + "] : " + fw + sd + "Try to run the udemy-dl again...")
             exit(0)
             
-    def SaveLinks(self, quality=None, path=None):
+    def SaveLinks(self, quality=None, path=None, default=False):
         if not path:
             current_dir = os.getcwd()
         else:
@@ -95,7 +104,7 @@ class UdemyDownload:
                 current_dir = os.getcwd()
                 print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Path '%s' does not exist, saving to '%s'" % (path, current_dir))
                 
-        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
         time.sleep(2)
         course_path = extract_info.match_id(self.url)
         course      = "%s" % (course_path) 
@@ -105,7 +114,7 @@ class UdemyDownload:
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading " + fb + sb + "'%s'." % (course.replace('-',' ')))
         self.login()
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..")
-        videos_dict = extract_info.real_extract(self.url, course_name, course_path)
+        videos_dict = self.clean_dict(extract_info.real_extract(self.url, course_name, course_path))
         self.logout()
         if isinstance(videos_dict, dict):
             if os.name == 'nt':
@@ -140,16 +149,27 @@ class UdemyDownload:
                                         continue
                                     
                                 if not found:
-                                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Requested quality is not available for (%s)" % (lecture_name))
-                                    if version_info[:2] >= (3, 0):
-                                        askUser = input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality (y/n): ")
+                                    if default:
+                                        print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Request quality not found for (%s)" % (lecture_name))
+                                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fw + sb + "Downloading default quality...")
+                                        try:
+                                            _url = max(urls, key=urls.get)
+                                        except ValueError as e:
+                                            continue
                                     else:
-                                        askUser = raw_input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality (y/n): ")
-                                    if askUser == 'y' or askUser == 'Y' or askUser == '':
-                                        _url = max(urls, key=urls.get)
-                                    else:
-                                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Continuing to check for the next lecture..\n")
-                                        continue
+                                        print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Requested quality is not available for (%s)" % (lecture_name))
+                                        if version_info[:2] >= (3, 0):
+                                            askUser = input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality (y/n): ")
+                                        else:
+                                            askUser = raw_input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality (y/n): ")
+                                        if askUser == 'y' or askUser == 'Y' or askUser == '':
+                                            try:
+                                                _url = max(urls, key=urls.get)
+                                            except ValueError as e:
+                                                continue
+                                        else:
+                                            print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Continuing to check for the next lecture..")
+                                            continue
                         
                     if _url:
                         with open("%s.txt" % (course), "a") as f:
@@ -174,7 +194,7 @@ class UdemyDownload:
             
     def ListDown(self):
         current_dir = os.getcwd()
-        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
         time.sleep(2)
         course_path = extract_info.match_id(self.url)
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting course information..")
@@ -183,7 +203,7 @@ class UdemyDownload:
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading " + fb + sb + "'%s'." % (course_path.replace('-',' ')))
         self.login()
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..")
-        videos_dict = extract_info.real_extract(self.url, course_name, course_path)
+        videos_dict = self.clean_dict(extract_info.real_extract(self.url, course_name, course_path))
         self.logout()
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting chapters & lectures information..")
         if isinstance(videos_dict, dict):
@@ -199,10 +219,10 @@ class UdemyDownload:
                     else:
                         if _external_url and not _file and not _subtitle:
                             _external_url = urls.get('external_url')
-                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "External Link '" + fm + sd + str(lecture)+ fy + sb + "'..")
                             print  (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Visit " + fg + sd + "(" + str(_external_url)+ fg + sb + ")\n")
                         elif _file and not _external_url and not _subtitle:
-                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "File '" + fm + sd + str(lecture)+ fy + sb + "'..")
                             print  (fy + sb + "+--------------------------------------------+")
                             print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("Stream", "Type", "Format", "Size"))
                             print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("------", "-----", "------","-------"))
@@ -211,10 +231,10 @@ class UdemyDownload:
                             sz,in_MB    = self.get_filsize(url)
                             media       = 'file' 
                             Format      = lecture.split('.')[-1]
-                            print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<5} {:<9}{}{}|".format(sid, media, Format , sz, in_MB, fy, sb))
+                            print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<5} {:<8}{}{}|".format(sid, media, Format , sz, in_MB, fy, sb))
                             print  (fy + sb + "+--------------------------------------------+")
                         elif _subtitle and not _file and not _external_url:
-                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Subtitle '" + fm + sd + str(lecture)+ fy + sb + "'..")
                             print  (fy + sb + "+--------------------------------------------+")
                             print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("Stream", "Type", "Format", "Size"))
                             print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("------", "-----", "------","-------"))
@@ -243,9 +263,9 @@ class UdemyDownload:
                             print  (fy + sb + "+--------------------------------------------------------+")
 
         
-    def ExtractAndDownload(self, path=None, quality=None):
+    def ExtractAndDownload(self, path=None, quality=None,  default=False):
         current_dir = os.getcwd()
-        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
+        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting course information..")
         time.sleep(2)
         course = extract_info.match_id(self.url)
@@ -259,7 +279,7 @@ class UdemyDownload:
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading " + fb + sb + "'%s'." % (course.replace('-',' ')))
         self.login()
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..")
-        videos_dict = extract_info.real_extract(self.url, course_name, course_path)
+        videos_dict = self.clean_dict(extract_info.real_extract(self.url, course_name, course_path))
         self.logout()
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Counting no of chapters..")
         if isinstance(videos_dict, dict):
@@ -306,20 +326,28 @@ class UdemyDownload:
                                         continue
                                     
                                 if not found:
-                                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Request quality is not available for (%s)" % (lecture_name))
-                                    if version_info[:2] >= (3, 0):
-                                        askUser = input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality : ")
-                                    else:
-                                        askUser = raw_input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality : ")
-                                    if askUser == 'y' or askUser == 'Y' or askUser == '':
+                                    if default:
+                                        print (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Request quality not found for (%s)" % (lecture_name))
+                                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fw + sb + "Downloading default quality...")
                                         try:
                                             _url = max(urls, key=urls.get)
                                         except ValueError as e:
                                             continue
                                     else:
-                                        i += 1
-                                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Continuing to check for the next lecture..\n")
-                                        continue
+                                        print (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Request quality is not available for (%s)" % (lecture_name))
+                                        if version_info[:2] >= (3, 0):
+                                            askUser = input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality : ")
+                                        else:
+                                            askUser = raw_input(fc + sd + "[" + fw + sb + "?" + fc + sd + "] : " + fw + sb + "Would you like to download the default quality : ")
+                                        if askUser == 'y' or askUser == 'Y' or askUser == '':
+                                            try:
+                                                _url = max(urls, key=urls.get)
+                                            except ValueError as e:
+                                                continue
+                                        else:
+                                            i += 1
+                                            print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Continuing to check for the next lecture..")
+                                            continue
                     if _external_url and not _file:
                         _url = _external_url
                         _external_links = "links-to-visit.txt"
@@ -349,7 +377,8 @@ def main():
     ban = banner()
     print (ban)
     usage       = '''%prog [-h] [-u "username"] [-p "password"] COURSE_URL
-                   [-s] [-l] [-r VIDEO_QUALITY] [-o OUTPUT]'''
+                   [-s] [-l] [-r VIDEO_QUALITY] [-o OUTPUT] [-d] 
+                   [--cache-creds]'''
     version     = "%prog version {}".format(__version__)
     description = 'A cross-platform python based utility to download courses from udemy for personal offline use.'
     parser = optparse.OptionParser(usage=usage,version=version,conflict_handler="resolve", description=description)
@@ -376,6 +405,11 @@ def main():
         dest='password',\
         help="Password of your account.")
     downloader.add_option(
+        "-c","--cache-creds", 
+        action='store_true',
+        dest='cache_credentials',\
+        help="Cache your credentials to use it later.")
+    downloader.add_option(
         "-s", "--save-links", 
         action='store_true',
         dest='save_links',\
@@ -391,10 +425,16 @@ def main():
         dest='quality',\
         help="Download video resolution, default resolution is 720p.")
     downloader.add_option(
+        "-d", "--get-default", 
+        action='store_true',
+        dest='default',\
+        help="Download default resolution if requested not there.")
+    downloader.add_option(
         "-o", "--output", 
         action='store_true',
         dest='output',\
         help="Output directory where the videos will be saved, default is current directory.")
+    
 
     parser.add_option_group(general)
     parser.add_option_group(downloader)
@@ -402,79 +442,173 @@ def main():
     (options, args) = parser.parse_args()
 
     if not options.email and not options.password:
-        parser.print_help()
+        try:
+            url     = args[0]
+        except IndexError as e:
+            parser.print_help()
+        else:
+            creds       = use_cached_creds()
+            if isinstance(creds, dict):
+                email   = creds.get('username')
+                passwd  = creds.get('password')
+                udemy =  UdemyDownload(url, email, passwd)
+                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Using cached credentials..")
+                if options.cache_credentials:
+                    pass
+                udemy =  UdemyDownload(url, email, passwd)
+                '''     Download course      ''' 
+                if not options.save_links and not options.list and not options.output and not options.quality:
+                    udemy.ExtractAndDownload()
+                elif not options.save_links and not options.list and options.output and not options.quality:
+                    outto   = args[1]
+                    udemy.ExtractAndDownload(path=outto)
+                elif not options.save_links and not options.list and options.output and options.quality:
+                    res     = args[1]
+                    outto   = args[2]
+                    if options.default:
+                        udemy.ExtractAndDownload(path=outto, quality=res, default=True)
+                    else:
+                        udemy.ExtractAndDownload(path=outto, quality=res)
+                elif not options.save_links and not options.list and not options.output and options.quality:
+                    res     = args[1]
+                    if options.default:
+                        udemy.ExtractAndDownload(quality=res, default=True)
+                    else:
+                        udemy.ExtractAndDownload(quality=res)
+                    ''' Save course links ''' 
+                elif options.save_links and not options.list and not options.output and not options.quality:
+                    udemy.SaveLinks()
+                elif options.save_links and not options.list and not options.output and options.quality:
+                    res     = args[1]
+                    if options.default:
+                        udemy.SaveLinks(quality=res, default=True)
+                    else:
+                        udemy.SaveLinks(quality=res)
+                elif options.save_links and not options.list and options.output and not options.quality:
+                    outto   = args[1]
+                    udemy.SaveLinks(path=outto)
+                elif options.save_links and not options.list and options.output and options.quality:
+                    res     = args[1]
+                    outto   = args[2]
+                    if options.default:
+                        udemy.SaveLinks(quality=res, path=outto, default=True)
+                    else:
+                        udemy.SaveLinks(quality=res, path=outto)
+                    ''' list down available formats of files and videos '''
+                elif not options.save_links and options.list and not options.output and not options.quality:
+                    udemy.ListDown()
 
-    elif options.email and options.password and not options.save_links and not options.list and not options.output and not options.quality:
-        email   = args[0]
-        passwd  = args[1]
-        url     = args[2]
-        udemy =  UdemyDownload(url, email, passwd)
-        udemy.ExtractAndDownload()
-    elif options.email and options.password and options.save_links and not options.list and not options.output and not options.quality:
-        email   = args[0]
-        passwd  = args[1]
-        url     = args[2] if 'http' in args[2] else args[3]
-        links   = options.save_links
-        udemy   =  UdemyDownload(url, email, passwd)
-        udemy.SaveLinks()
-    elif options.email and options.password and options.save_links and not options.list and not options.output and options.quality:
-        email   = args[0]
-        passwd  = args[1]
-        url     = args[2]
-        res     = args[3]
-        links   = options.save_links
-        udemy   =  UdemyDownload(url, email, passwd)
-        udemy.SaveLinks(quality=res)
-    elif options.email and options.password and options.save_links and not options.list and options.output and not options.quality:
-        email   = args[0]
-        passwd  = args[1]
-        url     = args[2]
-        outto   = args[3]
-        links   = options.save_links
-        udemy   =  UdemyDownload(url, email, passwd)
-        udemy.SaveLinks(path=outto)
-    elif options.email and options.password and options.save_links and not options.list and options.output and options.quality:
-        email   = args[0]
-        passwd  = args[1]
-        url     = args[2]
-        res     = args[3]
-        outto   = args[4]
-        links   = options.save_links
-        udemy   =  UdemyDownload(url, email, passwd)
-        udemy.SaveLinks(quality=res, path=outto)
-    elif options.email and options.password and not options.save_links and options.list and not options.output and not options.quality:
-        email   = args[0]
-        passwd  = args[1]
-        url     = args[2] if 'http' in args[2] else args[3]
-        lists   = options.list
-        udemy   =  UdemyDownload(url, email, passwd)
-        udemy.ListDown()
-    elif options.email and options.password and not options.save_links and not options.list and options.output and not options.quality:
-        email   = args[0]
-        passwd  = args[1]
-        url     = args[2] 
-        outto   = args[3] 
-        udemy   =  UdemyDownload(url, email, passwd)
-        udemy.ExtractAndDownload(path=outto)
-    elif options.email and options.password and not options.save_links and not options.list and options.output and options.quality:
-        email   = args[0]
-        passwd  = args[1]
-        url     = args[2]
-        res     = args[3]
-        outto   = args[4]
-        udemy =  UdemyDownload(url, email, passwd)
-        udemy.ExtractAndDownload(path=outto, quality=res)
-    elif options.email and options.password and not options.save_links and not options.list and not options.output and options.quality:
-        email   = args[0]
-        passwd  = args[1]
-        url     = args[2]
-        res     = args[3]
-        udemy =  UdemyDownload(url, email, passwd)
-        udemy.ExtractAndDownload(quality=res)
-    else:
-        parser.print_help()
+            else:
+                username = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Username : " + fg + sb
+                password = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Password : " + fc + sb
+                email   = input(username) if version_info[:2] >= (3, 0) else raw_input(username)
+                passwd  = getpass.win_getpass(prompt=password) if os.name == 'nt' else getpass.unix_getpass(prompt=password)
+                print ""
+                if options.cache_credentials:
+                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching credentials...")
+                    cached = cache_creds(email, passwd)
+                    if cached == 'cached':
+                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Credentials cached successfully...")
 
-    
+                udemy =  UdemyDownload(url, email, passwd)
+                '''     Download course      ''' 
+                if not options.save_links and not options.list and not options.output and not options.quality:
+                    udemy.ExtractAndDownload()
+                elif not options.save_links and not options.list and options.output and not options.quality:
+                    outto   = args[1]
+                    udemy.ExtractAndDownload(path=outto)
+                elif not options.save_links and not options.list and options.output and options.quality:
+                    res     = args[1]
+                    outto   = args[2]
+                    if options.default:
+                        udemy.ExtractAndDownload(path=outto, quality=res, default=True)
+                    else:
+                        udemy.ExtractAndDownload(path=outto, quality=res)
+                elif not options.save_links and not options.list and not options.output and options.quality:
+                    res     = args[1]
+                    if options.default:
+                        udemy.ExtractAndDownload(quality=res, default=True)
+                    else:
+                        udemy.ExtractAndDownload(quality=res)
+                    ''' Save course links ''' 
+                elif options.save_links and not options.list and not options.output and not options.quality:
+                    udemy.SaveLinks()
+                elif options.save_links and not options.list and not options.output and options.quality:
+                    res     = args[1]
+                    if options.default:
+                        udemy.SaveLinks(quality=res, default=True)
+                    else:
+                        udemy.SaveLinks(quality=res)
+                elif options.save_links and not options.list and options.output and not options.quality:
+                    outto   = args[1]
+                    udemy.SaveLinks(path=outto)
+                elif options.save_links and not options.list and options.output and options.quality:
+                    res     = args[1]
+                    outto   = args[2]
+                    if options.default:
+                        udemy.SaveLinks(quality=res, path=outto, default=True)
+                    else:
+                        udemy.SaveLinks(quality=res, path=outto)
+                    ''' list down available formats of files and videos '''
+                elif not options.save_links and options.list and not options.output and not options.quality:
+                    udemy.ListDown()
+
+    elif options.email and options.password:
+        email       = args[0]
+        passwd      = args[1] 
+        try:
+            url     = args[2] 
+        except IndexError as e:
+            parser.print_usage()
+        else:
+            if options.cache_credentials:
+                print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching credentials...")
+                cached = cache_creds(email, passwd)
+                if cached == 'cached':
+                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Credentials cached successfully...")
+
+            udemy =  UdemyDownload(url, email, passwd)
+            '''     Download course      ''' 
+            if not options.save_links and not options.list and not options.output and not options.quality:
+                udemy.ExtractAndDownload()
+            elif not options.save_links and not options.list and options.output and not options.quality:
+                outto   = args[3]
+                udemy.ExtractAndDownload(path=outto)
+            elif not options.save_links and not options.list and options.output and options.quality:
+                res     = args[3]
+                outto   = args[4]
+                if options.default:
+                    udemy.ExtractAndDownload(path=outto, quality=res, default=True)
+                else:
+                    udemy.ExtractAndDownload(path=outto, quality=res)
+            elif not options.save_links and not options.list and not options.output and options.quality:
+                res     = args[3]
+                if options.default:
+                    udemy.ExtractAndDownload(quality=res, default=True)
+                else:
+                    udemy.ExtractAndDownload(quality=res)
+                ''' Save course links ''' 
+            elif options.save_links and not options.list and not options.output and not options.quality:
+                udemy.SaveLinks()
+            elif options.save_links and not options.list and not options.output and options.quality:
+                res     = args[3]
+                if options.default:
+                    udemy.SaveLinks(quality=res, default=True)
+                else:
+                    udemy.SaveLinks(quality=res)
+            elif options.save_links and not options.list and options.output and not options.quality:
+                outto   = args[3]
+                udemy.SaveLinks(path=outto)
+            elif options.save_links and not options.list and options.output and options.quality:
+                res     = args[3]
+                outto   = args[4]
+                if options.default:
+                    udemy.SaveLinks(quality=res, path=outto, default=True)
+                else:
+                    udemy.SaveLinks(quality=res, path=outto)
+                ''' list down available formats of files and videos '''
+            elif not options.save_links and options.list and not options.output and not options.quality:
+                udemy.ListDown()
 
 if __name__ == '__main__':
     try:
@@ -483,7 +617,4 @@ if __name__ == '__main__':
         print (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..")
         time.sleep(0.8)
     except IndexError:
-        print (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "Required fields seems empty please fill with proper input of username,password and course url..")
-
-        
-        
+        print (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "Username, Password and course url is required..")

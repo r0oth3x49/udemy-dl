@@ -23,6 +23,7 @@ from ._compat import (
     )
 from ._utils import (
     _parse_json,
+    js_to_json,
     _search_regex,
     _search_simple_regex,
     unescapeHTML,
@@ -371,9 +372,20 @@ class UdemyInfoExtractor:
                                                     transform_source=unescapeHTML,
                                                     fatal=False,
                                     )
+                                text_tracks = _parse_json(
+                                                    _search_regex(
+                                                            r'text-tracks=(["\'])(?P<data>\[.+?\])\1',
+                                                            view_html,
+                                                            'text tracks',
+                                                            default='{}',
+                                                            group='data'),
+                                                    lecture_id,
+                                                    transform_source=lambda s: js_to_json(unescapeHTML(s)),
+                                                    fatal=False,
+                                    )
                                 if data and isinstance(data, dict):
                                     sources  = data.get('sources')
-                                    tracks   = data.get('tracks')
+                                    tracks   = data.get('tracks') if isinstance(data.get('tracks'), list) else text_tracks
                                     duration = data.get('durations') if not None else None
                                     if isinstance(sources, list):
                                         for source in sources:

@@ -11,6 +11,35 @@ from ._compat import (
                         )
 
 
+def cache_credentials(username, password):
+    fname = "credentials"
+    fmode = "w"
+    creds = {
+                "username" : username,
+                "password" : password
+            }
+    fout = open(fname, fmode)
+    json.dump(creds, fout)
+    fout.close()
+    return "cached"
+
+
+def use_cached_credentials():
+    fname = "credentials"
+    try:
+        fout = open(fname)
+    except IOError as e:
+        creds = ''
+        return creds
+    except Exception as e:
+        creds = ''
+        return creds
+    else:
+        creds = json.load(fout)
+        fout.close()
+        return creds
+        
+
 def unescapeHTML(s):
     clean   = compat_HTMLParser()
     data    = clean.unescape(s)
@@ -62,3 +91,44 @@ def _parse_json(json_string, video_id, transform_source=None, fatal=True):
 def _search_simple_regex(regex, webpage):
     _extract = re.search(regex, webpage)
     return _extract
+
+# thanks to youtube-dl
+def js_to_json(code):
+    COMMENT_RE = r'/\*(?:(?!\*/).)*?\*/|//[^\n]*'
+    SKIP_RE = r'\s*(?:{comment})?\s*'.format(comment=COMMENT_RE)
+    INTEGER_TABLE = (
+        (r'(?s)^(0[xX][0-9a-fA-F]+){skip}:?$'.format(skip=SKIP_RE), 16),
+        (r'(?s)^(0+[0-7]+){skip}:?$'.format(skip=SKIP_RE), 8),
+    )
+
+    def fix_kv(m):
+        v = m.group(0)
+        if v in ('true', 'false', 'null'):
+            return v
+        elif v.startswith('/*') or v.startswith('//') or v == ',':
+            return ""
+
+        if v[0] in ("'", '"'):
+            v = re.sub(r'(?s)\\.|"', lambda m: {
+                '"': '\\"',
+                "\\'": "'",
+                '\\\n': '',
+                '\\x': '\\u00',
+            }.get(m.group(0), m.group(0)), v[1:-1])
+
+        for regex, base in INTEGER_TABLE:
+            im = re.match(regex, v)
+            if im:
+                i = int(im.group(1), base)
+                return '"%d":' % i if v.endswith(':') else '%d' % i
+
+        return '"%s"' % v
+
+    return re.sub(r'''(?sx)
+        "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
+        '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
+        {comment}|,(?={skip}[\]}}])|
+        [a-zA-Z_][.a-zA-Z_0-9]*|
+        \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|
+        [0-9]+(?={skip}:)
+        '''.format(comment=COMMENT_RE, skip=SKIP_RE), fix_kv, code)
