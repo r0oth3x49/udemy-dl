@@ -1,6 +1,6 @@
 {	
-	"username"		: "", 
-	"password"		: "", 
-	"resolution"	: "",
-	"output"		: "" 
+	"username" 		: "", 
+	"password" 		: "", 
+	"resolution" 		: "",
+	"output" 		: "" 
 }

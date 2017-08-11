@@ -470,9 +470,17 @@ def main():
                 if email != "" and passwd != "":
                     udemy =  UdemyDownload(url, email, passwd)
                 else:
-                    configFile = os.getcwd() + "\\config" if os.name == 'nt' else os.getcwd() + "/config"
-                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password seems empty under '{}' file.".format(configFile))
-                    exit(0)
+                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password seems empty in 'configuration' file")
+                    username = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Username : " + fg + sb
+                    password = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Password : " + fc + sb
+                    email   = input(username) if version_info[:2] >= (3, 0) else raw_input(username)
+                    passwd  = getpass.getpass(prompt=password)
+                    print ""
+                    if email and passwd:
+                        udemy =  UdemyDownload(url, email, passwd)
+                    else:
+                        print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password is required..")
+                        exit(0)
                 if options.configurations:
                     pass
                 '''     Download course      ''' 
