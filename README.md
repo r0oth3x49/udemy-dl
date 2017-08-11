@@ -58,9 +58,9 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 	
 	{
 		"username" 		: "user@domain.com",
-		"password"		: "p4ssw0rd",
+		"password" 		: "p4ssw0rd",
 		"output" 		: "path/to/directory/",
-		"resolution" 	: "1080"
+		"resolution" 		: "1080"
 	}
 	
 	Example for windows users to set output directory:
@@ -128,7 +128,7 @@ Options:
   Advance:
     -u, --username     Username in udemy.
     -p, --password     Password of your account.
-    -c, --configs  	   Cache your credentials to use it later.
+    -c, --configs      Cache your credentials to use it later.
     -s, --save-links   Do not download but save links to a file.
     -l, --list-infos   List all lectures with available resolution.
     -r, --resolution   Download video resolution, default resolution is 720p.

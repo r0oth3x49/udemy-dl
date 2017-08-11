@@ -378,7 +378,7 @@ def main():
     print (ban)
     usage       = '''%prog [-h] [-u "username"] [-p "password"] COURSE_URL
                    [-s] [-l] [-r VIDEO_QUALITY] [-o OUTPUT] [-d] 
-                   [--cache-creds]'''
+                   [--configs]'''
     version     = "%prog version {}".format(__version__)
     description = 'A cross-platform python based utility to download courses from udemy for personal offline use.'
     parser = optparse.OptionParser(usage=usage,version=version,conflict_handler="resolve", description=description)
