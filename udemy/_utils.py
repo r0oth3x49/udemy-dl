@@ -11,12 +11,14 @@ from ._compat import (
                         )
 
 
-def cache_credentials(username, password):
-    fname = "credentials"
+def cache_credentials(username, password, resolution="", output=""):
+    fname = "configuration"
     fmode = "w"
     creds = {
-                "username" : username,
-                "password" : password
+                "username"          : username,
+                "password"          : password,
+                "resolution"        : resolution,
+                "output"            : output
             }
     fout = open(fname, fmode)
     json.dump(creds, fout)
@@ -25,7 +27,7 @@ def cache_credentials(username, password):
 
 
 def use_cached_credentials():
-    fname = "credentials"
+    fname = "configuration"
     try:
         fout = open(fname)
     except IOError as e:

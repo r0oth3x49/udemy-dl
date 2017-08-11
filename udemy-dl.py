@@ -405,9 +405,9 @@ def main():
         dest='password',\
         help="Password of your account.")
     downloader.add_option(
-        "-c","--cache-creds", 
+        "-c","--configs", 
         action='store_true',
-        dest='cache_credentials',\
+        dest='configurations',\
         help="Cache your credentials to use it later.")
     downloader.add_option(
         "-s", "--save-links", 
@@ -427,6 +427,7 @@ def main():
     downloader.add_option(
         "-d", "--get-default", 
         action='store_true',
+        default = False,
         dest='default',\
         help="Download default resolution if requested not there.")
     downloader.add_option(
@@ -447,30 +448,48 @@ def main():
         except IndexError as e:
             parser.print_help()
         else:
-            creds       = use_cached_creds()
-            if isinstance(creds, dict):
-                email   = creds.get('username')
-                passwd  = creds.get('password')
-                udemy =  UdemyDownload(url, email, passwd)
-                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Using cached credentials..")
-                if options.cache_credentials:
+            config       = use_cached_creds()
+            if isinstance(config, dict):
+                email       = config.get('username')
+                passwd      = config.get('password')
+                resolution  = config.get('resolution') or None
+                output      = config.get('output') or None
+
+                if resolution != "" and resolution != None:
+                    options.quality = True
+                    options.default = True
+                else:
+                    options.quality = False
+
+                if output != "" and output != None:
+                    options.output  = True
+                else:
+                    options.output  = False
+
+                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Using cached configurations..")
+                if email != "" and passwd != "":
+                    udemy =  UdemyDownload(url, email, passwd)
+                else:
+                    configFile = os.getcwd() + "\\config" if os.name == 'nt' else os.getcwd() + "/config"
+                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password seems empty under '{}' file.".format(configFile))
+                    exit(0)
+                if options.configurations:
                     pass
-                udemy =  UdemyDownload(url, email, passwd)
                 '''     Download course      ''' 
                 if not options.save_links and not options.list and not options.output and not options.quality:
                     udemy.ExtractAndDownload()
                 elif not options.save_links and not options.list and options.output and not options.quality:
-                    outto   = args[1]
+                    outto   = output
                     udemy.ExtractAndDownload(path=outto)
                 elif not options.save_links and not options.list and options.output and options.quality:
-                    res     = args[1]
-                    outto   = args[2]
+                    res     = resolution
+                    outto   = output
                     if options.default:
                         udemy.ExtractAndDownload(path=outto, quality=res, default=True)
                     else:
                         udemy.ExtractAndDownload(path=outto, quality=res)
                 elif not options.save_links and not options.list and not options.output and options.quality:
-                    res     = args[1]
+                    res     = resolution
                     if options.default:
                         udemy.ExtractAndDownload(quality=res, default=True)
                     else:
@@ -479,38 +498,42 @@ def main():
                 elif options.save_links and not options.list and not options.output and not options.quality:
                     udemy.SaveLinks()
                 elif options.save_links and not options.list and not options.output and options.quality:
-                    res     = args[1]
+                    res     = resolution
                     if options.default:
                         udemy.SaveLinks(quality=res, default=True)
                     else:
                         udemy.SaveLinks(quality=res)
                 elif options.save_links and not options.list and options.output and not options.quality:
-                    outto   = args[1]
+                    outto   = output
                     udemy.SaveLinks(path=outto)
                 elif options.save_links and not options.list and options.output and options.quality:
-                    res     = args[1]
-                    outto   = args[2]
+                    res     = resolution
+                    outto   = output
                     if options.default:
                         udemy.SaveLinks(quality=res, path=outto, default=True)
                     else:
                         udemy.SaveLinks(quality=res, path=outto)
                     ''' list down available formats of files and videos '''
-                elif not options.save_links and options.list and not options.output and not options.quality:
+                elif options.list:
                     udemy.ListDown()
 
             else:
                 username = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Username : " + fg + sb
                 password = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Password : " + fc + sb
                 email   = input(username) if version_info[:2] >= (3, 0) else raw_input(username)
-                passwd  = getpass.win_getpass(prompt=password) if os.name == 'nt' else getpass.unix_getpass(prompt=password)
+                passwd  = getpass.getpass(prompt=password)
                 print ""
-                if options.cache_credentials:
-                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching credentials...")
+                if options.configurations:
+                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching configuration...")
                     cached = cache_creds(email, passwd)
                     if cached == 'cached':
-                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Credentials cached successfully...")
+                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Configurations cached successfully...")
 
-                udemy =  UdemyDownload(url, email, passwd)
+                if email and passwd:
+                    udemy =  UdemyDownload(url, email, passwd)
+                else:
+                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password is required..")
+                    exit(0)
                 '''     Download course      ''' 
                 if not options.save_links and not options.list and not options.output and not options.quality:
                     udemy.ExtractAndDownload()
@@ -561,11 +584,11 @@ def main():
         except IndexError as e:
             parser.print_usage()
         else:
-            if options.cache_credentials:
-                print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching credentials...")
+            if options.configurations:
+                print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching configurations...")
                 cached = cache_creds(email, passwd)
                 if cached == 'cached':
-                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Credentials cached successfully...")
+                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Configurations cached successfully...")
 
             udemy =  UdemyDownload(url, email, passwd)
             '''     Download course      ''' 
