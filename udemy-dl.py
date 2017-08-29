@@ -475,7 +475,7 @@ def main():
                     password = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Password : " + fc + sb
                     email   = input(username) if version_info[:2] >= (3, 0) else raw_input(username)
                     passwd  = getpass.getpass(prompt=password)
-                    print ""
+                    print ("")
                     if email and passwd:
                         udemy =  UdemyDownload(url, email, passwd)
                     else:
@@ -530,7 +530,7 @@ def main():
                 password = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Password : " + fc + sb
                 email   = input(username) if version_info[:2] >= (3, 0) else raw_input(username)
                 passwd  = getpass.getpass(prompt=password)
-                print ""
+                print ("")
                 if options.configurations:
                     print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching configuration...")
                     cached = cache_creds(email, passwd)
