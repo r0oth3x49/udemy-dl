@@ -353,7 +353,7 @@ class UdemyDownload:
                         _external_links = "links-to-visit.txt"
                         print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saving external links to file : {}".format(_external_links))
                         f = open(_external_links, "a")
-                        f.write("[+] -- name {}\n[+] -- Visit {}\n".format(lecture_name, _url))
+                        f.write("[+] -- name {}\n[+] -- Visit {}\n".format(lecture_name, _url.encode("utf-8").strip()))
                         f.close()
                         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saved successfully..")
                     elif _url:
