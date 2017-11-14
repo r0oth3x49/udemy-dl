@@ -173,8 +173,8 @@ class UdemyDownload:
                         
                     if _url:
                         with open("%s.txt" % (course), "a") as f:
-                            f.write("[+] -- name : %s\n[+] -- link : %s\n" % (lecture_name, _url))
-                            f.close()
+                            f.write("- {}\n- {}\n".format(lecture_name.encode("utf-8").strip(), _url.encode("utf-8").strip()))
+                        f.close()
             print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Saved successfully.")
                             
                             
@@ -263,7 +263,7 @@ class UdemyDownload:
                             print  (fy + sb + "+--------------------------------------------------------+")
 
         
-    def ExtractAndDownload(self, path=None, quality=None,  default=False):
+    def ExtractAndDownload(self, path=None, quality=None,  default=False, caption_only=False, skip_captions=False):
         current_dir = os.getcwd()
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Extracting course information..")
@@ -350,20 +350,45 @@ class UdemyDownload:
                                             continue
                     if _external_url and not _file:
                         _url = _external_url
-                        _external_links = "links-to-visit.txt"
+                        _external_links = "external_links.txt"
                         print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saving external links to file : {}".format(_external_links))
                         f = open(_external_links, "a")
-                        f.write("[+] -- name {}\n[+] -- Visit {}\n".format(lecture_name, _url))
+                        f.write("- {}\n- {}\n".format(lecture_name.encode("utf-8").strip(), _url.encode("utf-8").strip()))
                         f.close()
                         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saved successfully..")
                     elif _url:
-                        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading lecture : (%s of %s)" % (i, len(videos_dict[chap])))
-                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)" % (lecture_name))
-                        out = self.Downloader(_url, lecture_name, chapter_path)
-                        if out == 'already_exist':
-                            print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
+                        if caption_only and not skip_captions:
+                            _suburl = urls.get('subtitle')
+                            if _suburl == _url:
+                                print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading subtitle .. ")
+                                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)" % (lecture_name))
+                                out = self.Downloader(_url, lecture_name, chapter_path)
+                                if out == 'already_exist':
+                                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
+                                else:
+                                    print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
+                            else:
+                                pass
+                        elif skip_captions and not caption_only:
+                            _suburl = urls.get('subtitle')
+                            if _suburl != _url:
+                                print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading lecture : (%s of %s)" % (i, len(videos_dict[chap])))
+                                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)" % (lecture_name))
+                                out = self.Downloader(_url, lecture_name, chapter_path)
+                                if out == 'already_exist':
+                                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
+                                else:
+                                    print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
+                            else:
+                                pass
                         else:
-                            print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
+                            print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading lecture : (%s of %s)" % (i, len(videos_dict[chap])))
+                            print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)" % (lecture_name))
+                            out = self.Downloader(_url, lecture_name, chapter_path)
+                            if out == 'already_exist':
+                                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
+                            else:
+                                print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
                         i += 1
                 j += 1
                 print ('')
@@ -377,8 +402,8 @@ def main():
     ban = banner()
     print (ban)
     usage       = '''%prog [-h] [-u "username"] [-p "password"] COURSE_URL
-                   [-s] [-l] [-r VIDEO_QUALITY] [-o OUTPUT] [-d] 
-                   [--configs]'''
+                   [-s] [-l] [-r "resolution"] [-o "/path/to/directory/"] 
+                   [-d] [-c/--configs] [--sub-only] [--skip-sub]'''
     version     = "%prog version {}".format(__version__)
     description = 'A cross-platform python based utility to download courses from udemy for personal offline use.'
     parser = optparse.OptionParser(usage=usage,version=version,conflict_handler="resolve", description=description)
@@ -435,10 +460,25 @@ def main():
         action='store_true',
         dest='output',\
         help="Output directory where the videos will be saved, default is current directory.")
+
+    other   = optparse.OptionGroup(parser, "Others")
+    other.add_option(
+        "--sub-only", 
+        action='store_true',
+        dest='caption_only',\
+        default=False,\
+        help="Download captions/subtitle only.")
+    other.add_option(
+        "--skip-sub", 
+        action='store_true',
+        dest='skip_captions',\
+        default=False,\
+        help="Download course but skip captions/subtitle.")
     
 
     parser.add_option_group(general)
     parser.add_option_group(downloader)
+    parser.add_option_group(other)
 
     (options, args) = parser.parse_args()
 
@@ -473,7 +513,7 @@ def main():
                     print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password seems empty in 'configuration' file")
                     username = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Username : " + fg + sb
                     password = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Password : " + fc + sb
-                    email   = input(username) if version_info[:2] >= (3, 0) else raw_input(username)
+                    email   = getpass.getuser(prompt=username)
                     passwd  = getpass.getpass(prompt=password)
                     print ("")
                     if email and passwd:
@@ -483,26 +523,79 @@ def main():
                         exit(0)
                 if options.configurations:
                     pass
-                '''     Download course      ''' 
-                if not options.save_links and not options.list and not options.output and not options.quality:
+
+
+                '''     Download course      '''
+
+                if not options.save_links and not options.list and not options.output and not options.quality and not options.caption_only and not options.skip_captions:
                     udemy.ExtractAndDownload()
-                elif not options.save_links and not options.list and options.output and not options.quality:
-                    outto   = output
+                elif options.caption_only and not options.save_links and not options.list and not options.output and not options.quality and not options.skip_captions:
+                    udemy.ExtractAndDownload(caption_only=True)
+                elif options.skip_captions and not options.save_links and not options.list and not options.output and not options.quality and not options.caption_only:
+                    udemy.ExtractAndDownload(skip_captions=True)
+
+                    '''   Saving course to user define path instead of current directory '''
+
+
+                elif not options.save_links and not options.list and options.output and not options.quality and not options.caption_only and not options.skip_captions:
+                    outto   = args[3]
                     udemy.ExtractAndDownload(path=outto)
-                elif not options.save_links and not options.list and options.output and options.quality:
-                    res     = resolution
-                    outto   = output
+                elif options.skip_captions and not options.save_links and not options.list and options.output and not options.quality and not options.caption_only:
+                    outto   = args[3]
+                    udemy.ExtractAndDownload(path=outto, skip_captions=True)
+                elif options.caption_only and not options.save_links and not options.list and options.output and not options.quality and not options.skip_captions:
+                    outto   = args[3]
+                    udemy.ExtractAndDownload(path=outto, caption_only=True)
+
+                    ''' Saving course to user define path with user define resolution  '''
+
+                elif not options.save_links and not options.list and options.output and options.quality and not options.caption_only and not options.skip_captions:
+                    res     = args[3]
+                    outto   = args[4]
                     if options.default:
                         udemy.ExtractAndDownload(path=outto, quality=res, default=True)
                     else:
                         udemy.ExtractAndDownload(path=outto, quality=res)
-                elif not options.save_links and not options.list and not options.output and options.quality:
-                    res     = resolution
+                elif options.caption_only and not options.save_links and not options.list and options.output and options.quality  and not options.skip_captions:
+                    res     = args[3]
+                    outto   = args[4]
+                    if options.default:
+                        udemy.ExtractAndDownload(path=outto, quality=res, default=True, caption_only=True)
+                    else:
+                        udemy.ExtractAndDownload(path=outto, quality=res, caption_only=True)
+                elif options.skip_captions and not options.save_links and not options.list and options.output and options.quality and not options.caption_only:
+                    res     = args[3]
+                    outto   = args[4]
+                    if options.default:
+                        udemy.ExtractAndDownload(path=outto, quality=res, default=True, skip_captions=True)
+                    else:
+                        udemy.ExtractAndDownload(path=outto, quality=res, skip_captions=True)
+
+                    ''' Saving course with user define resolution  '''
+
+                elif not options.save_links and not options.list and not options.output and options.quality and not options.caption_only and not options.skip_captions:
+                    res     = args[3]
                     if options.default:
                         udemy.ExtractAndDownload(quality=res, default=True)
                     else:
                         udemy.ExtractAndDownload(quality=res)
-                    ''' Save course links ''' 
+                elif options.caption_only and not options.save_links and not options.list and not options.output and options.quality and not options.skip_captions:
+                    res     = args[3]
+                    if options.default:
+                        udemy.ExtractAndDownload(quality=res, default=True, caption_only=True)
+                    else:
+                        udemy.ExtractAndDownload(quality=res, caption_only=True)
+                elif options.skip_captions and not options.save_links and not options.list and not options.output and options.quality and not options.caption_only:
+                    res     = args[3]
+                    if options.default:
+                        udemy.ExtractAndDownload(quality=res, default=True, skip_captions=True)
+                    else:
+                        udemy.ExtractAndDownload(quality=res, skip_captions=True)
+
+
+                    ''' Save course links '''
+
+
                 elif options.save_links and not options.list and not options.output and not options.quality:
                     udemy.SaveLinks()
                 elif options.save_links and not options.list and not options.output and options.quality:
@@ -521,14 +614,18 @@ def main():
                         udemy.SaveLinks(quality=res, path=outto, default=True)
                     else:
                         udemy.SaveLinks(quality=res, path=outto)
+
+
                     ''' list down available formats of files and videos '''
+
+
                 elif options.list:
                     udemy.ListDown()
 
             else:
                 username = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Username : " + fg + sb
                 password = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Password : " + fc + sb
-                email   = input(username) if version_info[:2] >= (3, 0) else raw_input(username)
+                email   = getpass.getuser(prompt=username)
                 passwd  = getpass.getpass(prompt=password)
                 print ("")
                 if options.configurations:
@@ -542,26 +639,80 @@ def main():
                 else:
                     print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password is required..")
                     exit(0)
-                '''     Download course      ''' 
-                if not options.save_links and not options.list and not options.output and not options.quality:
+
+
+                '''     Download course      '''
+
+
+                if not options.save_links and not options.list and not options.output and not options.quality and not options.caption_only and not options.skip_captions:
                     udemy.ExtractAndDownload()
-                elif not options.save_links and not options.list and options.output and not options.quality:
-                    outto   = args[1]
+                elif options.caption_only and not options.save_links and not options.list and not options.output and not options.quality and not options.skip_captions:
+                    udemy.ExtractAndDownload(caption_only=True)
+                elif options.skip_captions and not options.save_links and not options.list and not options.output and not options.quality and not options.caption_only:
+                    udemy.ExtractAndDownload(skip_captions=True)
+
+                    '''   Saving course to user define path instead of current directory '''
+
+
+                elif not options.save_links and not options.list and options.output and not options.quality and not options.caption_only and not options.skip_captions:
+                    outto   = args[3]
                     udemy.ExtractAndDownload(path=outto)
-                elif not options.save_links and not options.list and options.output and options.quality:
-                    res     = args[1]
-                    outto   = args[2]
+                elif options.skip_captions and not options.save_links and not options.list and options.output and not options.quality and not options.caption_only:
+                    outto   = args[3]
+                    udemy.ExtractAndDownload(path=outto, skip_captions=True)
+                elif options.caption_only and not options.save_links and not options.list and options.output and not options.quality and not options.skip_captions:
+                    outto   = args[3]
+                    udemy.ExtractAndDownload(path=outto, caption_only=True)
+
+                    ''' Saving course to user define path with user define resolution  '''
+
+                elif not options.save_links and not options.list and options.output and options.quality and not options.caption_only and not options.skip_captions:
+                    res     = args[3]
+                    outto   = args[4]
                     if options.default:
                         udemy.ExtractAndDownload(path=outto, quality=res, default=True)
                     else:
                         udemy.ExtractAndDownload(path=outto, quality=res)
-                elif not options.save_links and not options.list and not options.output and options.quality:
-                    res     = args[1]
+                elif options.caption_only and not options.save_links and not options.list and options.output and options.quality  and not options.skip_captions:
+                    res     = args[3]
+                    outto   = args[4]
+                    if options.default:
+                        udemy.ExtractAndDownload(path=outto, quality=res, default=True, caption_only=True)
+                    else:
+                        udemy.ExtractAndDownload(path=outto, quality=res, caption_only=True)
+                elif options.skip_captions and not options.save_links and not options.list and options.output and options.quality and not options.caption_only:
+                    res     = args[3]
+                    outto   = args[4]
+                    if options.default:
+                        udemy.ExtractAndDownload(path=outto, quality=res, default=True, skip_captions=True)
+                    else:
+                        udemy.ExtractAndDownload(path=outto, quality=res, skip_captions=True)
+
+                    ''' Saving course with user define resolution  '''
+
+                elif not options.save_links and not options.list and not options.output and options.quality and not options.caption_only and not options.skip_captions:
+                    res     = args[3]
                     if options.default:
                         udemy.ExtractAndDownload(quality=res, default=True)
                     else:
                         udemy.ExtractAndDownload(quality=res)
-                    ''' Save course links ''' 
+                elif options.caption_only and not options.save_links and not options.list and not options.output and options.quality and not options.skip_captions:
+                    res     = args[3]
+                    if options.default:
+                        udemy.ExtractAndDownload(quality=res, default=True, caption_only=True)
+                    else:
+                        udemy.ExtractAndDownload(quality=res, caption_only=True)
+                elif options.skip_captions and not options.save_links and not options.list and not options.output and options.quality and not options.caption_only:
+                    res     = args[3]
+                    if options.default:
+                        udemy.ExtractAndDownload(quality=res, default=True, skip_captions=True)
+                    else:
+                        udemy.ExtractAndDownload(quality=res, skip_captions=True)
+
+
+                    ''' Save course links '''
+
+
                 elif options.save_links and not options.list and not options.output and not options.quality:
                     udemy.SaveLinks()
                 elif options.save_links and not options.list and not options.output and options.quality:
@@ -580,7 +731,11 @@ def main():
                         udemy.SaveLinks(quality=res, path=outto, default=True)
                     else:
                         udemy.SaveLinks(quality=res, path=outto)
+
+
                     ''' list down available formats of files and videos '''
+
+
                 elif not options.save_links and options.list and not options.output and not options.quality:
                     udemy.ListDown()
 
@@ -599,26 +754,79 @@ def main():
                     print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Configurations cached successfully...")
 
             udemy =  UdemyDownload(url, email, passwd)
-            '''     Download course      ''' 
-            if not options.save_links and not options.list and not options.output and not options.quality:
+            
+
+            '''     Download course      '''
+
+
+            if not options.save_links and not options.list and not options.output and not options.quality and not options.caption_only and not options.skip_captions:
                 udemy.ExtractAndDownload()
-            elif not options.save_links and not options.list and options.output and not options.quality:
+            elif options.caption_only and not options.save_links and not options.list and not options.output and not options.quality and not options.skip_captions:
+                udemy.ExtractAndDownload(caption_only=True)
+            elif options.skip_captions and not options.save_links and not options.list and not options.output and not options.quality and not options.caption_only:
+                udemy.ExtractAndDownload(skip_captions=True)
+
+                '''   Saving course to user define path instead of current directory '''
+
+
+            elif not options.save_links and not options.list and options.output and not options.quality and not options.caption_only and not options.skip_captions:
                 outto   = args[3]
                 udemy.ExtractAndDownload(path=outto)
-            elif not options.save_links and not options.list and options.output and options.quality:
+            elif options.skip_captions and not options.save_links and not options.list and options.output and not options.quality and not options.caption_only:
+                outto   = args[3]
+                udemy.ExtractAndDownload(path=outto, skip_captions=True)
+            elif options.caption_only and not options.save_links and not options.list and options.output and not options.quality and not options.skip_captions:
+                outto   = args[3]
+                udemy.ExtractAndDownload(path=outto, caption_only=True)
+
+                ''' Saving course to user define path with user define resolution  '''
+
+            elif not options.save_links and not options.list and options.output and options.quality and not options.caption_only and not options.skip_captions:
                 res     = args[3]
                 outto   = args[4]
                 if options.default:
                     udemy.ExtractAndDownload(path=outto, quality=res, default=True)
                 else:
                     udemy.ExtractAndDownload(path=outto, quality=res)
-            elif not options.save_links and not options.list and not options.output and options.quality:
+            elif options.caption_only and not options.save_links and not options.list and options.output and options.quality  and not options.skip_captions:
+                res     = args[3]
+                outto   = args[4]
+                if options.default:
+                    udemy.ExtractAndDownload(path=outto, quality=res, default=True, caption_only=True)
+                else:
+                    udemy.ExtractAndDownload(path=outto, quality=res, caption_only=True)
+            elif options.skip_captions and not options.save_links and not options.list and options.output and options.quality and not options.caption_only:
+                res     = args[3]
+                outto   = args[4]
+                if options.default:
+                    udemy.ExtractAndDownload(path=outto, quality=res, default=True, skip_captions=True)
+                else:
+                    udemy.ExtractAndDownload(path=outto, quality=res, skip_captions=True)
+
+                ''' Saving course with user define resolution  '''
+
+            elif not options.save_links and not options.list and not options.output and options.quality and not options.caption_only and not options.skip_captions:
                 res     = args[3]
                 if options.default:
                     udemy.ExtractAndDownload(quality=res, default=True)
                 else:
                     udemy.ExtractAndDownload(quality=res)
-                ''' Save course links ''' 
+            elif options.caption_only and not options.save_links and not options.list and not options.output and options.quality and not options.skip_captions:
+                res     = args[3]
+                if options.default:
+                    udemy.ExtractAndDownload(quality=res, default=True, caption_only=True)
+                else:
+                    udemy.ExtractAndDownload(quality=res, caption_only=True)
+            elif options.skip_captions and not options.save_links and not options.list and not options.output and options.quality and not options.caption_only:
+                res     = args[3]
+                if options.default:
+                    udemy.ExtractAndDownload(quality=res, default=True, skip_captions=True)
+                else:
+                    udemy.ExtractAndDownload(quality=res, skip_captions=True)
+
+                ''' Save course links '''
+
+
             elif options.save_links and not options.list and not options.output and not options.quality:
                 udemy.SaveLinks()
             elif options.save_links and not options.list and not options.output and options.quality:
@@ -637,7 +845,11 @@ def main():
                     udemy.SaveLinks(quality=res, path=outto, default=True)
                 else:
                     udemy.SaveLinks(quality=res, path=outto)
+
+
                 ''' list down available formats of files and videos '''
+
+
             elif not options.save_links and options.list and not options.output and not options.quality:
                 udemy.ListDown()
 

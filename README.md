@@ -1,7 +1,7 @@
 # udemy-dl
 **A cross-platform python based utility to download courses from udemy for personal offline use.**
 
-[![cache_creds_input.png](https://s28.postimg.org/jjd4vy10t/cache_creds_input.png)](https://postimg.org/image/uvpqdq9pl/)
+[![udemy-dl.gif](https://s26.postimg.org/st8y7ud5l/udemy-dl.gif)](https://postimg.org/image/y4nusjz85/)
 
 ### Requirements
 
@@ -9,6 +9,7 @@
 - Python `pip`
 - Python module `requests`
 - Python module `colorama`
+- Python module `requests[security]` : **install if you get connection error : (for Mac Users only)**
 
 ### Install modules
 
@@ -17,16 +18,14 @@
 ### Tested on
 
 - Windows 7/8/8.1
-- Kali linux (2017.1)
-- Mac OSX 10.9.5
-
-	 
+- Kali linux (2017.2)
+- Mac OSX 10.9.5 (tested with super user)
+ 
 ### Download udemy-dl
 
 You can download the latest version of udemy-dl by cloning the GitHub repository.
 
 	git clone https://github.com/r0oth3x49/udemy-dl.git
-	
 	
 ### Updates
 
@@ -36,22 +35,15 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 - Updated code for downloading captions (subtitles) if available.
 
 
-### How to use updated features
+### Change-log
 
-***Downloading course and caching credentials***
-
-	python udemy-dl.py https://www.udemy.com/COURSE_NAME --configs
-
-***Downloading with specific resolution and allow default resolution as well***
-
-	python udemy-dl.py https://www.udemy.com/COURSE_NAME -r 1080 -d
+- Fixed some issues & improved code quality for Python3.
+- Fixed #13 (UnicodeEncodeError) thanks for quick patch by @jdsantiagojr 
+- Added feature to skip captions/subtitle and download course only.
+- Added feature to download captions/subtitle only thanks to @leo459028.
+- Added feature to edit the password by pressing backspace on command line.
 	
-***Downloading course after caching credentials***
-
-	python udemy-dl.py https://www.udemy.com/COURSE_NAME
-	
-	
-### Edit Configuration file
+### Configuration
 
 <pre><code>
 	
@@ -103,6 +95,22 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 
 	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -s -r 720 -o "/path/to/directory/"
 
+***Downloading course and caching credentials***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME --configs
+
+***Downloading with specific resolution and allow default resolution as well***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -r 1080 -d
+
+***Downloading course but skip captions/subtitles***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME --skip-sub
+
+***Downloading captions/subtitles only***
+
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME --sub-only
+
 ***Listing course's video informtion***
 
 	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -l
@@ -114,8 +122,8 @@ the above command will list down the size of video and attached files and availa
 Author: Nasir khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)
 
 Usage: udemy-dl.py [-h] [-u "username"] [-p "password"] COURSE_URL
-                   [-s] [-l] [-r VIDEO_QUALITY] [-o OUTPUT] [-d]
-                   [--configs]
+                   [-s] [-l] [-r "resolution"] [-o "/path/to/directory/"]
+                   [-d] [-c/--configs] [--sub-only] [--skip-sub]
 
 A cross-platform python based utility to download courses from udemy for
 personal offline use.
@@ -136,6 +144,10 @@ Options:
     -o, --output       Output directory where the videos will be saved,
                        default is current directory.
   
+  Others:
+    --sub-only         Download captions/subtitle only.
+    --skip-sub         Download course but Skip captions/subtitle.
+
   Example:
 	python udemy-dl.py  https://www.udemy.com/course_name/
 </code></pre>

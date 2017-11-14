@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-__version__ = "0.2"
+__version__ = "0.3"
 __author__  = "Nasir Khan(r0ot h3x49)"
 
 from ._downloader import Downloader

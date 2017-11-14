@@ -6,6 +6,7 @@ from . import __author__
 from . import __version__
 if sys.version_info[:2] >= (3, 0):
     import re
+    import ssl
     import json
     import requests
     import urllib.request as compat_urllib
@@ -22,6 +23,7 @@ if sys.version_info[:2] >= (3, 0):
     from requests.exceptions    import ConnectionError  as conn_error
 
     compat_str, pyver = str, 3
+    ssl._create_default_https_context = ssl._create_unverified_context
     
 else:
     import re
