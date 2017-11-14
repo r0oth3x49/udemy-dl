@@ -146,7 +146,7 @@ Options:
   
   Others:
     --sub-only         Download captions/subtitle only.
-    --skip-sub         Download course but Skip captions/subtitle.
+    --skip-sub         Download course but skip captions/subtitle.
 
   Example:
 	python udemy-dl.py  https://www.udemy.com/course_name/
