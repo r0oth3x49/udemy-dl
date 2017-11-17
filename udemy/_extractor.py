@@ -192,6 +192,12 @@ class UdemyInfoExtractor:
         for entry in response['results']:
             clazz = entry.get('_class')
             if clazz == 'lecture':
+                if len(udemy_dict) == 0:
+                    ind     = entry.get('object_index')
+                    t       = (''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')]))
+                    chap    = "{0:03d} {1!s}".format(ind, t if '.' not in t else t.replace('.', '_'))
+                    if chap not in udemy_dict:
+                        udemy_dict[chap] = {}
                 
                 asset                = entry.get('asset')
                 lecture_id           = entry.get("id")
@@ -429,7 +435,7 @@ class UdemyInfoExtractor:
                 title = ''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')])
                 chapter = self._generate_dirname(title)
                 chap = "{0:02d} {1!s}".format(chapter_number, chapter)
-                if chapter_number not in udemy_dict:
+                if chap not in udemy_dict:
                     udemy_dict[chap] = {}
 
         return udemy_dict
