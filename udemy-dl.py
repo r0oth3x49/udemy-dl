@@ -281,6 +281,7 @@ class UdemyDownload:
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..")
         videos_dict = self.clean_dict(extract_info.real_extract(self.url, course_name, course_path))
         self.logout()
+        # exit(0)
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Counting no of chapters..")
         if isinstance(videos_dict, dict):
             print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fw + sd + "Found ('%s') chapter(s).\n" % (len(videos_dict)))
@@ -303,14 +304,17 @@ class UdemyDownload:
                         _file           = urls.get('file')
                         _external_url   = urls.get('external_url')
                         _subtitle       = urls.get('subtitle')
+                        _view_html      = urls.get('view_html')
                     except AttributeError as e:
                         pass
                     else:
-                        if _file and not _external_url and not _subtitle:
+                        if _file and not _external_url and not _subtitle and not _view_html:
                             _url = _file
-                        elif _subtitle and not _file and not _external_url:
+                        elif _subtitle and not _file and not _external_url and not _view_html:
                             _url = _subtitle
-                        elif not _external_url and not _file and not _subtitle:
+                        elif _view_html and not _subtitle and not _file and not _external_url:
+                            _url    =  'html_content'
+                        elif not _external_url and not _file and not _subtitle and not _view_html:
                             if not quality:
                                 try:
                                     _url = max(urls, key=urls.get)
@@ -356,7 +360,7 @@ class UdemyDownload:
                         f.write("- {}\n- {}\n".format(lecture_name.encode("utf-8").strip(), _url.encode("utf-8").strip()))
                         f.close()
                         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Saved successfully..")
-                    elif _url:
+                    elif _url != 'html_content':
                         if caption_only and not skip_captions:
                             _suburl = urls.get('subtitle')
                             if _suburl == _url:
@@ -390,6 +394,37 @@ class UdemyDownload:
                             else:
                                 print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
                         i += 1
+                    elif _url == 'html_content':
+                        print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : (%s)" % (lecture_name))
+                        _view_html = (''.join([raw if ord(raw) < 128 else '' for raw in _view_html]))
+                        data = '''
+                        <html>
+                        <head>
+                        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+                        <title>%s</title>
+                        </head>
+                        <body>
+                        <div class="container">
+                        <div class="row">
+                        <div class="col-md-10 col-md-offset-1">
+                            <p class="lead">%s</p>
+                        </div>
+                        </div>
+                        </div>
+                        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+                        </body>
+                        </html>
+                        ''' % (lecture_name, _view_html)
+                        html        = data.encode('utf-8').strip()
+                        filename    = '{}.html'.format(lecture_name)
+                        if os.path.isfile(filename):
+                            print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
+                        else:
+                            with open(filename, 'w') as f:
+                                f.write(html)
+                            f.close
+                            print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Lecture : (%s) " % (lecture_name) + fw + sb + "(saved).")
+                        
                 j += 1
                 print ('')
                 os.chdir(current_dir)

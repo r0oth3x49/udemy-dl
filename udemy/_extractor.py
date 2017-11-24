@@ -421,6 +421,8 @@ class UdemyInfoExtractor:
                                             subtitle = "{}-subtitle-{}.{}".format(title,lang, ext)
                                             if not subtitle in udemy_dict[chap]:
                                                 udemy_dict[chap][subtitle] = {'subtitle' : src}
+                                else:
+                                    udemy_dict[chap][title]["view_html"] = view_html
                                     
                         if chapter_number:
                             entry['chapter_number'] = chapter_number

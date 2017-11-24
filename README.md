@@ -9,7 +9,7 @@
 - Python `pip`
 - Python module `requests`
 - Python module `colorama`
-- Python module `requests[security]` : **install if you get connection error : (for Mac Users only)**
+- Python module `requests[security]` : **(for Mac Users only)**
 
 ### Install modules
 
