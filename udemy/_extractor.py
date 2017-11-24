@@ -57,6 +57,8 @@ session = Session()
 class UdemyInfoExtractor:    
 
     def match_id(self, url):
+        if '/learn/v4' in url:
+            url = url.split("learn/v4")[0]
         course_name = url.split("/")[-1] if not url.endswith("/") else url.split("/")[-2]
         return course_name
     
