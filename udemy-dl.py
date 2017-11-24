@@ -420,7 +420,7 @@ class UdemyDownload:
                         if os.path.isfile(filename):
                             print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
                         else:
-                            with open(filename, 'w') as f:
+                            with open(filename, 'wb') as f:
                                 f.write(html)
                             f.close
                             print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Lecture : (%s) " % (lecture_name) + fw + sb + "(saved).")
