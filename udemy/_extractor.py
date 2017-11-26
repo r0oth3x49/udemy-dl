@@ -102,9 +102,8 @@ class UdemyInfoExtractor:
             ok = re.compile(r'[^\\/:.*?"<>|,]')
 
         _title = "".join(x if ok.match(x) else "_" for x in _temp)
-        title  = re.sub('\d', '', _title)
 
-        return title
+        return _title
 
     
     def _get_csrf_token(self):
