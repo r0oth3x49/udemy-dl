@@ -281,7 +281,6 @@ class UdemyDownload:
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading course information webpages ..")
         videos_dict = self.clean_dict(extract_info.real_extract(self.url, course_name, course_path))
         self.logout()
-        # exit(0)
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Counting no of chapters..")
         if isinstance(videos_dict, dict):
             print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fw + sd + "Found ('%s') chapter(s).\n" % (len(videos_dict)))

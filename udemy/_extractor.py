@@ -61,6 +61,51 @@ class UdemyInfoExtractor:
             url = url.split("learn/v4")[0]
         course_name = url.split("/")[-1] if not url.endswith("/") else url.split("/")[-2]
         return course_name
+
+    def _sanitize_title(self, title):
+        # Spanish vowels characters to english vowels character
+        _temp   = ''.join([str(ord(i)) if ord(i) > 128 else i for i in title])
+        if '225' in _temp:
+            _temp = _temp.replace('225', 'a')
+        if '233' in _temp:
+            _temp = _temp.replace('233', 'e')
+        if '237' in _temp:
+            _temp = _temp.replace('237', 'i')
+        if '243' in _temp:
+            _temp = _temp.replace('243', 'o')
+        if '250' in _temp:
+            _temp = _temp.replace('250', 'u')
+        if '252' in _temp:
+            _temp = _temp.replace('252', 'u')
+        if '241' in _temp:
+            _temp = _temp.replace('241', 'n')
+        if '191' in _temp:
+            _temp = _temp.replace('191', '')
+
+        if '193' in _temp:
+            _temp = _temp.replace('193', 'A')
+        if '201' in _temp:
+            _temp = _temp.replace('201', 'E')
+        if '205' in _temp:
+            _temp = _temp.replace('205', 'I')
+        if '211' in _temp:
+            _temp = _temp.replace('211', 'O')
+        if '218' in _temp:
+            _temp = _temp.replace('218', 'U')
+        if '220' in _temp:
+            _temp = _temp.replace('220', 'U')
+        if '209' in _temp:
+            _temp = _temp.replace('209', 'N')
+
+        ok = re.compile(r'[^/]')
+        if os.name == "nt":
+            ok = re.compile(r'[^\\/:.*?"<>|,]')
+
+        _title = "".join(x if ok.match(x) else "_" for x in _temp)
+        title  = re.sub('\d', '', _title)
+
+        return title
+
     
     def _get_csrf_token(self):
         try:
@@ -196,7 +241,8 @@ class UdemyInfoExtractor:
             if clazz == 'lecture':
                 if len(udemy_dict) == 0:
                     ind     = entry.get('object_index')
-                    t       = (''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')]))
+                    _title  = self._sanitize_title(entry.get('title'))
+                    t       = (''.join([i if ord(i) < 128 else ' ' for i in _title]))
                     chap    = "{0:03d} {1!s}".format(ind, t if '.' not in t else t.replace('.', '_'))
                     if chap not in udemy_dict:
                         udemy_dict[chap] = {}
@@ -366,7 +412,8 @@ class UdemyInfoExtractor:
                             view_html = entry.get('view_html')
                             if view_html:
                                 ind = entry.get('object_index')
-                                t = (''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')]))
+                                _title  = self._sanitize_title(entry.get('title'))
+                                t = (''.join([i if ord(i) < 128 else ' ' for i in _title]))
                                 title = "{0:03d} {1!s}".format(ind, t if '.' not in t else t.replace('.', '_'))
                                 udemy_dict[chap][title] = {}
                                 data   = _parse_json(
@@ -436,7 +483,8 @@ class UdemyInfoExtractor:
                         
             elif clazz == 'chapter':
                 chapter_number = entry.get('object_index')
-                title = ''.join([i if ord(i) < 128 else ' ' for i in entry.get('title')])
+                _title  = self._sanitize_title(entry.get('title'))
+                title = ''.join([i if ord(i) < 128 else ' ' for i in _title])
                 chapter = self._generate_dirname(title)
                 chap = "{0:02d} {1!s}".format(chapter_number, chapter)
                 if chap not in udemy_dict:
