@@ -108,12 +108,12 @@ class UdemyInfoExtractor:
     
     def _get_csrf_token(self):
         try:
-           response = session.get(login_popup)
-           match = _search_simple_regex(r"name='csrfmiddlewaretoken'\s+value='(.*)'", response.text)
+           response = session.get(login_popup).text
+           match = _search_simple_regex(r"name='csrfmiddlewaretoken'\s+value='(.*)'", response)
            return match.group(1)
         except AttributeError:
-            response = _search_simple_regex(r"name='csrfmiddlewaretoken'\s+value='(.*)'", response.text)
-            return match.group(1)
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "failed to extract csrf_token from login form try again ..\n")
+            sys.exit(0)
 
     def _get_course_id(self, url):
 
