@@ -124,7 +124,7 @@ class UdemyDownload:
             for chap in sorted(videos_dict):
                 for lecture_name,urls in sorted(videos_dict[chap].items()):
                     try:
-                        _file = urls.get('file')
+                        _file           = urls.get('file')
                         _external_url   = urls.get('external_url')
                         _subtitle       = urls.get('subtitle')
                     except AttributeError as e:
@@ -214,53 +214,57 @@ class UdemyDownload:
                         _file           = urls.get('file')
                         _external_url   = urls.get('external_url')
                         _subtitle       = urls.get('subtitle')
+                        _view_html      = urls.get('view_html')
                     except AttributeError as e:
                         pass
                     else:
-                        if _external_url and not _file and not _subtitle:
-                            _external_url = urls.get('external_url')
-                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "External Link '" + fm + sd + str(lecture)+ fy + sb + "'..")
-                            print  (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Visit " + fg + sd + "(" + str(_external_url)+ fg + sb + ")\n")
-                        elif _file and not _external_url and not _subtitle:
-                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "File '" + fm + sd + str(lecture)+ fy + sb + "'..")
-                            print  (fy + sb + "+--------------------------------------------+")
-                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("Stream", "Type", "Format", "Size"))
-                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("------", "-----", "------","-------"))
-                            sid         = 1
-                            url         = _file
-                            sz,in_MB    = self.get_filsize(url)
-                            media       = 'file' 
-                            Format      = lecture.split('.')[-1]
-                            print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<5} {:<8}{}{}|".format(sid, media, Format , sz, in_MB, fy, sb))
-                            print  (fy + sb + "+--------------------------------------------+")
-                        elif _subtitle and not _file and not _external_url:
-                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Subtitle '" + fm + sd + str(lecture)+ fy + sb + "'..")
-                            print  (fy + sb + "+--------------------------------------------+")
-                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("Stream", "Type", "Format", "Size"))
-                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("------", "-----", "------","-------"))
-                            sid         = 1
-                            url         = _subtitle
-                            sz,in_MB    = self.get_filsize(url)
-                            media       = 'file' 
-                            Format      = lecture.split('.')[-1]
-                            print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<5} {:<9}{}{}|".format(sid, media, Format , sz, in_MB, fy, sb))
-                            print  (fy + sb + "+--------------------------------------------+")
-                        elif not _external_url and not _file and not _subtitle:
-                            print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
-                            print  (fy + sb + "+--------------------------------------------------------+")
-                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<12} {:<14}|".format("Stream", "Type", "Format", "Quality", "Size"))
-                            print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<10} {:<16}|".format("------", "-----", "------", "-------", "--------"))
-                            i = 0
-                            for _url,res in urls.items():
-                                sid         = i + 1
-                                quality     = res
-                                url         = _url
+                        if _view_html:
+                            pass
+                        else:
+                            if _external_url and not _file and not _subtitle:
+                                _external_url = urls.get('external_url')
+                                print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "External Link '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                                print  (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Visit " + fg + sd + "(" + str(_external_url)+ fg + sb + ")\n")
+                            elif _file and not _external_url and not _subtitle:
+                                print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "File '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                                print  (fy + sb + "+--------------------------------------------+")
+                                print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("Stream", "Type", "Format", "Size"))
+                                print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("------", "-----", "------","-------"))
+                                sid         = 1
+                                url         = _file
                                 sz,in_MB    = self.get_filsize(url)
-                                media       = 'video' 
-                                Format      = 'mp4'
-                                print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<10} {:<7}{:<9}{}{}|".format(sid, media, Format , str(quality) + 'p', sz, in_MB, fy, sb))
-                                i += 1
-                            print  (fy + sb + "+--------------------------------------------------------+")
+                                media       = 'file' 
+                                Format      = lecture.split('.')[-1]
+                                print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<5} {:<8}{}{}|".format(sid, media, Format , sz, in_MB, fy, sb))
+                                print  (fy + sb + "+--------------------------------------------+")
+                            elif _subtitle and not _file and not _external_url:
+                                print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Subtitle '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                                print  (fy + sb + "+--------------------------------------------+")
+                                print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("Stream", "Type", "Format", "Size"))
+                                print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<15}|".format("------", "-----", "------","-------"))
+                                sid         = 1
+                                url         = _subtitle
+                                sz,in_MB    = self.get_filsize(url)
+                                media       = 'file' 
+                                Format      = lecture.split('.')[-1]
+                                print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<5} {:<9}{}{}|".format(sid, media, Format , sz, in_MB, fy, sb))
+                                print  (fy + sb + "+--------------------------------------------+")
+                            elif not _external_url and not _file and not _subtitle:
+                                print  (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fy + sb + "Lecture '" + fm + sd + str(lecture)+ fy + sb + "'..")
+                                print  (fy + sb + "+--------------------------------------------------------+")
+                                print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<12} {:<14}|".format("Stream", "Type", "Format", "Quality", "Size"))
+                                print  (fy + sb + "|     {:<6} {:<8} {:<7} {:<10} {:<16}|".format("------", "-----", "------", "-------", "--------"))
+                                i = 0
+                                for _url,res in urls.items():
+                                    sid         = i + 1
+                                    quality     = res
+                                    url         = _url
+                                    sz,in_MB    = self.get_filsize(url)
+                                    media       = 'video' 
+                                    Format      = 'mp4'
+                                    print  (fy + sb + "|" + fg + sd + "     {:<6} {:<8} {:<7} {:<10} {:<7}{:<9}{}{}|".format(sid, media, Format , str(quality) + 'p', sz, in_MB, fy, sb))
+                                    i += 1
+                                print  (fy + sb + "+--------------------------------------------------------+")
 
         
     def ExtractAndDownload(self, path=None, quality=None,  default=False, caption_only=False, skip_captions=False):
