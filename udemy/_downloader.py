@@ -110,28 +110,24 @@ class Downloader:
                 outfh.write(chunk)
                 elapsed = time.time() - t0
                 bytesdone += len(chunk)
-                try:
-                    if elapsed:
-                        rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                        eta  = (total - bytesdone) / (rate * 1024.0)
-                    else:
-                        rate = 0
-                        eta = 0
-                    progress_stats = (bytesdone, bytesdone * 1.0 / total, rate, eta)
-                except ZeroDivisionError as e:
-                    rate = 0
-                    eta  = 0
+                if elapsed:
+                    rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
+                    eta  = (total - bytesdone) / (rate * 1024.0)
                 else:
-                    if not chunk:
-                        outfh.close()
-                        break
-                    if not quiet:
-                        status = status_string.format(*progress_stats)
-                        sys.stdout.write("\r" + status + ' ' * 4 + "\r")
-                        sys.stdout.flush()
+                    rate = 0
+                    eta = 0
+                progress_stats = (bytesdone, bytesdone * 1.0 / total, rate, eta)
 
-                    if callback:
-                        callback(total, *progress_stats)
+                if not chunk:
+                    outfh.close()
+                    break
+                if not quiet:
+                    status = status_string.format(*progress_stats)
+                    sys.stdout.write("\r" + status + ' ' * 4 + "\r")
+                    sys.stdout.flush()
+
+                if callback:
+                    callback(total, *progress_stats)
 
             if self._active:
                 os.rename(temp_filepath, filepath)
