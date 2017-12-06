@@ -277,6 +277,8 @@ class UdemyDownload:
             course_path = extract_info.match_id(self.url)
             course_name = current_dir + '\\' + course_path if os.name == 'nt' else current_dir + '/' + course_path
         else:
+            if '~' in path:
+                path    = os.path.expanduser(path)
             course_path = "%s\\%s" % (path, extract_info.match_id(self.url)) if os.name == 'nt' else "%s/%s" % (path, extract_info.match_id(self.url))
             course_name = course_path
             
