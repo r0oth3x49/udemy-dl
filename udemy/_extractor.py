@@ -115,26 +115,25 @@ class UdemyInfoExtractor:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "failed to extract csrf_token from login form try again ..\n")
             sys.exit(0)
 
-    def _get_course_id(self, url):
-
-        response = session.get(url)
-        response_text = response.text
-
-        matches = re.search(r'data-course-id="(\d+)"', response_text, re.IGNORECASE)
-        if matches:
-            course_id = matches.groups()[0]
-        else:
-            matches = re.search(r'property="og:image"\s+content="([^"]+)"', response_text, re.IGNORECASE)
-            course_id = matches.groups()[0].rsplit('/', 1)[-1].split('_', 1)[0] if matches else None
-        if not course_id:
-            sys.exit(1)
-        else:
-            return course_id
-
-    def _regex_course_id(self, url):
-        response = session.get(url)
-        webpage = response.text
-        course_id = unescapeHTML(_search_simple_regex(r'(?<=&quot;id&quot;:\s)(\d+)',webpage).group())
+    def _extract_course_info(self, url):
+        response    = session.get(url)
+        webpage     = response.text
+        course      = _parse_json(
+                        _search_regex(
+                                        r'ng-init=["\'].*\bcourse=({.+?});', 
+                                        webpage, 
+                                        'course', 
+                                        default='{}'
+                                ),
+                                "Course Information",
+                                transform_source=unescapeHTML,
+                                fatal=False,
+                            )
+        course_id   = course.get('id') or _search_regex(
+                                                        (r'&quot;id&quot;\s*:\s*(\d+)', r'data-course-id=["\'](\d+)'),
+                                                        webpage, 
+                                                        'course id'
+                                                        )
         if course_id:
             return course_id
         else:
@@ -173,7 +172,7 @@ class UdemyInfoExtractor:
         session.get('http://www.udemy.com/user/logout')
         sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged out successfully.\n")
 
-    def _extract_course_info(self, response):
+    def _lecture_count(self, response):
         count = 0
         for entry in response['results']:
             clazz = entry.get('_class')
@@ -194,8 +193,6 @@ class UdemyInfoExtractor:
                     else:
                         count = count
         return count
-        
-
 
     def _generate_dirname(self, title):
         ok = re.compile(r'[^/]')
@@ -218,9 +215,7 @@ class UdemyInfoExtractor:
 
         rootDir = course_name
         
-        course_id = self._regex_course_id(url)
-        if not course_id:
-            course_id = self._get_course_id(url)
+        course_id = self._extract_course_info(url)
         _course_url = course_url.format(course_id=course_id)
         response = session.get(_course_url).json()
         _isenrolled = response.get('detail')
@@ -228,7 +223,7 @@ class UdemyInfoExtractor:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "You are not enrolled in this course Udemy Says : {}.".format(_isenrolled))
             self.logout()
             exit(0)
-        num_lect =  int(self._extract_course_info(response))
+        num_lect =  int(self._lecture_count(response))
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (num_lect))
         
         udemy_dict = {}
