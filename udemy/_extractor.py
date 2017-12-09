@@ -19,12 +19,14 @@ from ._compat import (
     conn_error,
     course_list,
     compat_str,
+    logout_url,
     attached_file_url,
     )
 from ._utils import (
     _parse_json,
     js_to_json,
     _search_regex,
+    _hidden_inputs,
     _search_simple_regex,
     unescapeHTML,
     )
@@ -105,63 +107,96 @@ class UdemyInfoExtractor:
 
         return _title
 
-    
-    def _get_csrf_token(self):
+    def _get_csrf_token(self, webpage):
         try:
-           response = session.get(login_popup).text
-           match = _search_simple_regex(r"name='csrfmiddlewaretoken'\s+value='(.*)'", response)
+           match = _search_simple_regex(r"name='csrfmiddlewaretoken'\s+value='(.*)'", webpage)
            return match.group(1)
         except AttributeError:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "failed to extract csrf_token from login form try again ..\n")
             sys.exit(0)
 
-    def _extract_course_info(self, url):
-        response    = session.get(url)
-        webpage     = response.text
-        course      = _parse_json(
-                        _search_regex(
-                                        r'ng-init=["\'].*\bcourse=({.+?});', 
-                                        webpage, 
-                                        'course', 
-                                        default='{}'
-                                ),
-                                "Course Information",
-                                transform_source=unescapeHTML,
-                                fatal=False,
+    def _form_hidden_inputs(self, form_id, html):
+        form    =   _search_regex(
+                        r'(?is)<form[^>]+?id=(["\'])%s\1[^>]*>(?P<form>.+?)</form>' % form_id,
+                        html,
+                        '%s form' % form_id,
+                        group='form'
                             )
-        course_id   = course.get('id') or _search_regex(
-                                                        (r'&quot;id&quot;\s*:\s*(\d+)', r'data-course-id=["\'](\d+)'),
-                                                        webpage, 
-                                                        'course id'
-                                                        )
+        return _hidden_inputs(form)
+
+    def _fill_login_form(self, login_popup, username, password):
+        try:
+            webpage = session.get(login_popup).text
+        except conn_error as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+            time.sleep(0.8)
+            sys.exit(0)
+        else:
+            login_form = self._form_hidden_inputs('login-form', webpage)
+            login_form.update({
+                'email'     : username,
+                'password'  : password,
+                })
+        if login_form and isinstance(login_form, dict):
+            return login_form
+        else:
+            csrf_token = self._get_csrf_token(webpage)
+            login_form = {
+                            'isSubmitted': 1, 
+                            'email': username, 
+                            'password': password,
+                            'displayType': 'ajax', 
+                            'csrfmiddlewaretoken': csrf_token
+                        }
+            return login_form
+
+    def _extract_course_info(self, url):
+        try:
+            webpage    = session.get(url).text
+        except conn_error as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+            time.sleep(0.8)
+            sys.exit(0)
+        else:
+            course      = _parse_json(
+                            _search_regex(
+                                            r'ng-init=["\'].*\bcourse=({.+?});', 
+                                            webpage, 
+                                            'course', 
+                                            default='{}'
+                                    ),
+                                    "Course Information",
+                                    transform_source=unescapeHTML,
+                                    fatal=False,
+                                )
+            course_id   = course.get('id') or _search_regex(
+                                                            (r'&quot;id&quot;\s*:\s*(\d+)', r'data-course-id=["\'](\d+)'),
+                                                            webpage, 
+                                                            'course id'
+                                                            )
         if course_id:
             return course_id
         else:
             sys.exit(0)
 
     def login(self, username, password):
-        try:
-            csrf_token = self._get_csrf_token()
-            session.get('http://www.udemy.com/user/logout')
-        except conn_error as e:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
-            time.sleep(0.8)
-            sys.exit(0)
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login as " + fm + sb +"(%s)" % (username) +  fg + sb +"...\n")
-        payload = {'isSubmitted': 1, 'email': username, 'password': password,
-               'displayType': 'ajax', 'csrfmiddlewaretoken': csrf_token}
-        response = session.post(login_url, payload)
-
-        access_token = response.cookies.get('access_token')
-        client_id = response.cookies.get('client_id')
-        response_text = response.text
-        if access_token and client_id:
-            session.set_auth_headers(access_token, client_id)
-            sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged in successfully.\n")
+        login_form      = self._fill_login_form(login_popup, username, password)
+        if login_form and isinstance(login_form, dict):
+            response        = session.post(login_url, data=login_form)
+            access_token    = response.cookies.get('access_token')
+            client_id       = response.cookies.get('client_id')
+            response_text   = response.text
+            if access_token and client_id:
+                session.set_auth_headers(access_token, client_id)
+                sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged in successfully.\n")
+            else:
+                resp = response_text.split('<div class="form-errors alert alert-block alert-danger"><ul><li>')[1].split('</li></ul></div>')[0]
+                sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says: %s.\n" % (resp))
+                time.sleep(0.8)
+                sys.exit(0)
         else:
-            resp = response_text.split('<div class="form-errors alert alert-block alert-danger"><ul><li>')[1].split('</li></ul></div>')[0]
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says: %s.\n" % (resp))
-            time.sleep(0.8)
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Failed to login ..\n")
             sys.exit(0)
 
 
@@ -169,7 +204,7 @@ class UdemyInfoExtractor:
         sys.stdout.write('\n')
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloaded course information webpages successfully..\n")
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
-        session.get('http://www.udemy.com/user/logout')
+        session.get(logout_url)
         sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged out successfully.\n")
 
     def _lecture_count(self, response):
