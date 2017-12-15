@@ -19,6 +19,7 @@ from udemy.colorized.banner import banner
 extract_info        = udemy.UdemyInfoExtractor()
 course_dl           = udemy.Downloader()
 getpass             = udemy.GetPass()
+vtt2srt             = udemy.WEBVTT2SRT()
 cache_creds         = udemy.cache_credentials
 use_cached_creds    = udemy.use_cached_credentials
 
@@ -86,12 +87,18 @@ class UdemyDownload:
 
     def Downloader(self, url, title, path):
         out = course_dl.download(url, title, filepath=path, quiet=True, callback=self.Download)
-        if out == 'EXISTS':
-            return ('already_exist')
-        elif out == 401:
-            print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says (HTTP Error 401 : Unauthorized)")
-            print (fc + sd + "[" + fw + sb + "*" + fc + sd + "] : " + fw + sd + "Try to run the udemy-dl again...")
-            exit(0)
+        if isinstance(out, dict) and len(out) > 0:
+            msg     = out.get('msg')
+            status  = out.get('status')
+            if status == 'True':
+                return msg
+            else:
+                if msg == 'Udemy Says (HTTP Error 401 : Unauthorized)':
+                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says (HTTP Error 401 : Unauthorized)")
+                    print (fc + sd + "[" + fw + sb + "*" + fc + sd + "] : " + fw + sd + "Try to run the udemy-dl again...")
+                    exit(0)
+                else:
+                    return msg
             
     def SaveLinks(self, quality=None, path=None, default=False):
         if not path:
@@ -176,7 +183,6 @@ class UdemyDownload:
                             f.write("- {}\n- {}\n".format(lecture_name.encode("utf-8").strip(), _url.encode("utf-8").strip()))
                         f.close()
             print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Saved successfully.")
-                            
                             
     def get_filsize(self, url):
         req             = get(url, stream=True)
@@ -266,7 +272,6 @@ class UdemyDownload:
                                     i += 1
                                 print  (fy + sb + "+--------------------------------------------------------+")
 
-        
     def ExtractAndDownload(self, path=None, quality=None,  default=False, caption_only=False, skip_captions=False):
         current_dir = os.getcwd()
         print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading webpage..")
@@ -371,11 +376,15 @@ class UdemyDownload:
                             if _suburl == _url:
                                 print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading subtitle .. ")
                                 print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)" % (lecture_name))
-                                out = self.Downloader(_url, lecture_name, chapter_path)
-                                if out == 'already_exist':
+                                msg = self.Downloader(_url, lecture_name, chapter_path)
+                                if msg == 'already downloaded':
                                     print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
-                                else:
+                                    _is_converted = vtt2srt.convert(lecture_name)
+                                elif msg == 'download':
                                     print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
+                                    _is_converted = vtt2srt.convert(lecture_name)
+                                else:
+                                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}".format(msg))
                             else:
                                 pass
                         elif skip_captions and not caption_only:
@@ -383,21 +392,29 @@ class UdemyDownload:
                             if _suburl != _url:
                                 print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading lecture : (%s of %s)" % (i, len(videos_dict[chap])))
                                 print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)" % (lecture_name))
-                                out = self.Downloader(_url, lecture_name, chapter_path)
-                                if out == 'already_exist':
+                                msg = self.Downloader(_url, lecture_name, chapter_path)
+                                if msg == 'already downloaded':
                                     print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
-                                else:
+                                elif msg == 'download':
                                     print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
+                                else:
+                                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}".format(msg))
                             else:
                                 pass
                         else:
                             print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading lecture : (%s of %s)" % (i, len(videos_dict[chap])))
                             print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)" % (lecture_name))
-                            out = self.Downloader(_url, lecture_name, chapter_path)
-                            if out == 'already_exist':
+                            msg = self.Downloader(_url, lecture_name, chapter_path)
+                            if msg == 'already downloaded':
                                 print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fy + sb + "(already downloaded).")
-                            else:
+                                if 'vtt' in lecture_name and lecture_name.endswith('.vtt'):
+                                    _is_converted = vtt2srt.convert(lecture_name)
+                            elif msg == 'download':
                                 print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
+                                if 'vtt' in lecture_name and lecture_name.endswith('.vtt'):
+                                    _is_converted = vtt2srt.convert(lecture_name)
+                            else:
+                                print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}".format(msg))
                         i += 1
                     elif _url == 'html_content':
                         print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : (%s)" % (lecture_name))

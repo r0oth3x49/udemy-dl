@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 from . import __author__
 from . import __version__
@@ -73,6 +74,8 @@ __ALL__ =[
             "logout_url",
             "json",
             "re",
+            "os",
+            "sys",
             "compat_str",
             "login_popup",
             "compat_urllib",

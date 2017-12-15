@@ -4,7 +4,9 @@
 from . import __author__
 from . import __version__
 from ._compat import (
+                        os,
                         re,
+                        sys,
                         json,
                         NO_DEFAULT,
                         compat_HTMLParser,
@@ -25,7 +27,6 @@ def cache_credentials(username, password, resolution="", output=""):
     fout.close()
     return "cached"
 
-
 def use_cached_credentials():
     fname = "configuration"
     try:
@@ -40,7 +41,6 @@ def use_cached_credentials():
         creds = json.load(fout)
         fout.close()
         return creds
-
 
 class HTMLAttributeParser(compat_HTMLParser):
     """Trivial HTML parser to gather the attributes for a single element"""
@@ -75,7 +75,6 @@ def extract_attributes(html_element):
         pass
     return parser.attrs
 
-
 def _hidden_inputs(html):
     html = re.sub(r'<!--(?:(?!<!--).)*-->', '', html)
     hidden_inputs = {}
@@ -90,7 +89,6 @@ def _hidden_inputs(html):
         if name and value is not None:
             hidden_inputs[name] = value
     return hidden_inputs
-
 
 def unescapeHTML(s):
     clean   = compat_HTMLParser()
@@ -184,3 +182,77 @@ def js_to_json(code):
         \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|
         [0-9]+(?={skip}:)
         '''.format(comment=COMMENT_RE, skip=SKIP_RE), fix_kv, code)
+
+class WEBVTT2SRT:
+    def _fix_subtitles(self, content):
+        _container = ''
+        for line in content[2:]:
+            if sys.version_info[:2] >= (3, 0):
+                _container += line.decode('utf-8')
+            else:
+                _container += line
+        caption = re.sub(r"(\d{2}:\d{2}:\d{2})(\.)(\d{3})", r'\1,\3', _container)
+        return caption
+
+    def _generate_timecode(self, timecode):
+        _timecode   =   ""
+        if isinstance(timecode, list):
+            if len(timecode) < 3:
+                hh, mm, ss, tt = '00', timecode[0], timecode[1].split('.')[0], timecode[1].split('.')[-1]
+                _timecode     = '{}:{}:{},{}'.format(hh, mm, ss, tt)
+            if len(timecode) == 3:
+                hh, mm, ss, tt = timecode[0], timecode[1], timecode[2].split('.')[0], timecode[2].split('.')[-1]
+                _timecode     = '{}:{}:{},{}'.format(hh, mm, ss, tt)
+        return _timecode
+
+    def convert(self, filename=None):
+        _flag = {}
+        if filename:
+
+            _seqcounter     =   0
+            _appeartime     =   None
+            _disappertime   =   None
+            _textcontainer  =   None
+
+
+            _srtcontent     =   ""
+            _srtfilename    =   filename.replace('.vtt', '.srt')
+
+            # open and save file content into list for parsing ...
+            try:
+                f_in        =   open(filename)
+            except Exception as e:
+                _flag = {'status' : 'False', 'msg' : 'failed to open file : file not found ..'}
+            else:
+                content     =   [line for line in (l.strip() for l in f_in) if line]
+                f_in.close()
+                if content[0] == 'WEBVTT':
+                    if content[1] == '1':
+                        f           = open(filename, 'rb')
+                        content     = f.readlines()
+                        f.close()
+                        _srtcontent = self._fix_subtitles(content)
+                    else:
+                        for line in content[1:]:
+                            if '-->' in line:
+                                _start, _end  = line.split(' --> ')
+                                _stcode       = _start.split(':')
+                                _etcode       = _end.split(':')
+                                _appeartime   = self._generate_timecode(_stcode)
+                                _disappertime = self._generate_timecode(_etcode)
+                            else:
+                                _seqcounter     +=  1
+                                _textcontainer   = '{}'.format(line)
+                                if _textcontainer:
+                                    _srtcontent += '{}\r\n{} --> {}\r\n{}\r\n\r\n'.format(_seqcounter, _appeartime, _disappertime, _textcontainer)
+
+                    if _srtcontent:
+                        with open(_srtfilename, 'w') as sub:
+                            sub.write('{}'.format(_srtcontent))
+                        sub.close()
+                        try:
+                            os.unlink(filename)
+                        except Exception as e:
+                            pass
+                        _flag = {'status' : 'True', 'msg' : 'successfully generated subtitle in srt...'}
+        return _flag

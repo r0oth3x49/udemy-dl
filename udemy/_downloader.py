@@ -42,6 +42,7 @@ class Downloader:
 
     def download(self, url, title, filepath="", quiet=False, callback=lambda *x: None):
         savedir = filename = ""
+        retVal  = {}
 
         if filepath and os.path.isdir(filepath):
             savedir, filename = filepath, self._generate_filename(title)
@@ -55,7 +56,14 @@ class Downloader:
         filepath = os.path.join(savedir, filename)
 
         if os.path.isfile(filepath):
-            return ('EXISTS')
+            retVal = {"status" : "True", "msg" : "already downloaded"}
+            return retVal
+
+        if 'vtt' in filepath and filepath.endswith('.vtt'):
+            vttfilePath = filepath.replace('.vtt', '.srt')
+            if os.path.isfile(vttfilePath):
+                retVal = {"status" : "True", "msg" : "already downloaded"}
+                return retVal
 
         temp_filepath = filepath + ".part"
 
@@ -71,11 +79,14 @@ class Downloader:
             req = compat_request(url, headers={'user-agent':user_agent})
             response = compat_urlopen(req)
         except compat_urlerr as e:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "URLError  : %s.\n" % (e))
+            retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+            return retVal
         except compat_httperr as e:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "HTTPError : %s.\n" % (e.code))
             if e.code == 401:
-                return (e.code)
+                retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+            else:
+                retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
+            return retVal
         else:
             total = int(response.info()['Content-Length'].strip())
             chunksize, bytesdone, t0 = 16384, 0, time.time()
@@ -96,11 +107,14 @@ class Downloader:
                 try:
                     response = resume_opener.open(url)
                 except compat_urlerr as e:
-                    sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "URLError  : %s.\n" % (e))
+                    retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+                    return retVal
                 except compat_httperr as e:
-                    sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "HTTPError : %s.\n" % (e.code))
                     if e.code == 401:
-                        return (e.code)
+                        retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+                    else:
+                        retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
+                    return retVal
                 else:
                     bytesdone = offset
 
@@ -131,11 +145,11 @@ class Downloader:
 
             if self._active:
                 os.rename(temp_filepath, filepath)
-                return filepath
-            
+                retVal = {"status" : "True", "msg" : "download"}
             else:
                 outfh.close()
-                return temp_filepath
+                retVal = {"status" : "True", "msg" : "download"}
+        return retVal
 
 
     
