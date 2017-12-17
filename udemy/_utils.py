@@ -227,7 +227,7 @@ class WEBVTT2SRT:
                 content     =   [line for line in (l.strip() for l in f_in) if line]
                 f_in.close()
                 if len(content) > 4:
-                    if content[0] == 'WEBVTT':
+                    if content[0] == 'WEBVTT' or content[0].endswith('WEBVTT') or 'WEBVTT' in content[0]:
                         if content[1] == '1':
                             f           = open(filename, 'rb')
                             content     = f.readlines()
