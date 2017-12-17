@@ -134,7 +134,7 @@ class Downloader:
                             os.unlink(temp_filepath)
                         except Exception as e:
                             pass
-                        retVal = {"status" : "True", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
+                        retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
                         return retVal
                 else:
                     rate = 0
