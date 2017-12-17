@@ -125,8 +125,17 @@ class Downloader:
                 elapsed = time.time() - t0
                 bytesdone += len(chunk)
                 if elapsed:
-                    rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                    eta  = (total - bytesdone) / (rate * 1024.0)
+                    try:
+                        rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
+                        eta  = (total - bytesdone) / (rate * 1024.0)
+                    except ZeroDivisionError as e:
+                        outfh.close()
+                        try:
+                            os.unlink(temp_filepath)
+                        except Exception as e:
+                            pass
+                        retVal = {"status" : "True", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
+                        return retVal
                 else:
                     rate = 0
                     eta = 0

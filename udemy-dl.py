@@ -384,6 +384,7 @@ class UdemyDownload:
                                     print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
                                     _is_converted = vtt2srt.convert(lecture_name)
                                 else:
+                                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fc + sb + "(download skipped).")
                                     print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}".format(msg))
                             else:
                                 pass
@@ -398,6 +399,7 @@ class UdemyDownload:
                                 elif msg == 'download':
                                     print (fc + sd + "\n[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)" % (lecture_name))
                                 else:
+                                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fc + sb + "(download skipped).")
                                     print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}".format(msg))
                             else:
                                 pass
@@ -414,6 +416,7 @@ class UdemyDownload:
                                 if 'vtt' in lecture_name and lecture_name.endswith('.vtt'):
                                     _is_converted = vtt2srt.convert(lecture_name)
                             else:
+                                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_name) + fc + sb + "(download skipped).")
                                 print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}".format(msg))
                         i += 1
                     elif _url == 'html_content':

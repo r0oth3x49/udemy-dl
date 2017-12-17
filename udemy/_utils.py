@@ -226,33 +226,36 @@ class WEBVTT2SRT:
             else:
                 content     =   [line for line in (l.strip() for l in f_in) if line]
                 f_in.close()
-                if content[0] == 'WEBVTT':
-                    if content[1] == '1':
-                        f           = open(filename, 'rb')
-                        content     = f.readlines()
-                        f.close()
-                        _srtcontent = self._fix_subtitles(content)
-                    else:
-                        for line in content[1:]:
-                            if '-->' in line:
-                                _start, _end  = line.split(' --> ')
-                                _stcode       = _start.split(':')
-                                _etcode       = _end.split(':')
-                                _appeartime   = self._generate_timecode(_stcode)
-                                _disappertime = self._generate_timecode(_etcode)
-                            else:
-                                _seqcounter     +=  1
-                                _textcontainer   = '{}'.format(line)
-                                if _textcontainer:
-                                    _srtcontent += '{}\r\n{} --> {}\r\n{}\r\n\r\n'.format(_seqcounter, _appeartime, _disappertime, _textcontainer)
+                if len(content) > 4:
+                    if content[0] == 'WEBVTT':
+                        if content[1] == '1':
+                            f           = open(filename, 'rb')
+                            content     = f.readlines()
+                            f.close()
+                            _srtcontent = self._fix_subtitles(content)
+                        else:
+                            for line in content[1:]:
+                                if '-->' in line:
+                                    _start, _end  = line.split(' --> ')
+                                    _stcode       = _start.split(':')
+                                    _etcode       = _end.split(':')
+                                    _appeartime   = self._generate_timecode(_stcode)
+                                    _disappertime = self._generate_timecode(_etcode)
+                                else:
+                                    _seqcounter     +=  1
+                                    _textcontainer   = '{}'.format(line)
+                                    if _textcontainer:
+                                        _srtcontent += '{}\r\n{} --> {}\r\n{}\r\n\r\n'.format(_seqcounter, _appeartime, _disappertime, _textcontainer)
 
-                    if _srtcontent:
-                        with open(_srtfilename, 'w') as sub:
-                            sub.write('{}'.format(_srtcontent))
-                        sub.close()
-                        try:
-                            os.unlink(filename)
-                        except Exception as e:
-                            pass
-                        _flag = {'status' : 'True', 'msg' : 'successfully generated subtitle in srt...'}
+                        if _srtcontent:
+                            with open(_srtfilename, 'w') as sub:
+                                sub.write('{}'.format(_srtcontent))
+                            sub.close()
+                            try:
+                                os.unlink(filename)
+                            except Exception as e:
+                                pass
+                            _flag = {'status' : 'True', 'msg' : 'successfully generated subtitle in srt ...'}
+                else:
+                    _flag = {'status' : 'False', 'msg' : 'subtitle file seems to be empty skipping conversion from WEBVTT to SRT ..'}
         return _flag
