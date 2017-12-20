@@ -188,7 +188,7 @@ class WEBVTT2SRT:
         _container = ''
         for line in content[2:]:
             if sys.version_info[:2] >= (3, 0):
-                _container += line.decode('utf-8')
+                _container += line.decode('utf-8', 'ignore')
             else:
                 _container += line
         caption = re.sub(r"(\d{2}:\d{2}:\d{2})(\.)(\d{3})", r'\1,\3', _container)
@@ -220,11 +220,11 @@ class WEBVTT2SRT:
 
             # open and save file content into list for parsing ...
             try:
-                f_in        =   open(filename)
+                f_in        =   open(filename, 'rb')
             except Exception as e:
                 _flag = {'status' : 'False', 'msg' : 'failed to open file : file not found ..'}
             else:
-                content     =   [line for line in (l.strip() for l in f_in) if line]
+                content     =   [line for line in (l.decode('utf-8', 'ignore').strip() for l in f_in) if line]
                 f_in.close()
                 if len(content) > 4:
                     if content[0] == 'WEBVTT' or content[0].endswith('WEBVTT') or 'WEBVTT' in content[0]:

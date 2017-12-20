@@ -550,6 +550,7 @@ def main():
         else:
             config       = use_cached_creds()
             if isinstance(config, dict):
+                stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs..")
                 email       = config.get('username')
                 passwd      = config.get('password')
                 resolution  = config.get('resolution') or None
@@ -566,11 +567,14 @@ def main():
                 else:
                     options.output  = False
 
-                print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Using cached configurations..")
                 if email != "" and passwd != "":
+                    time.sleep(0.8)
+                    stdout.write ("\r\r\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs.. (" + fc + sb + "done" + fg + sd + ")\n")
                     udemy =  UdemyDownload(url, email, passwd)
                 else:
-                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password seems empty in 'configuration' file")
+                    time.sleep(0.8)
+                    stdout.write ("\r\r\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs.. (" + fr + sb + "failed" + fg + sd + ")\n")
+                    print (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password seems empty in 'configuration' file.")
                     username = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Username : " + fg + sb
                     password = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Password : " + fc + sb
                     email   = getpass.getuser(prompt=username)
@@ -689,10 +693,11 @@ def main():
                 passwd  = getpass.getpass(prompt=password)
                 print ("")
                 if options.configurations:
-                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching configuration...")
+                    stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching configs..")
                     cached = cache_creds(email, passwd)
                     if cached == 'cached':
-                        print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Configurations cached successfully...")
+                        time.sleep(0.8)
+                        stdout.write ("\r\r\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching configs.. (" + fc + sb + "done" + fg + sd + ")\n")
 
                 if email and passwd:
                     udemy =  UdemyDownload(url, email, passwd)
@@ -808,10 +813,11 @@ def main():
             parser.print_usage()
         else:
             if options.configurations:
-                print (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching configurations...")
+                stdout.write (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching configs..")
                 cached = cache_creds(email, passwd)
                 if cached == 'cached':
-                    print (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Configurations cached successfully...")
+                    time.sleep(0.8)
+                    stdout.write ("\r\r\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Caching configs.. (" + fc + sb + "done" + fg + sd + ")\n")
 
             udemy =  UdemyDownload(url, email, passwd)
             
