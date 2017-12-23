@@ -103,9 +103,10 @@ class UdemyInfoExtractor:
         if os.name == "nt":
             ok = re.compile(r'[^\\/:.*?"<>|,]')
 
-        _title = "".join(x if ok.match(x) else "_" for x in _temp)
+        _title      = ''.join(x if ok.match(x) else "_" for x in _temp)
+        __title     = re.sub('\d+', '', _title)
 
-        return _title
+        return __title
 
     def _get_csrf_token(self, webpage):
         try:

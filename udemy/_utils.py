@@ -243,6 +243,7 @@ class WEBVTT2SRT:
                                     _disappertime = self._generate_timecode(_etcode)
                                 else:
                                     _seqcounter     +=  1
+                                    line             = ''.join([text if ord(text) < 128 else '' for text in line])
                                     _textcontainer   = '{}'.format(line)
                                     if _textcontainer:
                                         _srtcontent += '{}\r\n{} --> {}\r\n{}\r\n\r\n'.format(_seqcounter, _appeartime, _disappertime, _textcontainer)
