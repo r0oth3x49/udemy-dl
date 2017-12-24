@@ -100,6 +100,55 @@ class UdemyInfoExtractor:
         if '209' in _temp:
             _temp = _temp.replace('209', 'N')
 
+        # fixed issue #51 - Turkish character problem 
+        if '231' in _temp:
+            _temp = _temp.replace('231', 'ç')
+        if 'c807' in _temp:
+            _temp = _temp.replace('c807', 'ç')
+        if '287' in _temp:
+            _temp = _temp.replace('287', 'ğ')
+        if 'g774' in _temp:
+            _temp = _temp.replace('g774', 'Ğ')
+        if '305' in _temp:
+            _temp = _temp.replace('305', 'ı')
+        if '246' in _temp:
+            _temp = _temp.replace('246', 'ö')
+        if 'o776' in _temp:
+            _temp = _temp.replace('o776', 'ö')
+        if '351' in _temp:
+            _temp = _temp.replace('351', 'ş')
+        if 's807' in _temp:
+            _temp = _temp.replace('s807', 'ş')
+        if '252' in _temp:
+            _temp = _temp.replace('252', 'ü')
+        if 'u776' in _temp:
+            _temp = _temp.replace('u776', 'ü')
+
+        if '199' in _temp:
+            _temp = _temp.replace('199', 'Ç')
+        if 'C807' in _temp:
+            _temp = _temp.replace('C807', 'Ç')
+        if '286' in _temp:
+            _temp = _temp.replace('286', 'Ğ')
+        if 'G774' in _temp:
+            _temp = _temp.replace('G774', 'Ğ')
+        if '304' in _temp:
+            _temp = _temp.replace('304', 'İ')
+        if 'I775' in _temp:
+            _temp = _temp.replace('I775', 'İ')
+        if '214' in _temp:
+            _temp = _temp.replace('214', 'Ö')
+        if 'O776' in _temp:
+            _temp = _temp.replace('o776', 'Ö')
+        if '350' in _temp:
+            _temp = _temp.replace('350', 'Ş')
+        if 'S807' in _temp:
+            _temp = _temp.replace('S807', 'Ş')
+        if '220' in _temp:
+            _temp = _temp.replace('220', 'Ü')
+        if 'U776' in _temp:
+            _temp = _temp.replace('U776', 'Ü')
+
         ok = re.compile(r'[^/]')
         if os.name == "nt":
             ok = re.compile(r'[^\\/:.*?"<>|,]')
@@ -107,6 +156,7 @@ class UdemyInfoExtractor:
         _title      = ''.join(x if ok.match(x) else "_" for x in _temp)
         __title     = re.sub('\d+', '', _title)
 
+        print(__title)
         return __title
 
     def _get_csrf_token(self, webpage):
@@ -520,8 +570,8 @@ class UdemyInfoExtractor:
                         
             elif clazz == 'chapter':
                 chapter_number = entry.get('object_index')
-                _title  = self._sanitize_title(entry.get('title'))
-                title = ''.join([i if ord(i) < 128 else ' ' for i in _title])
+                _title  = self._sanitize_title(entry.get('title'))              
+                title = _title
                 chapter = self._generate_dirname(title)
                 chap = "{0:02d} {1!s}".format(chapter_number, chapter)
                 if chap not in udemy_dict:
