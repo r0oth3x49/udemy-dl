@@ -76,6 +76,7 @@ __ALL__ =[
             "re",
             "os",
             "sys",
+            "pyver",
             "compat_str",
             "login_popup",
             "compat_urllib",
