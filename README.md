@@ -1,4 +1,4 @@
-[![GitHub release](https://img.shields.io/badge/release-v0.3-brightgreen.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/tree/e85feca476755944758149a8fc81ae8a02f15c2c)
+[![GitHub release](https://img.shields.io/badge/release-v0.3-brightgreen.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/releases/tag/v0.3)
 [![GitHub stars](https://img.shields.io/github/stars/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/network)
 [![GitHub issues](https://img.shields.io/github/issues/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/issues)
