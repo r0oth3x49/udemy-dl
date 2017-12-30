@@ -1,3 +1,8 @@
+[![GitHub release](https://img.shields.io/badge/release-v0.3-brightgreen.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/tree/e85feca476755944758149a8fc81ae8a02f15c2c)
+[![GitHub stars](https://img.shields.io/github/stars/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/network)
+[![GitHub issues](https://img.shields.io/github/issues/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/issues)
+
 # udemy-dl
 **A cross-platform python based utility to download courses from udemy for personal offline use.**
 
@@ -65,55 +70,55 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 
 ***Downloading course***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL
 	
 ***Downloading Course with specific resolution***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -r 720
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL -r 720
 	
 ***Downloading course to a specific location***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -o "/path/to/directory/"
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL -o "/path/to/directory/"
 	
 ***Downloading course with specific resolution to a specific location***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -r 720 -o "/path/to/directory/"
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL -r 720 -o "/path/to/directory/"
 
 ***Saving download links***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -s
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL -s
 
 ***Saving specific resolution download links***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -s -r 720
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL -s -r 720
 
 ***Saving download links to specific location***
 	
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -s -o "/path/to/directory/"
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL -s -o "/path/to/directory/"
 	
 ***Saving specific resolution download links to specific location***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -s -r 720 -o "/path/to/directory/"
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL -s -r 720 -o "/path/to/directory/"
 
 ***Downloading course and caching credentials***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME --configs
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL --configs
 
 ***Downloading with specific resolution and allow default resolution as well***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -r 1080 -d
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL -r 1080 -d
 
 ***Downloading course but skip captions/subtitles***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME --skip-sub
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL --skip-sub
 
 ***Downloading captions/subtitles only***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME --sub-only
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL --sub-only
 
 ***Listing course's video informtion***
 
-	python udemy-dl.py -u user@domain.com -p p4ssw0rd https://www.udemy.com/COURSE_NAME -l
+	python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL -l
 the above command will list down the size of video and attached files and available resolutions for a video in a course.
 
 ### Advanced Usage
@@ -149,7 +154,7 @@ Options:
     --skip-sub         Download course but skip captions/subtitle.
 
   Example:
-	python udemy-dl.py  https://www.udemy.com/course_name/
+	python udemy-dl.py  COURSE_URL
 </code></pre>
 
 

@@ -162,9 +162,10 @@ class UdemyInfoExtractor:
             sys.exit(0)
 
 
-    def logout(self):
+    def logout(self, flag=True):
         sys.stdout.write('\n')
-        sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloaded course information webpages successfully..\n")
+        if flag:
+            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloaded course information webpages successfully..\n")
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
         try:
             session.get(logout_url)
@@ -223,8 +224,9 @@ class UdemyInfoExtractor:
         response = session.get(_course_url).json()
         _isenrolled = response.get('detail')
         if _isenrolled:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "You are not enrolled in this course Udemy Says : {}.".format(_isenrolled))
-            self.logout()
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : {} either you are not enrolled in course or server didn't respond with course information webpages.\n".format(_isenrolled))
+            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fw + sb + "Re-run udemy-dl against full course url (e.g :- https://www.udemy.com/course/learn/v4/overview)")
+            self.logout(flag=False)
             exit(0)
         num_lect =  int(self._lecture_count(response))
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (num_lect))
