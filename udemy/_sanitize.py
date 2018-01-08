@@ -49,6 +49,16 @@ def sanitize_title(title):
                 '220'  : 'U',
                 '168U' : 'U',
                 '209'  : 'N',
+	# Remove Windows Reserved Characters
+                '<': '',
+                '>': '',
+                ':': '',
+                '"': '',
+                '\\': '',
+                '/': '',
+                '|': '',
+                '?': '',
+                '*': '',
     }
     _temp   = ''.join([str(ord(i)) if ord(i) > 128 else i for i in title])
     for _ascii,_char in _locale.items():
