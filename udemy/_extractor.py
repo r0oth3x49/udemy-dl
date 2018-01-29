@@ -30,7 +30,8 @@ from ._utils import (
     _search_simple_regex,
     unescapeHTML,
     )
-from ._sanitize import sanitize_title
+from _sanitize  import  slugify
+from _sanitize  import  SLUG_OK
 early_py_version = sys.version_info[:2] < (2, 7)
 
 class Session:
@@ -65,8 +66,8 @@ class UdemyInfoExtractor:
         course_name = url.split("/")[-1] if not url.endswith("/") else url.split("/")[-2]
         return course_name
 
-    def _sanitize_title(self, title):
-        _title = sanitize_title(title)
+    def _sanitize_title(self, unsafetext):
+        _title = slugify(unsafetext, lower=False, spaces=True, ok=SLUG_OK + '().')
         return _title
 
     def _get_csrf_token(self, webpage):
