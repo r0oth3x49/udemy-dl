@@ -30,8 +30,8 @@ from ._utils import (
     _search_simple_regex,
     unescapeHTML,
     )
-from _sanitize  import  slugify
-from _sanitize  import  SLUG_OK
+from ._sanitize  import  slugify
+from ._sanitize  import  SLUG_OK
 early_py_version = sys.version_info[:2] < (2, 7)
 
 class Session:
