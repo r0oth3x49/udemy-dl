@@ -14,6 +14,8 @@
 - Python `pip`
 - Python module `requests`
 - Python module `colorama`
+- Python module `unidecode`
+- Python module `six`
 - Python module `requests[security]` : **(for Mac Users only)**
 
 ### Install modules

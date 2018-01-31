@@ -1,2 +1,4 @@
 colorama
 requests
+unidecode
+six
