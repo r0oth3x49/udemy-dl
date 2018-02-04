@@ -1,4 +1,4 @@
-from colorama import init,Fore,Back,Style
+from colorama import init, Fore, Back, Style
 import os
 
 if os.name == "posix":
@@ -25,7 +25,7 @@ if os.name == "posix":
     sn = Style.NORMAL
     sb = Style.BRIGHT
 else:
-    ## ----------------------------------------------------------------------------------------------------------------------  ##
+    # ----------------------------------------------------------------------------------------------------------------------  #
     init(autoreset=True)
     # colors foreground text:
     fc = Fore.CYAN
@@ -35,7 +35,6 @@ else:
     fb = Fore.BLUE
     fy = Fore.YELLOW
     fm = Fore.MAGENTA
-    
 
     # colors background text:
     bc = Back.CYAN
@@ -50,4 +49,4 @@ else:
     sd = Style.DIM
     sn = Style.NORMAL
     sb = Style.BRIGHT
-    ## ----------------------------------------------------------------------------------------------------------------------  ##
+    # ----------------------------------------------------------------------------------------------------------------------  #
