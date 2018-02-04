@@ -33,16 +33,15 @@ class Downloader:
             filename = filename
 
         return filename
-    
+
     def cancel(self):
         if self._active:
             self._active = True
             return True
 
-
     def download(self, url, title, filepath="", quiet=False, callback=lambda *x: None):
         savedir = filename = ""
-        retVal  = {}
+        retVal = {}
 
         if filepath and os.path.isdir(filepath):
             savedir, filename = filepath, self._generate_filename(title)
@@ -56,13 +55,13 @@ class Downloader:
         filepath = os.path.join(savedir, filename)
 
         if os.path.isfile(filepath):
-            retVal = {"status" : "True", "msg" : "already downloaded"}
+            retVal = {"status": "True", "msg": "already downloaded"}
             return retVal
 
         if 'vtt' in filepath and filepath.endswith('.vtt'):
             vttfilePath = filepath.replace('.vtt', '.srt')
             if os.path.isfile(vttfilePath):
-                retVal = {"status" : "True", "msg" : "already downloaded"}
+                retVal = {"status": "True", "msg": "already downloaded"}
                 return retVal
 
         temp_filepath = filepath + ".part"
@@ -70,22 +69,21 @@ class Downloader:
         status_string = ('  {:,} Bytes [{:.2%}] received. Rate: [{:4.0f} '
                          'KB/s].  ETA: [{:.0f} secs]')
 
-
         if early_py_version:
             status_string = ('  {0:} Bytes [{1:.2%}] received. Rate:'
                              ' [{2:4.0f} KB/s].  ETA: [{3:.0f} secs]')
 
-        try:    
-            req = compat_request(url, headers={'user-agent':user_agent})
+        try:
+            req = compat_request(url, headers={'user-agent': user_agent})
             response = compat_urlopen(req)
         except compat_urlerr as e:
-            retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+            retVal = {"status": "False", "msg": "URLError : either your internet connection is not working or server aborted the request"}
             return retVal
         except compat_httperr as e:
             if e.code == 401:
-                retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+                retVal = {"status": "False", "msg": "Udemy Says (HTTP Error 401 : Unauthorized)"}
             else:
-                retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
+                retVal = {"status": "False", "msg": "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
             return retVal
         else:
             total = int(response.info()['Content-Length'].strip())
@@ -107,13 +105,13 @@ class Downloader:
                 try:
                     response = resume_opener.open(url)
                 except compat_urlerr as e:
-                    retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+                    retVal = {"status": "False", "msg": "URLError : either your internet connection is not working or server aborted the request"}
                     return retVal
                 except compat_httperr as e:
                     if e.code == 401:
-                        retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+                        retVal = {"status": "False", "msg": "Udemy Says (HTTP Error 401 : Unauthorized)"}
                     else:
-                        retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
+                        retVal = {"status": "False", "msg": "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
                     return retVal
                 else:
                     bytesdone = offset
@@ -127,14 +125,14 @@ class Downloader:
                 if elapsed:
                     try:
                         rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                        eta  = (total - bytesdone) / (rate * 1024.0)
+                        eta = (total - bytesdone) / (rate * 1024.0)
                     except ZeroDivisionError as e:
                         outfh.close()
                         try:
                             os.unlink(temp_filepath)
                         except Exception as e:
                             pass
-                        retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
+                        retVal = {"status": "False", "msg": "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
                         return retVal
                 else:
                     rate = 0
@@ -154,11 +152,8 @@ class Downloader:
 
             if self._active:
                 os.rename(temp_filepath, filepath)
-                retVal = {"status" : "True", "msg" : "download"}
+                retVal = {"status": "True", "msg": "download"}
             else:
                 outfh.close()
-                retVal = {"status" : "True", "msg" : "download"}
+                retVal = {"status": "True", "msg": "download"}
         return retVal
-
-
-    

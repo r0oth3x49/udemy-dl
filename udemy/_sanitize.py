@@ -40,12 +40,12 @@ def slugify(s, ok=SLUG_OK, lower=True, spaces=False, only_ascii=False, space_rep
     :param s: Your unicode string.
     :param ok: Extra characters outside of alphanumerics to be allowed.
                Default is '-_~'
-    :param lower: Lower the output string. 
+    :param lower: Lower the output string.
                   Default is True
     :param spaces: True allows spaces, False replaces a space with the "space_replacement" param
-    :param only_ascii: True to replace non-ASCII unicode characters with 
+    :param only_ascii: True to replace non-ASCII unicode characters with
                        their ASCII representations.
-    :param space_replacement: Char used to replace spaces if "spaces" is False. 
+    :param space_replacement: Char used to replace spaces if "spaces" is False.
                               Default is dash ("-") or first char in ok if dash not allowed
     :type s: String
     :type ok: String

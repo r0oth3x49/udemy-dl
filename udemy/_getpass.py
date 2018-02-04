@@ -9,6 +9,7 @@ else:
     import tty
     import termios
 
+
 class GetPass:
 
     def _unix_getch(self):
@@ -20,7 +21,7 @@ class GetPass:
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
-    
+
     def getuser(self, prompt='Username : '):
         """Prompt for Username """
         if sys.version_info[:2] >= (3, 0):
@@ -47,8 +48,8 @@ class GetPass:
                     raise KeyboardInterrupt
                 if ord(c) == 8:
                     if len(pw) > 0:
-                        pw  = pw[:-1]
-                        s   = "*" * len(pw)
+                        pw = pw[:-1]
+                        s = "*" * len(pw)
                         sys.stdout.write('\033[2K\033[1G')
                         sys.stdout.flush()
                         sys.stdout.write('\r\r\r{}{}'.format(prompt, s))
@@ -72,8 +73,8 @@ class GetPass:
                     raise KeyboardInterrupt
                 if ord(c) == 127:
                     if len(pw) > 0:
-                        pw  = pw[:-1]
-                        s   = "*" * len(pw)
+                        pw = pw[:-1]
+                        s = "*" * len(pw)
                         sys.stdout.write('\033[2K\033[1G')
                         sys.stdout.flush()
                         sys.stdout.write('\r\r\r{}{}'.format(prompt, s))
