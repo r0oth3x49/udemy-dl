@@ -24,7 +24,7 @@ def cache_credentials(username, password, resolution="", output=""):
                 "output"            : output
             }
     fout = open(fname, fmode)
-    json.dump(creds, fout)
+    json.dump(creds, fout, indent=4)
     fout.close()
     return "cached"
 
