@@ -602,34 +602,34 @@ def main():
 
 
                 elif not options.save_links and not options.list and options.output and not options.quality and not options.caption_only and not options.skip_captions:
-                    outto   = args[3]
+                    outto   =  output
                     udemy.ExtractAndDownload(path=outto)
                 elif options.skip_captions and not options.save_links and not options.list and options.output and not options.quality and not options.caption_only:
-                    outto   = args[3]
+                    outto   = output
                     udemy.ExtractAndDownload(path=outto, skip_captions=True)
                 elif options.caption_only and not options.save_links and not options.list and options.output and not options.quality and not options.skip_captions:
-                    outto   = args[3]
+                    outto   = output
                     udemy.ExtractAndDownload(path=outto, caption_only=True)
 
                     ''' Saving course to user define path with user define resolution  '''
 
                 elif not options.save_links and not options.list and options.output and options.quality and not options.caption_only and not options.skip_captions:
-                    res     = args[3]
-                    outto   = args[4]
+                    res     = resolution
+                    outto   = output
                     if options.default:
                         udemy.ExtractAndDownload(path=outto, quality=res, default=True)
                     else:
                         udemy.ExtractAndDownload(path=outto, quality=res)
                 elif options.caption_only and not options.save_links and not options.list and options.output and options.quality  and not options.skip_captions:
-                    res     = args[3]
-                    outto   = args[4]
+                    res     = resolution
+                    outto   = output
                     if options.default:
                         udemy.ExtractAndDownload(path=outto, quality=res, default=True, caption_only=True)
                     else:
                         udemy.ExtractAndDownload(path=outto, quality=res, caption_only=True)
                 elif options.skip_captions and not options.save_links and not options.list and options.output and options.quality and not options.caption_only:
-                    res     = args[3]
-                    outto   = args[4]
+                    res     = resolution
+                    outto   = output
                     if options.default:
                         udemy.ExtractAndDownload(path=outto, quality=res, default=True, skip_captions=True)
                     else:
@@ -638,19 +638,19 @@ def main():
                     ''' Saving course with user define resolution  '''
 
                 elif not options.save_links and not options.list and not options.output and options.quality and not options.caption_only and not options.skip_captions:
-                    res     = args[3]
+                    res     = resolution
                     if options.default:
                         udemy.ExtractAndDownload(quality=res, default=True)
                     else:
                         udemy.ExtractAndDownload(quality=res)
                 elif options.caption_only and not options.save_links and not options.list and not options.output and options.quality and not options.skip_captions:
-                    res     = args[3]
+                    res     = resolution
                     if options.default:
                         udemy.ExtractAndDownload(quality=res, default=True, caption_only=True)
                     else:
                         udemy.ExtractAndDownload(quality=res, caption_only=True)
                 elif options.skip_captions and not options.save_links and not options.list and not options.output and options.quality and not options.caption_only:
-                    res     = args[3]
+                    res     = resolution
                     if options.default:
                         udemy.ExtractAndDownload(quality=res, default=True, skip_captions=True)
                     else:
