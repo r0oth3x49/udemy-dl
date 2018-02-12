@@ -235,7 +235,7 @@ class UdemyInfoExtractor:
         udemy_dict = {}
         chap, chapter_number = [None] * 2
         counter = 0
-        
+
         for entry in response['results']:
             clazz = entry.get('_class')
             if clazz == 'lecture':

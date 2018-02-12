@@ -16,11 +16,11 @@
 - Python module `colorama`
 - Python module `unidecode`
 - Python module `six`
-- Python module `requests[security]` : **(for Mac Users only)**
+- Python module `requests[security]`
 
 ### Install modules
 
-	pip install -r requirements.txt
+	pip install -r requirements.txt --upgrade
 	
 ### Tested on
 
