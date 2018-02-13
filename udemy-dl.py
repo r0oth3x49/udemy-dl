@@ -179,9 +179,21 @@ class UdemyDownload:
                                             continue
                         
                     if _url:
-                        with open("%s.txt" % (course), "a") as f:
-                            f.write("- {}\n- {}\n".format(lecture_name.encode("utf-8").strip(), _url.encode("utf-8").strip()))
-                        f.close()
+                        _course = "{}.txt".format(course)
+                        if version_info[:2] >= (3, 0):
+                            with open(_course, 'a', encoding='utf-8') as links:
+                                try:
+                                    links.write('{}\n'.format(_url))
+                                except Exception as e:
+                                    pass
+                                links.close()
+                        else:
+                            with open(_course, 'a') as links:
+                                try:
+                                    links.write('{}\n'.format(_url))
+                                except Exception as e:
+                                    pass
+                            links.close()
             print (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Saved successfully.")
                             
     def get_filsize(self, url):
