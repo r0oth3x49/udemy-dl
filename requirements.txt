@@ -3,3 +3,4 @@ requests
 requests[security]
 unidecode
 six
+pyOpenSSL
