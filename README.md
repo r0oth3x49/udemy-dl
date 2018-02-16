@@ -16,7 +16,7 @@
 - Python module `colorama`
 - Python module `unidecode`
 - Python module `six`
-- Python module `requests[security]`
+- Python module `requests[security]` : **(if you are facing login/authentication problem)**
 
 ### Install modules
 
