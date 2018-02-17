@@ -1,5 +1,6 @@
+requests[security]
 colorama
 requests
-requests[security]
 unidecode
+pyOpenSSL
 six

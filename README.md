@@ -16,11 +16,11 @@
 - Python module `colorama`
 - Python module `unidecode`
 - Python module `six`
-- Python module `requests[security]` : **(if you are facing login/authentication problem)**
+- Python module `requests[security]` or `pyOpenSSL`
 
 ### Install modules
 
-	pip install -r requirements.txt --upgrade
+	pip install -r requirements.txt
 	
 ### Tested on
 
