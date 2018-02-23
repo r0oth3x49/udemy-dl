@@ -154,7 +154,7 @@ class UdemyInfoExtractor:
                 session.set_auth_headers(access_token, client_id)
                 sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged in successfully.\n")
             else:
-                resp = response_text.split('<div class="form-errors alert alert-block alert-danger"><ul><li>')[1].split('</li></ul></div>')[0]
+                resp = "Username or Password is incorrect."
                 sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says: %s.\n" % (resp))
                 time.sleep(0.8)
                 sys.exit(0)

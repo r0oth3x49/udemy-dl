@@ -54,9 +54,9 @@ course_url          = 'https://www.udemy.com/api-2.0/courses/{course_id}/cached-
 get_url             = 'https://www.udemy.com/api-2.0/users/me/subscribed-courses/{course_id}/lectures/{lecture_id}?fields[lecture]=view_html,asset'
 attached_file_url   = 'https://www.udemy.com/api-2.0/users/me/subscribed-courses/{course_id}/lectures/{lecture_id}/supplementary-assets/{asset_id}?fields[asset]=download_urls'
 num_lectures        = 'https://www.udemy.com/api-2.0/courses/{course_id}?fields[course]=num_lectures'
-user_agent          = "Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/47.0 (Chrome)"
+user_agent          = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36"
 std_headers         =   {
-                        'User-Agent'        : 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/47.0 (Chrome)',
+                        'User-Agent'        : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
                         'X-Requested-With'  : 'XMLHttpRequest',
                         'Host'              : 'www.udemy.com',
                         'Referer'           : 'https://www.udemy.com/join/login-popup'
