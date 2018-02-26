@@ -1,10 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-__version__ = "0.4"
-__author__  = "Nasir Khan (r0ot h3x49)"
-__license__ = 'MIT'
-__copyright__ = 'Copyright (c) 2018 Nasir Khan (r0ot h3x49)'
 
 '''
 
@@ -28,5 +22,19 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
 
+from .colors import *
 
-from ._udemy import course
+def banner():
+    banner = '''
+%s%s              __                               ____  
+%s%s   __  ______/ /__  ____ ___  __  __      ____/ / /  
+%s%s  / / / / __  / _ \/ __ `__ \/ / / /_____/ __  / /   
+%s%s / /_/ / /_/ /  __/ / / / / / /_/ /_____/ /_/ / /    
+%s%s \__,_/\__,_/\___/_/ /_/ /_/\__, /      \__,_/_/     
+%s%s                           /____/
+                                 %s%sVersion : %s%s0.4
+                                 %s%sAuthor  : %s%sNasir Khan (r0ot h3x49)
+                                 %s%sGithub  : %s%shttps://github.com/r0oth3x49
+
+''' % (fc, sb,fc, sb,fc, sb, fm, sb, fy, sb, fy, sb, fy,sd, fg, sd, fy, sd, fg, sd, fy, sd, fg, sd)
+    return banner

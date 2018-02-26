@@ -1,95 +1,104 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+'''
+
+Author  : Nasir Khan (r0ot h3x49)
+Github  : https://github.com/r0oth3x49
+License : MIT
+
+
+Copyright (c) 2018 Nasir Khan (r0ot h3x49)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the
+Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, 
+and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+'''
+
+import re
 import os
 import sys
-from . import __author__
-from . import __version__
+import time
+import json
+import requests
 if sys.version_info[:2] >= (3, 0):
-    import re
+
     import ssl
-    import json
-    import requests
     import urllib.request as compat_urllib
 
-    from ast                    import literal_eval     as compat_ConvertToDict
-    from requests               import get              as compat_get
-    from urllib.error           import HTTPError        as compat_httperr
-    from urllib.error           import URLError         as compat_urlerr
-    from urllib.parse           import urlparse         as compat_urlparse
-    from urllib.request         import Request          as compat_request
-    from urllib.request         import urlopen          as compat_urlopen
-    from urllib.request         import build_opener     as compat_opener
-    from html.parser            import HTMLParser       as compat_HTMLParser
-    from requests.exceptions    import ConnectionError  as conn_error
+    from urllib.error import HTTPError as compat_httperr
+    from urllib.error import URLError as compat_urlerr
+    from urllib.parse import urlparse as compat_urlparse
+    from urllib.request import Request as compat_request
+    from urllib.request import urlopen as compat_urlopen
+    from urllib.request import build_opener as compat_opener
+    from html.parser import HTMLParser as compat_HTMLParser
+    from requests.exceptions import ConnectionError as conn_error
 
-    compat_str, pyver = str, 3
+    encoding, pyver = str, 3
     ssl._create_default_https_context = ssl._create_unverified_context
     
 else:
-    import re
-    import json
-    import requests
+    
     import urllib2 as compat_urllib
 
-    from ast                 import literal_eval    as compat_ConvertToDict
-    from requests            import get             as compat_get
-    from urllib2             import Request         as compat_request
-    from urllib2             import urlopen         as compat_urlopen
-    from urllib2             import URLError        as compat_urlerr
-    from urllib2             import HTTPError       as compat_httperr
-    from urllib2             import build_opener    as compat_opener
-    from urlparse            import urlparse        as compat_urlparse
-    from HTMLParser          import HTMLParser      as compat_HTMLParser
+    from urllib2 import Request as compat_request
+    from urllib2 import urlopen as compat_urlopen
+    from urllib2 import URLError as compat_urlerr
+    from urllib2 import HTTPError as compat_httperr
+    from urllib2 import build_opener as compat_opener
+    from urlparse import urlparse as compat_urlparse
+    from HTMLParser import HTMLParser as compat_HTMLParser
     from requests.exceptions import ConnectionError as conn_error
 
-    compat_str, pyver = unicode, 2
+    encoding, pyver = unicode, 2
 
-NO_DEFAULT          = object()
-login_url           = 'https://www.udemy.com/join/login-popup/?displayType=ajax&display_type=popup&showSkipButton=1&returnUrlAfterLogin=https%3A%2F%2Fwww.udemy.com%2F&next=https%3A%2F%2Fwww.udemy.com%2F&locale=en_US'
-login_popup         = 'https://www.udemy.com/join/login-popup'
-logout_url          = 'https://www.udemy.com/user/logout'
-course_list         = 'https://www.udemy.com/api-2.0/courses/?page_size=10000'
-course_url          = 'https://www.udemy.com/api-2.0/courses/{course_id}/cached-subscriber-curriculum-items?fields[asset]=results,external_url,download_urls,slide_urls,filename,asset_type&fields[chapter]=object_index,title,sort_order&fields[lecture]=id,title,object_index,asset,supplementary_assets,view_html,sort_order&page_size=100000'
-get_url             = 'https://www.udemy.com/api-2.0/users/me/subscribed-courses/{course_id}/lectures/{lecture_id}?fields[lecture]=view_html,asset'
-attached_file_url   = 'https://www.udemy.com/api-2.0/users/me/subscribed-courses/{course_id}/lectures/{lecture_id}/supplementary-assets/{asset_id}?fields[asset]=download_urls'
-num_lectures        = 'https://www.udemy.com/api-2.0/courses/{course_id}?fields[course]=num_lectures'
-user_agent          = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36"
-std_headers         =   {
-                        'User-Agent'        : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
-                        'X-Requested-With'  : 'XMLHttpRequest',
-                        'Host'              : 'www.udemy.com',
-                        'Referer'           : 'https://www.udemy.com/join/login-popup'
-                        }
 
-__ALL__ =[
-            "course_list"
-            "conn_error",
-            "attached_file_url"
-            "compat_ConvertToDict",
-            "compat_request",
-            "num_lectures",
-            "compat_get",
-            "requests",
-            "logout_url",
-            "json",
-            "re",
-            "os",
-            "sys",
-            "pyver",
-            "compat_str",
-            "login_popup",
-            "compat_urllib",
-            "compat_urlparse",
-            "compat_urlerr",
-            "compat_httperr",
-            "login_url",
-            "course_url",
-            "get_url",
-            "std_headers",
-            "compat_urlopen",
-            "compat_opener",
-            "user_agent",
-            "compat_HTMLParser",
-            "NO_DEFAULT",
+NO_DEFAULT = object()
+LOGIN_POPUP = 'https://www.udemy.com/join/login-popup'
+LOGIN_URL = 'https://www.udemy.com/join/login-popup/?displayType=ajax&display_type=popup&showSkipButton=1&returnUrlAfterLogin=https%3A%2F%2Fwww.udemy.com%2F&next=https%3A%2F%2Fwww.udemy.com%2F&locale=en_US'
+LOGOUT_URL = 'https://www.udemy.com/user/logout'
+
+MY_COURSES_URL = 'https://www.udemy.com/api-2.0/users/me/subscribed-courses?fields[course]=id,title,published_title,headline,url,num_lectures,num_reviews,num_subscribers,created,enrollment_time,completion_ratio,avg_rating,locale&page=1&page_size=100'
+COURSE_URL = 'https://www.udemy.com/api-2.0/courses/{course_id}/cached-subscriber-curriculum-items?fields[asset]=results,external_url,download_urls,slide_urls,filename,asset_type&fields[chapter]=object_index,title,sort_order&fields[lecture]=id,title,object_index,asset,supplementary_assets,view_html&page_size=10000'
+HEADERS = {
+            'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+            'X-Requested-With'  : 'XMLHttpRequest',
+            'Host' : 'www.udemy.com',
+            'Referer' : 'https://www.udemy.com/join/login-popup'
+            }
+
+
+__ALL__ = [
+    're',
+    'os',
+    'sys',
+    'time',
+    'json',
+    'pyver',
+    'encoding',
+    'requests',
+    'conn_error',
+    'compat_urlerr',
+    'compat_opener',
+    'compat_urllib',
+    'compat_urlopen',
+    'compat_request',
+    'compat_httperr',
+    'compat_urlparse',
+    'compat_HTMLParser',
+    'HEADERS',
+    'LOGIN_URL',
+    'NO_DEFAULT',
+    'COURSE_URL',
+    'LOGOUT_URL',
+    'LOGIN_POPUP',
     ]

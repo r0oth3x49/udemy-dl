@@ -1,7 +1,10 @@
+#!/usr/bin/python
 # -*- coding: utf-8
+
 from __future__ import unicode_literals
 
 import re
+import os
 import six
 import unicodedata
 from unidecode import unidecode
@@ -83,3 +86,49 @@ def slugify(s, ok=SLUG_OK, lower=True, spaces=False, only_ascii=False, space_rep
         new = new.lower()
 
     return new
+
+def sanitize(title):
+    _locale = {
+        '194'  : 'A',
+        '199'  : 'C',
+        '286'  : 'G',
+        '304'  : 'I',
+        '206'  : 'I',
+        '214'  : 'O',
+        '350'  : 'S',
+        '219'  : 'U',
+        '226'  : 'a',
+        '231'  : 'c',
+        '287'  : 'g',
+        '305'  : 'i',
+        '238'  : 'i',
+        '246'  : 'o',
+        '351'  : 's',
+        '251'  : 'u',
+        '191'  : '',
+        '225'  : 'a',
+        '233'  : 'e',
+        '237'  : 'i',
+        '243'  : 'o',
+        '250'  : 'u',
+        '252'  : 'u',
+        '168u' : 'u',
+        '241'  : 'n',
+        '193'  : 'A',
+        '201'  : 'E',
+        '205'  : 'I',
+        '211'  : 'O',
+        '218'  : 'U',
+        '220'  : 'U',
+        '168U' : 'U',
+        '209'  : 'N',
+        '223'  : 'ss',
+    }
+    _temp   = ''.join([str(ord(i)) if ord(i) > 128 else i for i in title])
+    for _ascii,_char in _locale.items():
+        if _ascii in _temp:
+            _temp = _temp.replace(_ascii, _char)
+
+    ok = re.compile(r'[^\\/:*?"<>]')
+    _title      = ''.join(x if ok.match(x) else "_" for x in _temp)
+    return _title

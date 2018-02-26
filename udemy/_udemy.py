@@ -1,11 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4"
-__author__  = "Nasir Khan (r0ot h3x49)"
-__license__ = 'MIT'
-__copyright__ = 'Copyright (c) 2018 Nasir Khan (r0ot h3x49)'
-
 '''
 
 Author 	: Nasir Khan (r0ot h3x49)
@@ -28,5 +23,15 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
 
+from ._internal import InternUdemyCourse as Udemy
 
-from ._udemy import course
+
+def course(url, username, password, basic=True, callback=None):
+    """Returns udemy course instance.
+
+    @params:
+        url      : Udemy course url required : type (string).
+        username : Udemy email account required : type (string).
+        password : Udemy account password required : type (string)
+    """
+    return Udemy(url, username, password, basic, callback)

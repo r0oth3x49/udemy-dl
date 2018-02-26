@@ -1,15 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4"
-__author__  = "Nasir Khan (r0ot h3x49)"
-__license__ = 'MIT'
-__copyright__ = 'Copyright (c) 2018 Nasir Khan (r0ot h3x49)'
-
 '''
 
-Author 	: Nasir Khan (r0ot h3x49)
-Github 	: https://github.com/r0oth3x49
+Author  : Nasir Khan (r0ot h3x49)
+Github  : https://github.com/r0oth3x49
 License : MIT
 
 
@@ -28,5 +23,33 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
 
+from ._compat import (
+    
+                requests,
+                HEADERS,
+                LOGOUT_URL,
+            )
 
-from ._udemy import course
+
+class Session(object):
+
+    def __init__(self):
+        self._headers = HEADERS
+        self._session = requests.sessions.Session()
+
+    def _set_auth_headers(self, access_token='', client_id=''):
+        self._headers['X-Udemy-Bearer-Token'] = access_token
+        self._headers['X-Udemy-Client-Id'] = client_id
+        self._headers['Authorization'] = "Bearer {}".format(access_token)
+        self._headers['X-Udemy-Authorization'] = "Bearer {}".format(access_token)
+
+    def _get(self, url):
+        return self._session.get(url, headers=self._headers)
+
+    def _post(self, url, data):
+        return self._session.post(url, data, headers=self._headers)
+
+    def terminate(self):
+        self._get(LOGOUT_URL)
+        self._set_auth_headers()
+        return
