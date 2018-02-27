@@ -2,6 +2,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/network)
 [![GitHub issues](https://img.shields.io/github/issues/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/issues)
+[![GitHub license](https://img.shields.io/github/license/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/blob/master/LICENSE)
 
 # udemy-dl
 **A cross-platform python based utility to download courses from udemy for personal offline use.**
@@ -34,7 +35,7 @@
 - Python module `six`
 - Python module `requests[security]` or `pyOpenSSL`
 
-## ***Install modules***
+## ***Module Installation***
 
 	pip install -r requirements.txt
 	
@@ -45,13 +46,64 @@
 - Ubuntu-LTS (64-bit) (tested with super user)
 - Mac OSX 10.9.5 (tested with super user)
  
-## ***Download/clone udemy-dl***
+## ***Download udemy-dl***
 
 You can download the latest version of udemy-dl by cloning the GitHub repository.
 
 	git clone https://github.com/r0oth3x49/udemy-dl.git
 
-## Advanced Usage
+## ***Usage***
+
+***Download a course***
+
+    python udemy-dl.py COURSE_URL
+  
+***Download course with specific resolution***
+
+    python udemy-dl.py COURSE_URL -q 720
+  
+***Download course to a specific location***
+
+    python udemy-dl.py COURSE_URL -o "/path/to/directory/"
+  
+***Download course with specific resolution to a specific location***
+
+    python udemy-dl.py COURSE_URL -q 720 -o "/path/to/directory/"
+
+***Download specific chapter from a course***
+
+    python udemy-dl.py COURSE_URL -c NUMBER
+
+***Download specific lecture from a chapter***
+
+    python udemy-dl.py COURSE_URL -c NUMBER -l NUMBER
+
+***Download lecture(s) range from a specific chapter***
+
+    python udemy-dl.py COURSE_URL -c NUMBER --lecture-start NUMBER --lecture-end NUMBER
+
+***Download chapter(s) range from a course***
+
+    python udemy-dl.py COURSE_URL --chapter-start NUMBER --chapter-end NUMBER
+
+***Download specific lecture from chapter(s) range***
+
+    python udemy-dl.py COURSE_URL --chapter-start NUMBER --chapter-end NUMBER --lecture NUMBER
+
+***Download lecture(s) range from chapter(s) range***
+
+    python udemy-dl.py COURSE_URL --chapter-start NUMBER --chapter-end NUMBER --lecture-start NUMBER --lecture-end NUMBER
+
+***List down specific chapter from a course***
+
+    python udemy-dl.py COURSE_URL -c NUMBER --info
+
+***List down specific lecture from a chapter***
+
+    python udemy-dl.py COURSE_URL -c NUMBER -l NUMBER --info
+
+
+## **Advanced Usage**
 
 <pre><code>
 Author: Nasir khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)

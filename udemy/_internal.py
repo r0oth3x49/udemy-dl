@@ -94,9 +94,10 @@ class InternUdemyLecture(UdemyLectures):
         self._assets_count      = self._info['assets_count']
         self._extension         = self._info.get('extension') or None
         self._html_content      = self._info.get('html_content') or None
-        self._duration          = int(self._info.get('duration')) or None
+        self._duration          = self._info.get('duration') or None
         if self._duration:
-            (mins, secs) = divmod(self._duration, 60)
+            duration = int(self._duration)
+            (mins, secs) = divmod(duration, 60)
             (hours, mins) = divmod(mins, 60)
             if hours == 0:
                 self._duration = "%02d:%02d" % (mins, secs)
