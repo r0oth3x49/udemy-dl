@@ -61,7 +61,7 @@ class Udemy(ProgressBar):
         if '/learn/v4' in url:
             url = url.split("learn/v4")[0]
         course_name = url.split("/")[-1] if not url.endswith("/") else url.split("/")[-2]
-        return course_name.title()
+        return course_name
     
     def _sanitize(self, unsafetext):
         text = sanitize(slugify(unsafetext, lower=False, spaces=True, ok=SLUG_OK + '().'))
@@ -299,7 +299,7 @@ class Udemy(ProgressBar):
         course_id, course_info = self._extract_course_info(url)
 
         if course_info and isinstance(course_info, dict):
-            course_title = self._sanitize(course_info.get('title'))
+            course_title = self._course_name(url)
             isenrolled = course_info['features'].get('enroll')
             if not isenrolled:
                 sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says you are not enrolled in course.")
