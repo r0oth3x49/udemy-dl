@@ -426,6 +426,9 @@ class Udemy(ProgressBar):
 
                     _udemy['chapters'][counter]['lectures'] = lectures
                     _udemy['chapters'][counter]['lectures_count'] = len(lectures)
+                elif clazz == 'quiz':
+                    _udemy['chapters'][counter]['lectures'] = lectures
+                    _udemy['chapters'][counter]['lectures_count'] = len(lectures)
             _udemy['total_chapters'] = len(_udemy['chapters'])
             _udemy['total_lectures'] = self._lectures_count(_udemy['chapters'])
 

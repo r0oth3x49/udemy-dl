@@ -70,7 +70,7 @@ LOGOUT_URL = 'https://www.udemy.com/user/logout'
 MY_COURSES_URL = 'https://www.udemy.com/api-2.0/users/me/subscribed-courses?fields[course]=id,title,published_title,headline,url,num_lectures,num_reviews,num_subscribers,created,enrollment_time,completion_ratio,avg_rating,locale&page=1&page_size=100'
 COURSE_URL = 'https://www.udemy.com/api-2.0/courses/{course_id}/cached-subscriber-curriculum-items?fields[asset]=results,external_url,download_urls,slide_urls,filename,asset_type&fields[chapter]=object_index,title,sort_order&fields[lecture]=id,title,object_index,asset,supplementary_assets,view_html&page_size=10000'
 HEADERS = {
-            'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+            'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/604.5.6 (KHTML, like Gecko) Version/11.0.3 Safari/604.5.6',
             'X-Requested-With'  : 'XMLHttpRequest',
             'Host' : 'www.udemy.com',
             'Referer' : 'https://www.udemy.com/join/login-popup'
