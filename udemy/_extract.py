@@ -427,6 +427,21 @@ class Udemy(ProgressBar):
                     _udemy['chapters'][counter]['lectures'] = lectures
                     _udemy['chapters'][counter]['lectures_count'] = len(lectures)
                 elif clazz == 'quiz':
+                    lecture_id          =   entry.get("id")
+                    if len(_udemy['chapters']) == 0:
+                        lectures        =   []
+                        chapter_index   =   entry.get('object_index')
+                        chapter_title   =   self._sanitize(entry.get('title'))
+                        chapter_title   =   re.sub('\.+$', '', chapter_title) if chapter_title.endswith(".") else chapter_title
+                        chapter         =   "{0:03d} {1!s}".format(chapter_index, chapter_title)
+                        if chapter not in _udemy['chapters']:
+                            _udemy['chapters'].append({
+                                'chapter_title' : chapter,
+                                'chapter_id' : lecture_id,
+                                'chapter_index' : chapter_index,
+                                'lectures' : [],
+                                })
+                            counter += 1
                     _udemy['chapters'][counter]['lectures'] = lectures
                     _udemy['chapters'][counter]['lectures_count'] = len(lectures)
             _udemy['total_chapters'] = len(_udemy['chapters'])

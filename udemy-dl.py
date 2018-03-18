@@ -51,7 +51,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
             f.close()
         return retVal
 
-    def course_save(self, path='', quality=''):
+    def course_save(self, path='', quality='', caption_only=False, skip_captions=False):
         sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login as " + fm + sb +"(%s)" % (self.username) +  fg + sb +"...\n")
         course = udemy.course(self.url, self.username, self.password)
         course_id = course.id
@@ -96,14 +96,28 @@ class Udemy(WebVtt2Srt, ProgressBar):
                         index += 1
                     if not lecture_best:
                         lecture_best = lecture_best
-                if lecture_best:
-                    self._write_to_file(filepath=course_path, lecture=lecture_best)
-                if lecture_assets:
-                    for asset in lecture_assets:
-                        self._write_to_file(filepath=course_path, lecture=asset)
-                if lecture_subtitles:
-                    for subtitle in lecture_subtitles:
-                        self._write_to_file(filepath=course_path, lecture=subtitle)
+                if caption_only and not skip_captions:
+                    if lecture_subtitles:
+                        for subtitle in lecture_subtitles:
+                            self._write_to_file(filepath=course_path, lecture=subtitle)
+                    if lecture_assets:
+                        for asset in lecture_assets:
+                            self._write_to_file(filepath=course_path, lecture=asset)
+                elif skip_captions and not caption_only:
+                    if lecture_best:
+                        self._write_to_file(filepath=course_path, lecture=lecture_best)
+                    if lecture_assets:
+                        for asset in lecture_assets:
+                            self._write_to_file(filepath=course_path, lecture=asset)
+                else:
+                    if lecture_best:
+                        self._write_to_file(filepath=course_path, lecture=lecture_best)
+                    if lecture_assets:
+                        for asset in lecture_assets:
+                            self._write_to_file(filepath=course_path, lecture=asset)
+                    if lecture_subtitles:
+                        for subtitle in lecture_subtitles:
+                            self._write_to_file(filepath=course_path, lecture=subtitle)
         sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Written successfully under '{name}.txt'.\n".format(name=course_path))
 
     def course_list_down(self, chapter_number='', lecture_number=''):
@@ -887,7 +901,7 @@ def main():
                 sys.exit(0)
         elif not options.list and options.save:
             try:
-                udemy.course_save(path=options.output, quality=options.quality)
+                udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions)
             except KeyboardInterrupt as e:
                 sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
                 sys.exit(0)
@@ -1042,7 +1056,7 @@ def main():
                 sys.exit(0)
         elif not options.list and options.save:
             try:
-                udemy.course_save(path=options.output, quality=options.quality)
+                udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions)
             except KeyboardInterrupt as e:
                 sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
                 sys.exit(0)

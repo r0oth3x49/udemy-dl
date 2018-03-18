@@ -348,8 +348,14 @@ class UdemyLectureStream(object):
         try:    
             req = compat_request(self.url, headers={'User-Agent' : HEADERS.get('User-Agent')})
             response = compat_urlopen(req)
-        except (compat_urlerr, compat_httperr) as e:
-            retVal  =   {"status" : "False", "msg" : "either your internet connection is not working or server aborted the request"}
+        except compat_urlerr as e:
+            retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+            return retVal
+        except compat_httperr as e:
+            if e.code == 401:
+                retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+            else:
+                retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
             return retVal
         else:
             total = int(response.info()['Content-Length'].strip())
@@ -379,8 +385,14 @@ class UdemyLectureStream(object):
                                             ("Range", "bytes=%s-" % offset)]
                 try:
                     response = resume_opener.open(self.url)
-                except (compat_urlerr, compat_httperr) as e:
+                except compat_urlerr as e:
                     retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+                    return retVal
+                except compat_httperr as e:
+                    if e.code == 401:
+                        retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+                    else:
+                        retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
                     return retVal
                 else:
                     bytesdone = offset
@@ -392,8 +404,17 @@ class UdemyLectureStream(object):
                 elapsed = time.time() - t0
                 bytesdone += len(chunk)
                 if elapsed:
-                    rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                    eta  = (total - bytesdone) / (rate * 1024)
+                    try:
+                        rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
+                        eta  = (total - bytesdone) / (rate * 1024.0)
+                    except ZeroDivisionError as e:
+                        outfh.close()
+                        try:
+                            os.unlink(temp_filepath)
+                        except Exception as e:
+                            pass
+                        retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
+                        return retVal
                 else:
                     rate = 0
                     eta = 0
@@ -533,8 +554,14 @@ class UdemyLectureAssets(object):
         try:    
             req = compat_request(self.url, headers={'User-Agent' : HEADERS.get('User-Agent')})
             response = compat_urlopen(req)
-        except (compat_urlerr, compat_httperr) as e:
-            retVal  =   {"status" : "False", "msg" : "either your internet connection is not working or server aborted the request"}
+        except compat_urlerr as e:
+            retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+            return retVal
+        except compat_httperr as e:
+            if e.code == 401:
+                retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+            else:
+                retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
             return retVal
         else:
             total = int(response.info()['Content-Length'].strip())
@@ -564,8 +591,14 @@ class UdemyLectureAssets(object):
                                             ("Range", "bytes=%s-" % offset)]
                 try:
                     response = resume_opener.open(self.url)
-                except (compat_urlerr, compat_httperr) as e:
+                except compat_urlerr as e:
                     retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+                    return retVal
+                except compat_httperr as e:
+                    if e.code == 401:
+                        retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+                    else:
+                        retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
                     return retVal
                 else:
                     bytesdone = offset
@@ -577,8 +610,17 @@ class UdemyLectureAssets(object):
                 elapsed = time.time() - t0
                 bytesdone += len(chunk)
                 if elapsed:
-                    rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                    eta  = (total - bytesdone) / (rate * 1024)
+                    try:
+                        rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
+                        eta  = (total - bytesdone) / (rate * 1024.0)
+                    except ZeroDivisionError as e:
+                        outfh.close()
+                        try:
+                            os.unlink(temp_filepath)
+                        except Exception as e:
+                            pass
+                        retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
+                        return retVal
                 else:
                     rate = 0
                     eta = 0
@@ -703,8 +745,14 @@ class UdemyLectureSubtitles(object):
         try:    
             req = compat_request(self.url, headers={'User-Agent' : HEADERS.get('User-Agent')})
             response = compat_urlopen(req)
-        except (compat_urlerr, compat_httperr) as e:
-            retVal  =   {"status" : "False", "msg" : "either your internet connection is not working or server aborted the request"}
+        except compat_urlerr as e:
+            retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+            return retVal
+        except compat_httperr as e:
+            if e.code == 401:
+                retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+            else:
+                retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
             return retVal
         else:
             total = int(response.info()['Content-Length'].strip())
@@ -733,8 +781,14 @@ class UdemyLectureSubtitles(object):
                                             ("Range", "bytes=%s-" % offset)]
                 try:
                     response = resume_opener.open(self.url)
-                except (compat_urlerr, compat_httperr) as e:
+                except compat_urlerr as e:
                     retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
+                    return retVal
+                except compat_httperr as e:
+                    if e.code == 401:
+                        retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
+                    else:
+                        retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
                     return retVal
                 else:
                     bytesdone = offset
@@ -746,8 +800,17 @@ class UdemyLectureSubtitles(object):
                 elapsed = time.time() - t0
                 bytesdone += len(chunk)
                 if elapsed:
-                    rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                    eta  = (total - bytesdone) / (rate * 1024)
+                    try:
+                        rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
+                        eta  = (total - bytesdone) / (rate * 1024.0)
+                    except ZeroDivisionError as e:
+                        outfh.close()
+                        try:
+                            os.unlink(temp_filepath)
+                        except Exception as e:
+                            pass
+                        retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
+                        return retVal
                 else:
                     rate = 0
                     eta = 0

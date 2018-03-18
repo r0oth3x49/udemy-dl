@@ -62,6 +62,7 @@ class InternUdemyCourse(UdemyCourse, Udemy):
             sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
             self._logout()
             sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged out successfully.\n")
+            self._have_basic = True
         if auth.get('login') == 'failed':
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Failed to login ..\n")
             sys.exit(0)
