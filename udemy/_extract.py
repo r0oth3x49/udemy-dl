@@ -289,7 +289,7 @@ class Udemy(ProgressBar):
     def _lectures_count(self, chapters):
         lectures = 0
         for entry in chapters:
-            lectures_count = entry.get('lectures_count')
+            lectures_count = entry.get('lectures_count') if entry.get('lectures_count') else 0
             lectures += lectures_count
         return lectures
 
