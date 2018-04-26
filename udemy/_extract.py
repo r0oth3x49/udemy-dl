@@ -451,7 +451,7 @@ class Udemy(ProgressBar):
                                     'lecture_index' : lecture_index,
                                     'lectures_id' : lecture_id,
                                     'lecture_title' : lecture,
-                                    'html_content' : view_html,
+                                    'html_content' : asset.get('body'),
                                     'extension' : 'html',
                                     'assets' : retVal,
                                     'assets_count' : len(retVal),
