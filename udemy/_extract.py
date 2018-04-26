@@ -423,6 +423,7 @@ class Udemy(ProgressBar):
                                     'subtitle_count' : 0,
                                     'sources_count' : 0,
                                     })
+
                         if not view_html:
                             text = '\r' + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading course information .. "
                             self._spinner(text)
