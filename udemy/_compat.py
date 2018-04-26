@@ -29,7 +29,6 @@ import sys
 import time
 import json
 import requests
-
 if sys.version_info[:2] >= (3, 0):
 
     import ssl
