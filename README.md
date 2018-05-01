@@ -52,6 +52,38 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 
 	git clone https://github.com/r0oth3x49/udemy-dl.git
 
+## ***Issue Reporting Guideline***
+
+To maintain an effective bugfix workflow and make sure issues will be solved, I ask reporters to follow some simple guidelines.
+
+Before creating an issue, please do the following:
+
+1. **Use the GitHub issue search** &mdash; check if the issue has already been reported.
+2. **Check if the issue has been fixed** &mdash; try to reproduce it using the latest `master` in the repository.
+3. Make sure, that information you are about to report is related to this repository 
+   and not the one available ***Python's repository***, Because this repository cannot be downloaded via pip.
+
+A good bug report shouldn't leave others needing to chase you up for more
+information. Please try to be as detailed as possible in your report. What is
+your environment? What was the course url? What steps will reproduce the issue? What OS
+experience the problem? All these details will help to fix any potential bugs as soon as possible.
+
+### ***Example:***
+
+> Short and descriptive example bug report title
+>
+> A summary of the issue and the OS environment in which it occurs. If
+> suitable, include the steps required to reproduce the bug.
+>
+> 1. This is the first step
+> 2. This is the second step
+> 3. Further steps, etc.
+>
+> `<url>` - a udemy course link to reproduce the error.
+>
+> Any other information you want to share that is relevant to the issue being reported.
+
+
 ## ***Usage***
 
 ***Download a course***
