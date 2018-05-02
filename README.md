@@ -44,7 +44,7 @@
 - Windows 7/8/8.1/10
 - Kali linux (2017.2)
 - Ubuntu-LTS (64-bit) (tested with super user)
-- Mac OSX 10.9.5 (tested with super user)
+- macOS 10.13.1 (will need super user depending on path)
  
 ## ***Download udemy-dl***
 
