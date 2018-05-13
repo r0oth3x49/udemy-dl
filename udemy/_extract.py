@@ -194,7 +194,7 @@ class Udemy(ProgressBar):
         if sources and isinstance(sources, list):
             for source in sources:
                 label           = source.get('label')
-                download_url    = source.get('src')
+                download_url    = source.get('file')
                 if not download_url:
                     continue
                 height = label if label else None
@@ -233,12 +233,12 @@ class Udemy(ProgressBar):
             for track in tracks:
                 if not isinstance(track, dict):
                     continue
-                if track.get('kind') != 'captions':
+                if track.get('_class') != 'caption':
                     continue
-                download_url = track.get('src')
+                download_url = track.get('url')
                 if not download_url or not isinstance(download_url, encoding):
                     continue
-                lang = track.get('language') or track.get('srclang') or track.get('label')
+                lang = track.get('language') or track.get('srclang') or track.get('label') or track['locale'].get('locale').split('_')[0]
                 ext = 'vtt' if 'vtt' in download_url.rsplit('.', 1)[-1] else 'srt'
                 _temp.append({
                     'type' : 'subtitle',
@@ -289,7 +289,7 @@ class Udemy(ProgressBar):
     def _lectures_count(self, chapters):
         lectures = 0
         for entry in chapters:
-            lectures_count = entry.get('lectures_count')
+            lectures_count = entry.get('lectures_count') if entry.get('lectures_count') else 0
             lectures += lectures_count
         return lectures
 
@@ -421,7 +421,42 @@ class Udemy(ProgressBar):
                                     'assets' : retVal,
                                     'assets_count' : len(retVal),
                                     'subtitle_count' : 0,
-                                    'sources_count' : 0,      
+                                    'sources_count' : 0,
+                                    })
+                        if not view_html:
+                            text = '\r' + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading course information .. "
+                            self._spinner(text)
+                            lecture_index   = entry.get('object_index')
+                            lecture_title   = self._sanitize(entry.get('title'))
+                            lecture         = "{0:03d} {1!s}".format(lecture_index, lecture_title)
+                            data            = asset.get('stream_urls')
+                            if data and isinstance(data, dict):
+                                sources     = data.get('Video')
+                                tracks      = asset.get('captions')
+                                duration    = asset.get('time_estimation')
+                                lectures.append({
+                                    'lecture_index' :   lecture_index,
+                                    'lectures_id' : lecture_id,
+                                    'lecture_title' : lecture,
+                                    'duration' : duration,
+                                    'assets' : retVal,
+                                    'assets_count' : len(retVal),
+                                    'sources' : self._extract_sources(sources),
+                                    'subtitles' : self._extract_subtitles(tracks),
+                                    'subtitle_count' : len(self._extract_subtitles(tracks)),
+                                    'sources_count' : len(self._extract_sources(sources)),
+                                    })
+                            else:
+                                lectures.append({
+                                    'lecture_index' : lecture_index,
+                                    'lectures_id' : lecture_id,
+                                    'lecture_title' : lecture,
+                                    'html_content' : asset.get('body'),
+                                    'extension' : 'html',
+                                    'assets' : retVal,
+                                    'assets_count' : len(retVal),
+                                    'subtitle_count' : 0,
+                                    'sources_count' : 0,
                                     })
 
                     _udemy['chapters'][counter]['lectures'] = lectures
