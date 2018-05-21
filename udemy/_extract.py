@@ -78,8 +78,14 @@ class Udemy(ProgressBar):
             auth = UdemyAuth(username=username, password=password)
             self._session = auth.authenticate()
         if cookies:
-            access_token = re.search(r'(?<=access_token=)(\w+)', str(cookies)).group()
-            client_id = re.search(r'(?<=client_id=)([a-fA-F\d]{32})', str(cookies)).group()
+            try:
+                access_token = re.search(r'(?<=access_token=)(\w+)', str(cookies)).group()
+                client_id = re.search(r'(?<=client_id=)([a-fA-F\d]{32})', str(cookies)).group()
+            except:
+                sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Cookies error, Request Headers is required.\n")
+                sys.stdout.write(fc + sd + "[" + fm + sb + "i" + fc + sd + "] : " + fg + sb + "Copy Request Headers for single request to a file, while you are logged in.\n")
+                sys.exit(0)
+            time.sleep(0.3)
             auth = UdemyAuth()
             self._session = auth.authenticate(access_token=access_token, client_id=client_id)
         if self._session is not None:
