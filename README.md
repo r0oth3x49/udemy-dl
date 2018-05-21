@@ -7,7 +7,7 @@
 # udemy-dl
 **A cross-platform python based utility to download courses from udemy for personal offline use.**
 
-[![udemy.png](https://s26.postimg.org/fo84ef1qx/udemy.png)](https://postimg.org/image/brusifgr9/)
+[![udemy-dl-0-5.png](https://s26.postimg.cc/67x3wfak9/udemy-dl-0-5.png)](https://postimg.cc/image/s73ijmred/)
 
 ## ***Features***
 
@@ -23,34 +23,9 @@
 - Download lecture(s) by providing range in a chapter (option: `--lecture-start, --lecture-end`).
 - Download lecture(s) requested resolution (option: `-q / --quality`).
 - Download course to user requested path (option: `-o / --output`).
-
-
-## ***Requirements***
-
-- Python (2 or 3)
-- Python `pip`
-- Python module `requests`
-- Python module `colorama`
-- Python module `unidecode`
-- Python module `six`
-- Python module `requests[security]` or `pyOpenSSL`
-
-## ***Module Installation***
-
-	pip install -r requirements.txt
-	
-## ***Tested on***
-
-- Windows 7/8/8.1/10
-- Kali linux (2017.2)
-- Ubuntu-LTS (64-bit) (tested with super user)
-- Mac OSX 10.9.5 (tested with super user)
- 
-## ***Download udemy-dl***
-
-You can download the latest version of udemy-dl by cloning the GitHub repository.
-
-	git clone https://github.com/r0oth3x49/udemy-dl.git
+- Authentication using cookies (option: `-k / --cookies`).
+- Download/save lecture names (option: `--names`).
+- Download lectures containing unsafe *unicode* characters in title/name (option: `--unsafe`).
 
 ## ***Issue Reporting Guideline***
 
@@ -82,6 +57,33 @@ experience the problem? All these details will help to fix any potential bugs as
 > `<url>` - a udemy course link to reproduce the error.
 >
 > Any other information you want to share that is relevant to the issue being reported.
+
+## ***Requirements***
+
+- Python (2 or 3)
+- Python `pip`
+- Python module `requests`
+- Python module `colorama`
+- Python module `unidecode`
+- Python module `six`
+- Python module `requests[security]` or `pyOpenSSL`
+
+## ***Module Installation***
+
+	pip install -r requirements.txt
+	
+## ***Tested on***
+
+- Windows 7/8/8.1/10
+- Kali linux (2017.2)
+- Ubuntu-LTS (64-bit) (tested with super user)
+- Mac OSX 10.9.5 (tested with super user)
+ 
+## ***Download udemy-dl***
+
+You can download the latest version of udemy-dl by cloning the GitHub repository.
+
+	git clone https://github.com/r0oth3x49/udemy-dl.git
 
 
 ## ***Usage***
@@ -140,9 +142,10 @@ experience the problem? All these details will help to fix any potential bugs as
 <pre><code>
 Author: Nasir khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)
 
-Usage: udemy-dl.py [-h] [-v] [-u] [-p] [-o] [-q] [-c] [-l] [--chapter-start]
-                   [--chapter-end] [--lecture-start] [--lecture-end] [--save]
-                   [--info] [--cache] [--sub-only] [--skip-sub]
+usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l]
+                   [--chapter-start] [--chapter-end] [--lecture-start]
+                   [--lecture-end] [--save] [--info] [--cache] [--names]
+                   [--unsafe] [--sub-only] [--skip-sub]
                    course
 
 A cross-platform python based utility to download courses from udemy for
@@ -158,6 +161,7 @@ General:
 Authentication:
   -u , --username   Username in udemy.
   -p , --password   Password of your account.
+  -k , --cookies    Cookies to authenticate with.
 
 Advance:
   -o , --output     Download to specific directory.
@@ -173,10 +177,13 @@ Others:
   --save            Do not download but save links to a file.
   --info            List all lectures with available resolution.
   --cache           Cache your credentials to use it later.
+  --names           Do not download but save lecture names to file.
+  --unsafe          Download all course with unsafe names.
   --sub-only        Download captions/subtitle only.
   --skip-sub        Download course but skip captions/subtitle.
 
 Example:
   python udemy-dl.py  COURSE_URL
+  python udemy-dl.py  COURSE_URL -k cookies.txt
   python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL
 </code></pre>

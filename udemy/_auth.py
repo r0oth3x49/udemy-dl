@@ -66,13 +66,14 @@ class UdemyAuth(object):
                 })
             return login_form
 
-    def authenticate(self):
-        form = self._form_hidden_input('login-form')
-        auth_response = self._session._post(LOGIN_URL, data=form)
-        auth_cookies = auth_response.cookies
+    def authenticate(self, access_token='', client_id=''):
+        if not access_token and not client_id:
+            form = self._form_hidden_input('login-form')
+            auth_response = self._session._post(LOGIN_URL, data=form)
+            auth_cookies = auth_response.cookies
 
-        access_token = auth_cookies.get('access_token') or None
-        client_id = auth_cookies.get('client_id') or None
+            access_token = auth_cookies.get('access_token') or None
+            client_id = auth_cookies.get('client_id') or None
         
         if access_token and client_id:
             self._session._set_auth_headers(access_token=access_token, client_id=client_id)

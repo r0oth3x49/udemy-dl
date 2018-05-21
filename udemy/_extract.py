@@ -37,6 +37,7 @@ from ._utils import (
             unescapeHTML
             )
 from ._compat import (
+            re,
             time,
             encoding,
             conn_error,
@@ -57,6 +58,11 @@ class Udemy(ProgressBar):
     def __init__(self):
         self._session = ''
 
+    def _clean(self, text):
+        ok = re.compile(r'[^\\/:*?"<>|]')
+        text = "".join(x if ok.match(x) else "_" for x in text)
+        return re.sub('\.+$', '', text) if text.endswith(".") else text
+
     def _course_name(self, url):
         if '/learn/v4' in url:
             url = url.split("learn/v4")[0]
@@ -67,9 +73,15 @@ class Udemy(ProgressBar):
         text = sanitize(slugify(unsafetext, lower=False, spaces=True, ok=SLUG_OK + '().'))
         return text
 
-    def _login(self, username='', password=''):
-        auth = UdemyAuth(username=username, password=password)
-        self._session = auth.authenticate()
+    def _login(self, username='', password='', cookies=''):
+        if not cookies:
+            auth = UdemyAuth(username=username, password=password)
+            self._session = auth.authenticate()
+        if cookies:
+            access_token = re.search(r'(?<=access_token=)(\w+)', str(cookies)).group()
+            client_id = re.search(r'(?<=client_id=)([a-fA-F\d]{32})', str(cookies)).group()
+            auth = UdemyAuth()
+            self._session = auth.authenticate(access_token=access_token, client_id=client_id)
         if self._session is not None:
             return {'login' : 'successful'}
         else:
@@ -79,6 +91,9 @@ class Udemy(ProgressBar):
         return self._session.terminate()
 
     def _extract_course_info(self, url):
+        if 'www' not in url:
+            self._session._headers['Host'] = url.replace("https://", "").split('/', 1)[0]
+            self._session._headers['Referer'] = url
         try:
             webpage = self._session._get(url).text
         except conn_error as e:
@@ -98,7 +113,7 @@ class Udemy(ProgressBar):
                         fatal=False,
                         )
             course_id = course.get('id') or search_regex(
-                                                (r'&quot;id&quot;\s*:\s*(\d+)', r'data-course-id=["\'](\d+)'),
+                                                (r'data-course-id=["\'](\d+)', r'&quot;id&quot;\s*:\s*(\d+)'),
                                                 webpage, 
                                                 'course id'
                                                 )
@@ -337,14 +352,15 @@ class Udemy(ProgressBar):
                 if clazz == 'chapter':
                     lectures = []
                     chapter_index = entry.get('object_index')
-                    chapter_title = self._sanitize(entry.get('title'))
-                    chapter_title = re.sub('\.+$', '', chapter_title) if chapter_title.endswith(".") else chapter_title
+                    chapter_title = self._clean(self._sanitize(entry.get('title')))
                     chapter = "{0:02d} {1!s}".format(chapter_index, chapter_title)
+                    unsafe_chapter = u'{0:02d} '.format(chapter_index) + self._clean(entry.get('title'))
                     if chapter not in _udemy['chapters']:
                         _udemy['chapters'].append({
                             'chapter_title' : chapter,
                             'chapter_id' : entry.get("id"),
                             'chapter_index' : chapter_index,
+                            'unsafe_chapter' : unsafe_chapter,
                             'lectures' : [],
                             })
                         counter += 1
@@ -352,16 +368,17 @@ class Udemy(ProgressBar):
 
                     lecture_id          =   entry.get("id")
                     if len(_udemy['chapters']) == 0:
-                        lectures        =   []
-                        chapter_index   =   entry.get('object_index')
-                        chapter_title   =   self._sanitize(entry.get('title'))
-                        chapter_title   =   re.sub('\.+$', '', chapter_title) if chapter_title.endswith(".") else chapter_title
-                        chapter         =   "{0:03d} {1!s}".format(chapter_index, chapter_title)
+                        lectures = []
+                        chapter_index = entry.get('object_index')
+                        chapter_title = self._clean(self._sanitize(entry.get('title')))
+                        chapter = "{0:03d} {1!s}".format(chapter_index, chapter_title)
+                        unsafe_chapter = u'{0:02d} '.format(chapter_index) + self._clean(entry.get('title'))
                         if chapter not in _udemy['chapters']:
                             _udemy['chapters'].append({
                                 'chapter_title' : chapter,
                                 'chapter_id' : lecture_id,
                                 'chapter_index' : chapter_index,
+                                'unsafe_chapter' : unsafe_chapter,
                                 'lectures' : [],
                                 })
                             counter += 1
@@ -394,6 +411,7 @@ class Udemy(ProgressBar):
                             lecture_index   = entry.get('object_index')
                             lecture_title   = self._sanitize(entry.get('title'))
                             lecture         = "{0:03d} {1!s}".format(lecture_index, lecture_title)
+                            unsafe_lecture  = u'{0:03d} '.format(lecture_index) + entry.get('title')
                             data, subs      = self._html_to_json(view_html, lecture_id)
                             if data and isinstance(data, dict):
                                 sources     = data.get('sources')
@@ -403,6 +421,7 @@ class Udemy(ProgressBar):
                                     'lecture_index' :   lecture_index,
                                     'lectures_id' : lecture_id,
                                     'lecture_title' : lecture,
+                                    'unsafe_lecture' : unsafe_lecture,
                                     'duration' : duration,
                                     'assets' : retVal,
                                     'assets_count' : len(retVal),
@@ -416,6 +435,7 @@ class Udemy(ProgressBar):
                                     'lecture_index' : lecture_index,
                                     'lectures_id' : lecture_id,
                                     'lecture_title' : lecture,
+                                    'unsafe_lecture' : unsafe_lecture,
                                     'html_content' : view_html,
                                     'extension' : 'html',
                                     'assets' : retVal,
@@ -429,6 +449,7 @@ class Udemy(ProgressBar):
                             lecture_index   = entry.get('object_index')
                             lecture_title   = self._sanitize(entry.get('title'))
                             lecture         = "{0:03d} {1!s}".format(lecture_index, lecture_title)
+                            unsafe_lecture  = u'{0:03d} '.format(lecture_index) + entry.get('title')
                             data            = asset.get('stream_urls')
                             if data and isinstance(data, dict):
                                 sources     = data.get('Video')
@@ -438,6 +459,7 @@ class Udemy(ProgressBar):
                                     'lecture_index' :   lecture_index,
                                     'lectures_id' : lecture_id,
                                     'lecture_title' : lecture,
+                                    'unsafe_lecture' : unsafe_lecture,
                                     'duration' : duration,
                                     'assets' : retVal,
                                     'assets_count' : len(retVal),
@@ -451,6 +473,7 @@ class Udemy(ProgressBar):
                                     'lecture_index' : lecture_index,
                                     'lectures_id' : lecture_id,
                                     'lecture_title' : lecture,
+                                    'unsafe_lecture' : unsafe_lecture,
                                     'html_content' : asset.get('body'),
                                     'extension' : 'html',
                                     'assets' : retVal,
@@ -466,12 +489,13 @@ class Udemy(ProgressBar):
                     if len(_udemy['chapters']) == 0:
                         lectures        =   []
                         chapter_index   =   entry.get('object_index')
-                        chapter_title   =   self._sanitize(entry.get('title'))
-                        chapter_title   =   re.sub('\.+$', '', chapter_title) if chapter_title.endswith(".") else chapter_title
+                        chapter_title   =   self._clean(self._sanitize(entry.get('title')))
                         chapter         =   "{0:03d} {1!s}".format(chapter_index, chapter_title)
+                        unsafe_chapter  =  u'{0:02d} '.format(chapter_index) + self._clean(entry.get('title'))
                         if chapter not in _udemy['chapters']:
                             _udemy['chapters'].append({
                                 'chapter_title' : chapter,
+                                'unsafe_chapter' : unsafe_chapter,
                                 'chapter_id' : lecture_id,
                                 'chapter_index' : chapter_index,
                                 'lectures' : [],
