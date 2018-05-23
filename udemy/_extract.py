@@ -42,6 +42,7 @@ from ._compat import (
             encoding,
             conn_error,
             COURSE_URL,
+            ParseCookie,
             MY_COURSES_URL,
             )
 from ._sanitize import (
@@ -57,6 +58,8 @@ class Udemy(ProgressBar):
 
     def __init__(self):
         self._session = ''
+        self._cookies = ''
+
 
     def _clean(self, text):
         ok = re.compile(r'[^\\/:*?"<>|]')
@@ -68,6 +71,21 @@ class Udemy(ProgressBar):
             url = url.split("learn/v4")[0]
         course_name = url.split("/")[-1] if not url.endswith("/") else url.split("/")[-2]
         return course_name
+
+    def _extract_cookie_string(self, raw_cookies):
+        cookies = {}
+        cookie_parser = ParseCookie()
+        try:
+            cookie_string = re.search(r'(?<=Cookie: )(.+)\n', raw_cookies).group()
+        except:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Cookies error, Request Headers is required.\n")
+            sys.stdout.write(fc + sd + "[" + fm + sb + "i" + fc + sd + "] : " + fg + sb + "Copy Request Headers for single request to a file, while you are logged in.\n")
+            sys.exit(0)
+        cookie_parser.load(cookie_string)
+        for key, cookie in cookie_parser.items():
+            cookies[key] = cookie.value
+        return cookies
+
     
     def _sanitize(self, unsafetext):
         text = sanitize(slugify(unsafetext, lower=False, spaces=True, ok=SLUG_OK + '().'))
@@ -78,16 +96,13 @@ class Udemy(ProgressBar):
             auth = UdemyAuth(username=username, password=password)
             self._session = auth.authenticate()
         if cookies:
-            try:
-                access_token = re.search(r'(?<=access_token=)(\w+)', str(cookies)).group()
-                client_id = re.search(r'(?<=client_id=)([a-fA-F\d]{32})', str(cookies)).group()
-            except:
-                sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Cookies error, Request Headers is required.\n")
-                sys.stdout.write(fc + sd + "[" + fm + sb + "i" + fc + sd + "] : " + fg + sb + "Copy Request Headers for single request to a file, while you are logged in.\n")
-                sys.exit(0)
+            self._cookies = self._extract_cookie_string(raw_cookies=cookies)
+            access_token = self._cookies.get('access_token')
+            client_id = self._cookies.get('client_id')
             time.sleep(0.3)
             auth = UdemyAuth()
             self._session = auth.authenticate(access_token=access_token, client_id=client_id)
+            self._session._session.cookies.update(self._cookies)
         if self._session is not None:
             return {'login' : 'successful'}
         else:
@@ -325,7 +340,8 @@ class Udemy(ProgressBar):
             if not isenrolled:
                 sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says you are not enrolled in course.")
                 sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
-                self._logout()
+                if not self._cookies:
+                    self._logout()
                 sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged out successfully.\n")
                 sys.exit(0)
         else:
@@ -336,9 +352,13 @@ class Udemy(ProgressBar):
         resource = course_json.get('detail')
 
         if resource:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : {}{}{} Run udemy-dl against course within few seconds.\n".format(resource, fw, sb))
+            if not self._cookies:
+                sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : {}{}{} Run udemy-dl against course within few seconds.\n".format(resource, fw, sb))
+            if self._cookies:
+                sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : {}{}{} cookies seems to be expired.\n".format(resource, fw, sb))
             sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
-            self._logout()
+            if not self._cookies:
+                self._logout()
             sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged out successfully.\n")
             sys.exit(0)
 

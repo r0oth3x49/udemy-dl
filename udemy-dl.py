@@ -947,7 +947,7 @@ def main():
     options = parser.parse_args()
     if options.cookies:
         f_in = open(options.cookies)
-        cookies = ' '.join([line for line in (l.strip() for l in f_in) if line])
+        cookies = '\n'.join([line for line in (l.strip() for l in f_in) if line])
         f_in.close()
         udemy = Udemy(url=options.course, cookies=cookies)
         if options.list and not options.save:
