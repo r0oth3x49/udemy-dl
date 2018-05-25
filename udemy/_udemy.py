@@ -26,12 +26,13 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from ._internal import InternUdemyCourse as Udemy
 
 
-def course(url, username, password, basic=True, callback=None):
+def course(url, username='', password='', cookies='', basic=True, callback=None):
     """Returns udemy course instance.
 
     @params:
         url      : Udemy course url required : type (string).
         username : Udemy email account required : type (string).
         password : Udemy account password required : type (string)
+        cookies  : Udemy account logged in browser cookies optional : type (string)
     """
-    return Udemy(url, username, password, basic, callback)
+    return Udemy(url, username, password, cookies, basic, callback)

@@ -42,11 +42,12 @@ early_py_version = sys.version_info[:2] < (2, 7)
 
 class UdemyCourse(object):
 
-    def __init__(self, url, username, password, basic=True, callback=None):
+    def __init__(self, url, username='', password='', cookies='', basic=True, callback=None):
 
         self._url = url
         self._username = username
         self._password = password
+        self._cookies = cookies 
         self._callback = callback or (lambda x: None)
         self._have_basic = False
 
@@ -99,6 +100,7 @@ class UdemyChapters(object):
         self._chapter_id = None
         self._chapter_index = None
         self._chapter_title = None
+        self._unsafe_title = None
         self._lectures_count = None
 
         self._lectures = []
@@ -120,6 +122,10 @@ class UdemyChapters(object):
         return self._chapter_title
 
     @property
+    def unsafe_title(self):
+        return self._unsafe_title
+    
+    @property
     def lectures(self):
         return self._lectures_count
 
@@ -135,6 +141,7 @@ class UdemyLectures(object):
         self._extension = None
         self._lecture_id = None
         self._lecture_title  =   None
+        self._unsafe_title = None
         self._lecture_index = None
         self._sources_count = None
         self._assets_count = None
@@ -160,6 +167,10 @@ class UdemyLectures(object):
     @property
     def title(self):
         return self._lecture_title
+
+    @property
+    def unsafe_title(self):
+        return self._unsafe_title
 
     @property
     def html(self):
@@ -207,7 +218,7 @@ class UdemyLectures(object):
     def getbest(self):
         return self._getbest()
 
-    def dump(self, filepath):
+    def dump(self, filepath, unsafe=False):
         retVal = {}
         data = '''
                 <html>
@@ -228,13 +239,18 @@ class UdemyLectures(object):
                 </html>
                 ''' % (self.title, self.html)
         html = data.encode('utf-8').strip()
-        filename = "%s\\%s" % (filepath, self.title) if os.name == 'nt' else "%s/%s" % (filepath, self.title)
+        if not unsafe:
+            filename = "%s\\%s" % (filepath, self.title) if os.name == 'nt' else "%s/%s" % (filepath, self.title)
+            filename += ".html"
+        if unsafe:
+            filename = u"%s\\%s" % (filepath, self.unsafe_title) if os.name == 'nt' else u"%s/%s" % (filepath, self.unsafe_title)
+            filename += ".html"
 
         if os.path.isfile(filename):
             retVal = {"status" : "True", "msg" : "already downloaded"}
             return retVal
         
-        with open('{}.html'.format(filename), 'wb') as f:
+        with open(filename, 'wb') as f:
             try:
                 f.write(html)
             except Exception as e:
@@ -271,6 +287,12 @@ class UdemyLectureStream(object):
         filename += "." + self.extension
         return filename
 
+    def _generate_unsafe_filename(self):
+        ok = re.compile(r'[^\\/:*?"<>|]')
+        filename = "".join(x if ok.match(x) else "_" for x in self.unsafe_title)
+        filename += "." + self.extension
+        return filename
+
     @property
     def resolution(self):
         return self._resolution
@@ -282,6 +304,10 @@ class UdemyLectureStream(object):
     @property
     def url(self):
         return self._url
+
+    @property
+    def id(self):
+        return self._parent.id
 
     @property
     def dimention(self):
@@ -302,6 +328,16 @@ class UdemyLectureStream(object):
         return self._parent.title
 
     @property
+    def unsafe_title(self):
+        return self._parent.unsafe_title
+
+    @property
+    def unsafe_filename(self):
+        if not self._filename:
+            self._filename = self._generate_unsafe_filename()
+        return self._filename
+
+    @property
     def mediatype(self):
         return self._mediatype
 
@@ -316,18 +352,18 @@ class UdemyLectureStream(object):
                 self._fsize = 0
         return self._fsize
 
-    def download(self, filepath="", quiet=False, callback=lambda *x: None):
+    def download(self, filepath="", unsafe=False, quiet=False, callback=lambda *x: None):
         savedir = filename = ""
         retVal  = {}
 
         if filepath and os.path.isdir(filepath):
-            savedir, filename = filepath, self.filename
+            savedir, filename = filepath, self.filename if not unsafe else self.unsafe_filename
 
         elif filepath:
             savedir, filename = os.path.split(filepath)
 
         else:
-            filename = self.filename
+            filename = self.filename if not unsafe else self.unsafe_filename
 
         filepath = os.path.join(savedir, filename)
 
@@ -463,6 +499,12 @@ class UdemyLectureAssets(object):
         filename += ".{}".format(self.extension)
         return filename
 
+    def _generate_unsafe_filename(self):
+        ok = re.compile(r'[^\\/:*?"<>|]')
+        filename = "".join(x if ok.match(x) else "_" for x in self.unsafe_title)
+        filename += ".{}".format(self.extension)
+        return filename
+
     def _write_external_links(self, filepath):
         retVal = {}
         filename = filepath
@@ -487,6 +529,10 @@ class UdemyLectureAssets(object):
         return retVal
 
     @property
+    def id(self):
+        return self._parent.id
+
+    @property
     def url(self):
         return self._url
 
@@ -499,9 +545,19 @@ class UdemyLectureAssets(object):
         return self._parent.title
 
     @property
+    def unsafe_title(self):
+        return self._parent.unsafe_title
+
+    @property
     def filename(self):
         if not self._filename:
             self._filename = self._generate_filename()
+        return self._filename
+
+    @property
+    def unsafe_filename(self):
+        if not self._filename:
+            self._filename = self._generate_unsafe_filename()
         return self._filename
 
     @property
@@ -519,18 +575,18 @@ class UdemyLectureAssets(object):
                 self._fsize = 0
         return self._fsize
 
-    def download(self, filepath="", quiet=False, callback=lambda *x: None):
+    def download(self, filepath="", unsafe=False, quiet=False, callback=lambda *x: None):
         savedir = filename = ""
         retVal  = {}
 
         if filepath and os.path.isdir(filepath):
-            savedir, filename = filepath, self.filename
+            savedir, filename = filepath, self.filename if not unsafe else self.unsafe_filename
 
         elif filepath:
             savedir, filename = os.path.split(filepath)
 
         else:
-            filename = self.filename
+            filename = self.filename if not unsafe else self.unsafe_filename
 
         filepath = os.path.join(savedir, filename)
         
@@ -670,6 +726,16 @@ class UdemyLectureSubtitles(object):
         filename += "-{}.{}".format(self.language, self.extension)
         return filename
 
+    def _generate_unsafe_filename(self):
+        ok = re.compile(r'[^\\/:*?"<>|]')
+        filename = "".join(x if ok.match(x) else "_" for x in self.unsafe_title)
+        filename += "-{}.{}".format(self.language, self.extension)
+        return filename
+
+    @property
+    def id(self):
+        return self._parent.id
+    
     @property
     def url(self):
         return self._url
@@ -687,9 +753,19 @@ class UdemyLectureSubtitles(object):
         return self._parent.title
 
     @property
+    def unsafe_title(self):
+        return self._parent.unsafe_title
+
+    @property
     def filename(self):
         if not self._filename:
             self._filename = self._generate_filename()
+        return self._filename
+
+    @property
+    def unsafe_filename(self):
+        if not self._filename:
+            self._filename = self._generate_unsafe_filename()
         return self._filename
 
     @property
@@ -707,18 +783,18 @@ class UdemyLectureSubtitles(object):
                 self._fsize = 0
         return self._fsize
 
-    def download(self, filepath="", quiet=False, callback=lambda *x: None):
+    def download(self, filepath="", unsafe=False, quiet=False, callback=lambda *x: None):
         savedir = filename = ""
         retVal  = {}
 
         if filepath and os.path.isdir(filepath):
-            savedir, filename = filepath, self.filename
+            savedir, filename = filepath, self.filename if not unsafe else self.unsafe_filename
 
         elif filepath:
             savedir, filename = os.path.split(filepath)
 
         else:
-            filename = self.filename
+            filename = self.filename if not unsafe else self.unsafe_filename
 
         filepath = os.path.join(savedir, filename)
 

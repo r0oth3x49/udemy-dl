@@ -41,6 +41,7 @@ if sys.version_info[:2] >= (3, 0):
     from urllib.request import urlopen as compat_urlopen
     from urllib.request import build_opener as compat_opener
     from html.parser import HTMLParser as compat_HTMLParser
+    from http.cookies import SimpleCookie as ParseCookie
     from requests.exceptions import ConnectionError as conn_error
 
     encoding, pyver = str, 3
@@ -56,6 +57,7 @@ else:
     from urllib2 import HTTPError as compat_httperr
     from urllib2 import build_opener as compat_opener
     from urlparse import urlparse as compat_urlparse
+    from Cookie import SimpleCookie as ParseCookie
     from HTMLParser import HTMLParser as compat_HTMLParser
     from requests.exceptions import ConnectionError as conn_error
 
@@ -95,6 +97,7 @@ __ALL__ = [
     'compat_httperr',
     'compat_urlparse',
     'compat_HTMLParser',
+    'ParseCookie',
     'HEADERS',
     'LOGIN_URL',
     'NO_DEFAULT',

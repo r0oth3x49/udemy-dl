@@ -46,8 +46,10 @@ class InternUdemyCourse(UdemyCourse, Udemy):
     def _fetch_course(self):
         if self._have_basic:
             return
-        
-        auth                        =       self._login(username=self._username, password=self._password)
+        if not self._cookies:
+            auth = self._login(username=self._username, password=self._password)
+        if self._cookies:
+            auth = self._login(cookies=self._cookies)
         if auth.get('login') == 'successful':
             sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged in successfully.\n")
             sys.stdout.write('\r' + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading course information .. \r")
@@ -60,7 +62,8 @@ class InternUdemyCourse(UdemyCourse, Udemy):
             self._total_lectures    =       self._info['total_lectures']
             self._chapters          =       [InternUdemyChapter(z) for z in self._info['chapters']]
             sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
-            self._logout()
+            if not self._cookies:
+                self._logout()
             sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged out successfully.\n")
             self._have_basic = True
         if auth.get('login') == 'failed':
@@ -75,6 +78,7 @@ class InternUdemyChapter(UdemyChapters):
 
         self._chapter_id        = chapter['chapter_id']
         self._chapter_title     = chapter['chapter_title']
+        self._unsafe_title      = chapter['unsafe_chapter']
         self._chapter_index     = chapter['chapter_index']
         self._lectures_count    = chapter['lectures_count']
         self._lectures          = [InternUdemyLecture(z) for z in chapter['lectures']]
@@ -88,6 +92,7 @@ class InternUdemyLecture(UdemyLectures):
 
         self._lecture_id        = self._info['lectures_id']
         self._lecture_title     = self._info['lecture_title']
+        self._unsafe_title      = self._info['unsafe_lecture']
         self._lecture_index     = self._info['lecture_index']
         
         self._subtitles_count   = self._info['subtitle_count']
