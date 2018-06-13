@@ -58,6 +58,15 @@ experience the problem? All these details will help to fix any potential bugs as
 >
 > Any other information you want to share that is relevant to the issue being reported.
 
+## ***Extracting Cookies***
+
+ - Login to your udemy account via browser.
+ - Once you are logged in right click on page the search for option called **Inspect Element** and click on that.
+ - Under that look for **Network Tab** and click on that. Under that **Network Tab** click on Requests type **XHR** .
+ - Now click on **My Courses** in the Udemy navbar and refresh the page you will see some requests under **Network Tab**.
+ - Right click on any of the Requests which is links to **udemy.com**. Simply copy **Request Headers** and save to text file.
+ - Done run the udemy-dl against that text file it will start downloading the course.
+
 ## ***Requirements***
 
 - Python (2 or 3)
