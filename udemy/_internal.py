@@ -80,7 +80,12 @@ class InternUdemyChapter(UdemyChapters):
         self._chapter_title     = chapter['chapter_title']
         self._unsafe_title      = chapter['unsafe_chapter']
         self._chapter_index     = chapter['chapter_index']
-        self._lectures_count    = chapter['lectures_count']
+        
+        if 'lectures_count' in chapter.keys() :
+            self._lectures_count    = chapter['lectures_count']
+        else :
+            self._lectures_count    = 0
+        
         self._lectures          = [InternUdemyLecture(z) for z in chapter['lectures']]
 
 
