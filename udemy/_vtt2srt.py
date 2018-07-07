@@ -138,18 +138,22 @@ class WebVtt2Srt(object):
                             index   =   self._get_index(content)
                             for line in content[index:]:
                                 if '-->' in line:
-                                    m = re.match(r'^((?:\d{2}:){1,2}\d{2}\.\d{3})\s-->\s((?:\d{2}:){1,2}\d{2}\.\d{3})', line)
+                                    m = re.match(r'^((?:\d{1,2}:){1,2}\d{2}\.\d{3})\s-->\s((?:\d{1,2}:){1,2}\d{2}\.\d{3})', line)
                                     _start, _end  = m.group(1), m.group(2)
                                     _stcode       = _start.split(':')
                                     _etcode       = _end.split(':')
                                     _appeartime   = self._generate_timecode(_stcode)
                                     _disappertime = self._generate_timecode(_etcode)
                                 else:
-                                    _seqcounter     +=  1
                                     line             = ''.join([text if ord(text) < 128 else '' for text in line])
                                     _textcontainer   = '{}'.format(line)
                                     if _textcontainer:
-                                        _srtcontent += '{}\r\n{} --> {}\r\n{}\r\n\r\n'.format(_seqcounter, _appeartime, _disappertime, _textcontainer)
+                                        if not _appeartime in _srtcontent and not _disappertime in _srtcontent:
+                                            _seqcounter     +=  1
+                                            _srtcontent += '{}\n{} --> {}\n{}\n\n'.format(_seqcounter, _appeartime, _disappertime, _textcontainer)
+                                        elif _appeartime in _srtcontent and _disappertime in _srtcontent:
+                                            _srtcontent = _srtcontent[:-1]
+                                            _srtcontent += '{}\n\n'.format(_textcontainer)
 
                         if _srtcontent:
                             retVal = self._write_srtcontent(filename, _srtfilename, _srtcontent)
