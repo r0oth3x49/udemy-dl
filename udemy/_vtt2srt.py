@@ -139,7 +139,8 @@ class WebVtt2Srt(object):
                             for line in content[index:]:
                                 if '-->' in line:
                                     m = re.match(r'^((?:\d{1,2}:){1,2}\d{2}\.\d{3})\s-->\s((?:\d{1,2}:){1,2}\d{2}\.\d{3})', line)
-                                    _start, _end  = m.group(1), m.group(2)
+                                    if m:
+                                        _start, _end  = m.group(1), m.group(2)
                                     _stcode       = _start.split(':')
                                     _etcode       = _end.split(':')
                                     _appeartime   = self._generate_timecode(_stcode)
