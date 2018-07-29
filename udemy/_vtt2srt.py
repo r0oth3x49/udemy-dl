@@ -28,142 +28,86 @@ from ._compat import (
                         re,
                         sys,
                         pyver,
+                        codecs,
                         )
 
 
 class WebVtt2Srt(object):
 
-    def _write_srtcontent(self, filename, _srtfilename, _srtcontent):
-        retVal = {}
-        if pyver == 3:
-            with open(_srtfilename, 'w', encoding='utf-8') as sub:
-                try:
-                    sub.write('{}'.format(_srtcontent))
-                except Exception as e:
-                    retVal = {'status' : 'False', 'msg' : 'Python3 Exception : {}'.format(e)}
-                else:
-                    retVal = {'status' : 'True', 'msg' : 'srt content written successfully'}
-                    try:
-                        os.unlink(filename)
-                    except Exception as e:
-                        pass
-            sub.close()
-        else:
-            with open(_srtfilename, 'w') as sub:
-                try:
-                    sub.write('{}'.format(_srtcontent))
-                except Exception as e:
-                    retVal = {'status' : 'False', 'msg' : 'Python2 Exception : {}'.format(e)}
-                else:
-                    retVal = {'status' : 'True', 'msg' : 'srt content written successfully'}
-                    try:
-                        os.unlink(filename)
-                    except Exception as e:
-                        pass
-            sub.close()
+    _TIMECODE_REGEX = r'(?i)(?P<appeartime>(?:(?:\d{1,2}:)){1,2}\d{2}[\.,]\d+)'
+    _TIMECODE = r'(?i)(?P<appeartime>(?:(?:\d{1,2}:)){1,2}\d{2}[\.,]\d+)\s*-->\s*(?i)(?P<disappertime>(?:(?:\d{1,2}:)){1,2}\d{2}[\.,]\d+)'
 
-        return retVal
+    def _vttcontents(self, fname):
+        try:
+            f = codecs.open(filename=fname, encoding='utf-8')
+        except Exception as e:
+            return {'status' : 'False', 'msg' : 'failed to open file : file not found ..'}
+        content = [line for line in (l.strip() for l in f)]
+        f.close()
+        return content
+        
 
-    def _get_index(self, content, flag=True):
-        if flag:
-            i = 0
-            for line in content:
-                if '-->' in line:
-                    index = i
-                    break
-                i += 1
-            return index
-        if not flag:
-            try:
-                index       =   content.index('1\r\n') if pyver == 2 else content.index(b'1\r\n')
-            except Exception as e:
-                index       =   2
-            return index
+    def _write_srtcontent(self, fname, content):
+        with codecs.open(filename=fname, mode='a', encoding='utf-8') as fd:
+            fd.write(content)
+        fd.close()
 
-    def _fix_subtitles(self, content, index):
-        _container = ''
-        for line in content[index:]:
-            if pyver == 3:
-                _container += line.decode('utf-8', 'ignore')
-            else:
-                _container += line
-        caption = re.sub(r"(\d{2}:\d{2}:\d{2})(\.)(\d{3})", r'\1,\3', _container)
-        return caption
+    def _locate_timecode(self, content):
+        loc = 0
+        for line in content:
+            match = re.match(self._TIMECODE_REGEX, line, flags=re.U)
+            if match:
+                return {'status' : True, 'location' : loc}
+            loc += 1
+        return {'status' : False, 'location' : loc}
 
-    def _generate_timecode(self, timecode):
-        _timecode   =   ""
-        if isinstance(timecode, list):
-            if len(timecode) < 3:
-                hh, mm, ss, tt = '00', timecode[0], timecode[1].split('.')[0], timecode[1].split('.')[-1]
-                _timecode     = '{}:{}:{},{}'.format(hh, mm, ss, tt)
-            if len(timecode) == 3:
-                hh, mm, ss, tt = timecode[0], timecode[1], timecode[2].split('.')[0], timecode[2].split('.')[-1]
-                _timecode     = '{}:{}:{},{}'.format(hh, mm, ss, tt)
-        return _timecode
+    def _is_timecode(self, timecode):
+        match = re.match(self._TIMECODE_REGEX, timecode, flags=re.U)
+        if match:
+            return True
+        return False
 
-    def convert(self, filename=None):
-        _flag = {}
+    def _fix_timecode(self, timecode):
+        _sdata = len(timecode.split(',')[0])
+        if _sdata == 5:
+            timecode = u'00:{code}'.format(code=timecode)
+        if _sdata == 7:
+            timecode = u'0{code}'.format(code=timecode)
+        return timecode
+
+    def _generate_timecode(self, sequence, timecode):
+        match = re.match(self._TIMECODE, timecode, flags=re.U)
+        if match:
+            start, end = self._fix_timecode(timecode=re.sub(r'[\.,]', ',', match.group('appeartime'))), self._fix_timecode(timecode=re.sub(r'[\.,]', ',', match.group('disappertime')))
+            return u'{seq}\r\n{appeartime} --> {disappertime}\r\n'.format(seq=sequence, appeartime=start, disappertime=end)
+        return False
+
+    def convert(self, filename=None, remove_vtt=True):
         if filename:
-
-            _seqcounter     =   0
-            _appeartime     =   None
-            _disappertime   =   None
-            _textcontainer  =   None
-
-
-            _srtcontent     =   ""
-            _srtfilename    =   filename.replace('.vtt', '.srt')
-
-            # open and save file content into list for parsing ...
-            try:
-                f_in        =   open(filename, 'rb')
-            except Exception as e:
-                _flag = {'status' : 'False', 'msg' : 'failed to open file : file not found ..'}
+            seq = 1
+            fname = filename.replace('.vtt', '.srt')
+            content = self._vttcontents(fname=filename)
+            if content and isinstance(content, list):
+                timecode_loc = self._locate_timecode(content)
+                if not timecode_loc.get('status'):
+                    return {'status' : 'False', 'msg' : 'subtitle file seems to have malfunction skipping conversion ..'}
+                for line in content[timecode_loc.get('location'):]:
+                    flag = self._is_timecode(timecode=line)
+                    if flag:
+                        timecode = self._generate_timecode(seq, line)
+                        self._write_srtcontent(fname, timecode)
+                        seq += 1
+                    if not flag:
+                        match = re.match('^([0-9]{1,3})$', line, flags=re.U)
+                        if not match:
+                            data = u'{content}\r\n'.format(content=line)
+                            self._write_srtcontent(fname, data)
             else:
-                content     =   [line for line in (l.decode('utf-8', 'ignore').strip() for l in f_in) if line]
-                f_in.close()
+                return content
+            
+            if remove_vtt:
                 try:
-                    check       =   content.index('1') or content.index('1\r\n')
-                except:
-                    check       =   0
-                if len(content) > 4:
-                    if content[0] == 'WEBVTT' or content[0].endswith('WEBVTT') or 'WEBVTT' in content[0]:
-                        if content[check] == '1':
-                            f           = open(filename, 'rb')
-                            content     = f.readlines()
-                            f.close()
-                            index       = self._get_index(content, flag=False)
-                            _srtcontent = self._fix_subtitles(content, index)
-                        else:
-                            index   =   self._get_index(content)
-                            for line in content[index:]:
-                                if '-->' in line:
-                                    m = re.match(r'^((?:\d{1,2}:){1,2}\d{2}\.\d{3})\s-->\s((?:\d{1,2}:){1,2}\d{2}\.\d{3})', line)
-                                    _start, _end  = m.group(1), m.group(2)
-                                    _stcode       = _start.split(':')
-                                    _etcode       = _end.split(':')
-                                    _appeartime   = self._generate_timecode(_stcode)
-                                    _disappertime = self._generate_timecode(_etcode)
-                                else:
-                                    line             = ''.join([text if ord(text) < 128 else '' for text in line])
-                                    _textcontainer   = '{}'.format(line)
-                                    if _textcontainer:
-                                        if not _appeartime in _srtcontent and not _disappertime in _srtcontent:
-                                            _seqcounter     +=  1
-                                            _srtcontent += '{}\n{} --> {}\n{}\n\n'.format(_seqcounter, _appeartime, _disappertime, _textcontainer)
-                                        elif _appeartime in _srtcontent and _disappertime in _srtcontent:
-                                            _srtcontent = _srtcontent[:-1]
-                                            _srtcontent += '{}\n\n'.format(_textcontainer)
-
-                        if _srtcontent:
-                            retVal = self._write_srtcontent(filename, _srtfilename, _srtcontent)
-                            if isinstance(retVal, dict) and len(retVal) > 0:
-                                status = retVal.get('status')
-                                msg    = retVal.get('msg')
-                                if status == 'True':
-                                    _flag = {'status' : 'True', 'msg' : 'successfully generated subtitle in srt ...'}
-                                else:
-                                    _flag = {'status' : 'False', 'msg' : '{}'.format(msg)}
-                else:
-                    _flag = {'status' : 'False', 'msg' : 'subtitle file seems to be empty skipping conversion from WEBVTT to SRT ..'}
-        return _flag
+                    os.unlink(filename)
+                except Exception as e:
+                    pass
+        return {'status' : 'True', 'msg' : 'successfully generated subtitle in srt ...'}
