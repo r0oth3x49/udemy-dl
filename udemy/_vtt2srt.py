@@ -53,12 +53,10 @@ class WebVtt2Srt(object):
         fd.close()
 
     def _locate_timecode(self, content):
-        loc = 0
-        for line in content:
+        for (loc, line) in enumerate(content):
             match = re.match(self._TIMECODE_REGEX, line, flags=re.U)
             if match:
                 return {'status' : True, 'location' : loc}
-            loc += 1
         return {'status' : False, 'location' : loc}
 
     def _is_timecode(self, timecode):
