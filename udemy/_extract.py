@@ -143,6 +143,31 @@ class Udemy(ProgressBar):
         else:
             sys.exit(0)
 
+    def _extract_large_course_content(self, url):
+        url = url.replace('10000', '300') if url.endswith('10000') else url
+        try:
+            data = self._session._get(url).json()
+        except conn_error as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+            time.sleep(0.8)
+            sys.exit(0)
+        else:
+            _next = data.get('next')
+            while _next:
+                try:
+                    resp = self._session._get(_next).json()
+                except conn_error as e:
+                    sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+                    time.sleep(0.8)
+                    sys.exit(0)
+                else:
+                    _next = resp.get('next')
+                    results = resp.get('results')
+                    if results and isinstance(results, list):
+                        for d in resp['results']:
+                            data['results'].append(d)
+            return data
+
     def _extract_course_json(self, course_id):
         url = COURSE_URL.format(course_id=course_id)
         try:
@@ -151,6 +176,9 @@ class Udemy(ProgressBar):
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
             time.sleep(0.8)
             sys.exit(0)
+        except Exception as e:
+            resp = self._extract_large_course_content(url=url)
+            return resp
         else:
             return resp
 
