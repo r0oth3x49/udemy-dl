@@ -80,8 +80,8 @@ class InternUdemyChapter(UdemyChapters):
         self._chapter_title     = chapter['chapter_title']
         self._unsafe_title      = chapter['unsafe_chapter']
         self._chapter_index     = chapter['chapter_index']
-        self._lectures_count    = chapter['lectures_count']
-        self._lectures          = [InternUdemyLecture(z) for z in chapter['lectures']]
+        self._lectures_count    = chapter.get('lectures_count', 0)
+        self._lectures          = [InternUdemyLecture(z) for z in chapter['lectures']] if self._lectures_count > 0 else []
 
 
 class InternUdemyLecture(UdemyLectures):
@@ -95,12 +95,12 @@ class InternUdemyLecture(UdemyLectures):
         self._unsafe_title      = self._info['unsafe_lecture']
         self._lecture_index     = self._info['lecture_index']
         
-        self._subtitles_count   = self._info['subtitle_count']
-        self._sources_count     = self._info['sources_count']
-        self._assets_count      = self._info['assets_count']
-        self._extension         = self._info.get('extension') or None
-        self._html_content      = self._info.get('html_content') or None
-        self._duration          = self._info.get('duration') or None
+        self._subtitles_count   = self._info.get('subtitle_count', 0)
+        self._sources_count     = self._info.get('sources_count', 0)
+        self._assets_count      = self._info.get('assets_count', 0)
+        self._extension         = self._info.get('extension')
+        self._html_content      = self._info.get('html_content')
+        self._duration          = self._info.get('duration')
         if self._duration:
             duration = int(self._duration)
             (mins, secs) = divmod(duration, 60)
@@ -130,8 +130,8 @@ class InternUdemyLectureStream(UdemyLectureStream):
 
         self._mediatype = sources.get('type')
         self._extension = sources.get('extension')
-        height = sources.get('height') or 0
-        width = sources.get('width') or 0
+        height = sources.get('height', 0)
+        width = sources.get('width', 0)
         self._resolution = '%sx%s' % (width, height)
         self._dimention = width, height
         self._quality = self._resolution
