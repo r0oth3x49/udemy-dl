@@ -31,6 +31,9 @@
 
 To maintain an effective bugfix workflow and make sure issues will be solved, I ask reporters to follow some simple guidelines.
 
+### ***Note***
+ - ***if any of the issue is not following the below template and guideline i will not facilitate that issue & will directly close.***
+
 Before creating an issue, please do the following:
 
 1. **Use the GitHub issue search** &mdash; check if the issue has already been reported.
