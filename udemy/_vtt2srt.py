@@ -22,7 +22,7 @@ ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
-
+from ._utils import unescapeHTML
 from ._compat import (
                         os,
                         re,
@@ -78,7 +78,7 @@ class WebVtt2Srt(object):
         if match:
             start, end = self._fix_timecode(timecode=re.sub(r'[\.,]', ',', match.group('appeartime'))), self._fix_timecode(timecode=re.sub(r'[\.,]', ',', match.group('disappertime')))
             return u'{seq}\r\n{appeartime} --> {disappertime}\r\n'.format(seq=sequence, appeartime=start, disappertime=end)
-        return False
+        return u''
 
     def convert(self, filename=None, remove_vtt=True):
         if filename:
@@ -92,7 +92,7 @@ class WebVtt2Srt(object):
                 for line in content[timecode_loc.get('location'):]:
                     flag = self._is_timecode(timecode=line)
                     if flag:
-                        timecode = self._generate_timecode(seq, line)
+                        timecode = self._generate_timecode(seq, unescapeHTML(line))
                         self._write_srtcontent(fname, timecode)
                         seq += 1
                     if not flag:
