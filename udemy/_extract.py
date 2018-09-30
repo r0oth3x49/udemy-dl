@@ -64,7 +64,7 @@ class Udemy(ProgressBar):
     def _clean(self, text):
         ok = re.compile(r'[^\\/:*?"<>|]')
         text = "".join(x if ok.match(x) else "_" for x in text)
-        return re.sub('\.+$', '', text) if text.endswith(".") else text
+        return re.sub('\.+$', '', text.rstrip()) if text.endswith(".") else text.rstrip()
 
     def _course_name(self, url):
         if '/learn/v4' in url:
@@ -88,7 +88,7 @@ class Udemy(ProgressBar):
 
     
     def _sanitize(self, unsafetext):
-        text = sanitize(slugify(unsafetext, lower=False, spaces=True, ok=SLUG_OK + '().'))
+        text = sanitize(slugify(unsafetext, lower=False, spaces=True, ok=SLUG_OK + '().[]'))
         return text
 
     def _login(self, username='', password='', cookies=''):
@@ -350,13 +350,6 @@ class Udemy(ProgressBar):
                     })
         return _temp
 
-    def _lectures_count(self, chapters):
-        lectures = 0
-        for entry in chapters:
-            lectures_count = entry.get('lectures_count') if entry.get('lectures_count') else 0
-            lectures += lectures_count
-        return lectures
-
     def _real_extract(self, url=''):
 
         _udemy      =   {}
@@ -503,7 +496,7 @@ class Udemy(ProgressBar):
                             lecture_index   = entry.get('object_index')
                             lecture_title   = self._sanitize(entry.get('title'))
                             lecture         = "{0:03d} {1!s}".format(lecture_index, lecture_title)
-                            unsafe_lecture  = u'{0:03d} '.format(lecture_index) + entry.get('title')
+                            unsafe_lecture  = u'{0:03d} '.format(lecture_index) + self._clean(entry.get('title'))
                             data            = asset.get('stream_urls')
                             if data and isinstance(data, dict):
                                 sources     = data.get('Video')
@@ -558,6 +551,6 @@ class Udemy(ProgressBar):
                     _udemy['chapters'][counter]['lectures'] = lectures
                     _udemy['chapters'][counter]['lectures_count'] = len(lectures)
             _udemy['total_chapters'] = len(_udemy['chapters'])
-            _udemy['total_lectures'] = self._lectures_count(_udemy['chapters'])
+            _udemy['total_lectures'] = sum([entry.get('lectures_count') for entry in _udemy['chapters'] if entry])
 
         return _udemy
