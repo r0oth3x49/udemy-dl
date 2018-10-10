@@ -551,6 +551,6 @@ class Udemy(ProgressBar):
                     _udemy['chapters'][counter]['lectures'] = lectures
                     _udemy['chapters'][counter]['lectures_count'] = len(lectures)
             _udemy['total_chapters'] = len(_udemy['chapters'])
-            _udemy['total_lectures'] = sum([entry.get('lectures_count') for entry in _udemy['chapters'] if entry])
+            _udemy['total_lectures'] = sum([entry.get('lectures_count', 0) for entry in _udemy['chapters'] if entry])
 
         return _udemy
