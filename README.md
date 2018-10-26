@@ -5,14 +5,14 @@
 [![GitHub license](https://img.shields.io/github/license/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/blob/master/LICENSE)
 
 # udemy-dl
-**A cross-platform python based utility to download courses from udemy for personal offline use.**
+**A cross-platform python based utility to download courses from Udemy for personal offline use.**
 
 [![udemy-dl-0-5.png](https://s26.postimg.cc/67x3wfak9/udemy-dl-0-5.png)](https://postimg.cc/image/s73ijmred/)
 
 ## ***Features***
 
 - Resume capability for a course video.
-- Supports organization and individual udemy users both.
+- Supports organization and individual Udemy users both.
 - Save course direct download links to a text file (option: `--save`).
 - Cache credentials to a file and use it later for login purpose (option: `--cache`).
 - List down course contents and video resolution, suggest the best resolution (option: `--info`).
@@ -25,25 +25,25 @@
 - Download course to user requested path (option: `-o / --output`).
 - Authentication using cookies (option: `-k / --cookies`).
 - Download/save lecture names (option: `--names`).
-- Download lectures containing unsafe *unicode* characters in title/name (option: `--unsafe`).
+- Download lectures containing unsafe *Unicode* characters in title/name (option: `--unsafe`).
 
 ## ***Issue Reporting Guideline***
 
 To maintain an effective bugfix workflow and make sure issues will be solved, I ask reporters to follow some simple guidelines.
 
 ### ***Note***
- - ***if any of the issue is not following the below template and guideline i will not facilitate that issue & will directly close.***
+ - ***if any of the issues is not following the below template and guideline, I will not facilitate that issue & will directly close.***
 
 Before creating an issue, please do the following:
 
 1. **Use the GitHub issue search** &mdash; check if the issue has already been reported.
 2. **Check if the issue has been fixed** &mdash; try to reproduce it using the latest `master` in the repository.
 3. Make sure, that information you are about to report is related to this repository 
-   and not the one available ***Python's repository***, Because this repository cannot be downloaded via pip.
+   and not the one available ***Python's repository*** because this repository cannot be downloaded via pip.
 
 A good bug report shouldn't leave others needing to chase you up for more
 information. Please try to be as detailed as possible in your report. What is
-your environment? What was the course url? What steps will reproduce the issue? What OS
+your environment? What was the course URL? What steps will reproduce the issue? What OS
 experience the problem? All these details will help to fix any potential bugs as soon as possible.
 
 ### ***Example:***
@@ -57,15 +57,15 @@ experience the problem? All these details will help to fix any potential bugs as
 > 2. This is the second step
 > 3. Further steps, etc.
 >
-> `<url>` - a udemy course link to reproduce the error.
+> `<url>` - a Udemy course link to reproduce the error.
 >
 > Any other information you want to share that is relevant to the issue being reported.
 
 ## ***Extracting Cookies***
 
- - Login to your udemy account via browser.
- - Once you are logged in right click on page the search for option called **Inspect Element** and click on that.
- - Under that look for **Network Tab** and click on that. Under that **Network Tab** click on Requests type **XHR** .
+ - Login to your Udemy account via browser.
+ - Once you are logged in, right click on page and search for option called **Inspect Element** and click on that.
+ - Under that look for **Network Tab** and click on that. Under that **Network Tab** click on Requests type **XHR**.
  - Now click on **My Courses** in the Udemy navbar and refresh the page you will see some requests under **Network Tab**.
  - Right click on any of the Requests which is links to **udemy.com**. Simply copy **Request Headers** and save to text file.
  - Done run the udemy-dl against that text file it will start downloading the course.
@@ -87,9 +87,9 @@ experience the problem? All these details will help to fix any potential bugs as
 ## ***Tested on***
 
 - Windows 7/8/8.1/10
-- Kali linux (2017.2)
-- Ubuntu-LTS (64-bit) (tested with super user)
-- Mac OSX 10.9.5 (tested with super user)
+- Kali Linux (2017.2)
+- Ubuntu LTS (64-bit) (tested with superuser)
+- Mac OS X 10.9.5 (tested with superuser)
  
 ## ***Download udemy-dl***
 
@@ -152,7 +152,7 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 ## **Advanced Usage**
 
 <pre><code>
-Author: Nasir khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)
+Author: Nasir Khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)
 
 usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l]
                    [--chapter-start] [--chapter-end] [--lecture-start]
@@ -160,7 +160,7 @@ usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l]
                    [--unsafe] [--sub-only] [--skip-sub]
                    course
 
-A cross-platform python based utility to download courses from udemy for
+A cross-platform python based utility to download courses from Udemy for
 personal offline use.
 
 positional arguments:
@@ -171,7 +171,7 @@ General:
   -v, --version     Shows the version.
 
 Authentication:
-  -u , --username   Username in udemy.
+  -u , --username   Username in Udemy.
   -p , --password   Password of your account.
   -k , --cookies    Cookies to authenticate with.
 

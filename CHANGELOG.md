@@ -49,4 +49,4 @@ Features:
   - Saves direct download links to a file, If you don't want to download.
   - Downloads all available subtitles if any attached with video.
   - List down all available resolution for a video in a course.
-  - Saves course to user provided path (directory), default is current directory.
+  - Saves course to user-provided path (directory), default is current directory.
