@@ -253,6 +253,21 @@ class Udemy(ProgressBar):
                 })
         return _temp
 
+    def _extract_audio(self, assets):
+        _temp = []
+        download_urls = assets.get('download_urls')
+        filename = self._sanitize(assets.get('filename'))
+        if download_urls and isinstance(download_urls, dict):
+            extension = filename.rsplit('.', 1)[-1] if '.' in filename else ''
+            download_url = download_urls.get('Audio', [])[0].get('file')
+            _temp.append({
+                'type' : 'audio',
+                'filename' : filename,
+                'extension' : extension,
+                'download_url' : download_url
+                })
+        return _temp
+
     def _extract_sources(self, sources):
         _temp   =   []
         if sources and isinstance(sources, list):
@@ -260,6 +275,8 @@ class Udemy(ProgressBar):
                 label           = source.get('label')
                 download_url    = source.get('file')
                 if not download_url:
+                    continue
+                if label.lower() == 'audio':
                     continue
                 height = label if label else None
                 if height == "2160":
@@ -450,6 +467,8 @@ class Udemy(ProgressBar):
                                 retVal      = self._extract_file(asset)
                             elif asset_type == 'presentation':
                                 retVal      = self._extract_ppt(asset)
+                            elif asset_type == 'audio':
+                                retVal      = self._extract_audio(asset)
 
 
                         if view_html:
