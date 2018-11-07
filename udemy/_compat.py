@@ -66,17 +66,17 @@ else:
 
 
 NO_DEFAULT = object()
-LOGIN_POPUP = 'https://www.udemy.com/join/login-popup'
+LOGIN_POPUP = 'https://www.udemy.com/join/login-popup/?displayType=ajax&display_type=popup&showSkipButton=1&returnUrlAfterLogin=https%3A%2F%2Fwww.udemy.com%2F&next=https%3A%2F%2Fwww.udemy.com%2F&locale=en_US'
 LOGIN_URL = 'https://www.udemy.com/join/login-popup/?displayType=ajax&display_type=popup&showSkipButton=1&returnUrlAfterLogin=https%3A%2F%2Fwww.udemy.com%2F&next=https%3A%2F%2Fwww.udemy.com%2F&locale=en_US'
 LOGOUT_URL = 'https://www.udemy.com/user/logout'
 
 MY_COURSES_URL = 'https://www.udemy.com/api-2.0/users/me/subscribed-courses?fields[course]=id,title,published_title,headline,url,num_lectures,num_reviews,num_subscribers,created,enrollment_time,completion_ratio,avg_rating,locale&page=1&page_size=100'
 COURSE_URL = 'https://www.udemy.com/api-2.0/courses/{course_id}/cached-subscriber-curriculum-items?fields[asset]=results,external_url,time_estimation,download_urls,slide_urls,filename,asset_type,captions,stream_urls,body&fields[chapter]=object_index,title,sort_order&fields[lecture]=id,title,object_index,asset,supplementary_assets,view_html&page_size=10000'
 HEADERS = {
-            'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1 Safari/605.1.15',
+            'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Mwendo/1.1.5 Safari/537.21',
             'X-Requested-With'  : 'XMLHttpRequest',
             'Host' : 'www.udemy.com',
-            'Referer' : 'https://www.udemy.com/join/login-popup'
+            'Referer' : '%s' % (LOGIN_POPUP)
             }
 
 

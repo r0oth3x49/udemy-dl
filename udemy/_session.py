@@ -24,11 +24,13 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
 from ._compat import (
-    
+                sys,
+                time,
                 requests,
                 HEADERS,
                 LOGOUT_URL,
             )
+from ._colorized import *
 
 
 class Session(object):
@@ -44,10 +46,24 @@ class Session(object):
         self._headers['X-Udemy-Authorization'] = "Bearer {}".format(access_token)
 
     def _get(self, url):
-        return self._session.get(url, headers=self._headers)
+        self._headers.update({'Referrer' : url, 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Mwendo/1.1.5 Safari/537.21'})
+        session = self._session.get(url, headers=self._headers, allow_redirects=False)
+        if session.ok:
+            return session
+        if session.status_code == 403:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : 403 Forbidden retry after few minutes ...\n")
+            time.sleep(0.8)
+            sys.exit(0)
 
     def _post(self, url, data):
-        return self._session.post(url, data, headers=self._headers)
+        self._headers.update({'Referrer' : url, 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Mwendo/1.1.5 Safari/537.21'})
+        session = self._session.post(url, data, headers=self._headers, allow_redirects=False)
+        if session.ok:
+            return session
+        if session.status_code == 403:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : 403 Forbidden retry after few minutes ...\n")
+            time.sleep(0.8)
+            sys.exit(0)
 
     def terminate(self):
         self._get(LOGOUT_URL)

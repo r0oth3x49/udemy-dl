@@ -26,6 +26,8 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from pprint import pprint
 from ._session import Session
 from ._compat import (
+        sys,
+        time,
         conn_error,
         LOGIN_POPUP,
         LOGIN_URL,
@@ -37,6 +39,7 @@ from ._utils import (
         hidden_inputs,
         unescapeHTML,
         )
+from ._colorized import *
 
 class UdemyAuth(object):
 
@@ -49,8 +52,9 @@ class UdemyAuth(object):
         try:
             webpage = self._session._get(LOGIN_POPUP).text
         except conn_error as e:
-            print(e)
-            exit(0)
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+            time.sleep(0.8)
+            sys.exit(0)
         else:
             login_form = hidden_inputs(
                             search_regex(
