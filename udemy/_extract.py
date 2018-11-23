@@ -67,7 +67,7 @@ class Udemy(ProgressBar):
         return re.sub('\.+$', '', text.rstrip()) if text.endswith(".") else text.rstrip()
 
     def _course_name(self, url):
-        mobj = re.search(r'(?x)(?:(.+)\.com/(?P<course_name>[a-zA-Z0-9_-]+))/', url, re.I)
+        mobj = re.search(r'(?i)(?:(.+)\.com/(?P<course_name>[a-zA-Z0-9_-]+))', url, re.I)
         if mobj:
             return mobj.group('course_name')
 
@@ -75,17 +75,16 @@ class Udemy(ProgressBar):
         cookies = {}
         cookie_parser = ParseCookie()
         try:
-            cookie_string = re.search(r'Cookie:\s*(.+)\n', raw_cookies, flags=re.I).group(1)
+            cookie_string = re.search(r'(?i)(?:Cookie\:(?P<cookie>.+)\s*)', raw_cookies)
         except:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Cookies error, Request Headers is required.\n")
             sys.stdout.write(fc + sd + "[" + fm + sb + "i" + fc + sd + "] : " + fg + sb + "Copy Request Headers for single request to a file, while you are logged in.\n")
             sys.exit(0)
-        cookie_parser.load(cookie_string)
+        cookie_parser.load(cookie_string.group('cookie'))
         for key, cookie in cookie_parser.items():
             cookies[key] = cookie.value
         return cookies
 
-    
     def _sanitize(self, unsafetext):
         text = sanitize(slugify(unsafetext, lower=False, spaces=True, ok=SLUG_OK + '().[]'))
         return text
@@ -110,36 +109,32 @@ class Udemy(ProgressBar):
     def _logout(self):
         return self._session.terminate()
 
-    def _extract_course_info(self, url):
-        if 'www' not in url:
-            self._session._headers['Host'] = url.replace("https://", "").split('/', 1)[0]
-            self._session._headers['Referer'] = url
+    def __extract_course(self, response, course_name):
+        _temp = {}
+        if response:
+            for entry in response:
+                if entry.get('published_title') == course_name:
+                    _temp = entry
+        return _temp
+
+    def _extract_course_info(self, course_name):
+        url = MY_COURSES_URL.format(course_name=course_name)
         try:
-            webpage = self._session._get(url).text
+            webpage = self._session._get(url).json()
         except conn_error as e:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
             time.sleep(0.8)
             sys.exit(0)
         else:
-            course = parse_json(
-                        search_regex(
-                            r'ng-init=["\'].*\bcourse=({.+?});', 
-                            webpage, 
-                            'course', 
-                            default='{}'
-                            ),
-                        "Course Information",
-                        transform_source=unescapeHTML,
-                        fatal=False,
-                        )
-            course_id = course.get('id') or search_regex(
-                                                (r'data-course-id=["\'](\d+)', r'&quot;id&quot;\s*:\s*(\d+)'),
-                                                webpage, 
-                                                'course id'
-                                                )
-        if course_id:
-            return course_id, course
+            course = self.__extract_course(response=webpage['results'], course_name=course_name)
+        if course:
+            return course.get('id'), course
         else:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "It seems you are not enrolled in '%s' course." % (course_name))
+            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
+            if not self._cookies:
+                self._logout()
+            sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged out successfully.\n")
             sys.exit(0)
 
     def _extract_large_course_content(self, url):
@@ -369,19 +364,10 @@ class Udemy(ProgressBar):
     def _real_extract(self, url=''):
 
         _udemy      =   {}
-        course_id, course_info = self._extract_course_info(url)
+        course_id, course_info = self._extract_course_info(self._course_name(url))
 
         if course_info and isinstance(course_info, dict):
-            name = course_info.get('url').replace('/', '')
-            course_title = name if name else self._course_name(url)
-            isenrolled = course_info['features'].get('enroll')
-            if not isenrolled:
-                sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says you are not enrolled in course.")
-                sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
-                if not self._cookies:
-                    self._logout()
-                sys.stdout.write(fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sb + "Logged out successfully.\n")
-                sys.exit(0)
+            course_title = course_info.get('published_title')
         else:
             course_title = self._course_name(url)
 

@@ -40,28 +40,24 @@ class Session(object):
         self._session = requests.sessions.Session()
 
     def _set_auth_headers(self, access_token='', client_id=''):
-        self._headers['X-Udemy-Bearer-Token'] = access_token
-        self._headers['X-Udemy-Client-Id'] = client_id
         self._headers['Authorization'] = "Bearer {}".format(access_token)
         self._headers['X-Udemy-Authorization'] = "Bearer {}".format(access_token)
 
     def _get(self, url):
-        self._headers.update({'Referrer' : url, 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Mwendo/1.1.5 Safari/537.21'})
-        session = self._session.get(url, headers=self._headers, allow_redirects=False)
+        session = self._session.get(url, headers=self._headers)
         if session.ok:
             return session
-        if session.status_code == 403:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : 403 Forbidden retry after few minutes ...\n")
+        if not session.ok:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s retry after few minutes ...\n" % (session.status_code, session.reason))
             time.sleep(0.8)
             sys.exit(0)
 
     def _post(self, url, data):
-        self._headers.update({'Referrer' : url, 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Mwendo/1.1.5 Safari/537.21'})
-        session = self._session.post(url, data, headers=self._headers, allow_redirects=False)
+        session = self._session.post(url, data, headers=self._headers)
         if session.ok:
             return session
-        if session.status_code == 403:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : 403 Forbidden retry after few minutes ...\n")
+        if not session.ok:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s retry after few minutes ...\n" % (session.status_code, session.reason))
             time.sleep(0.8)
             sys.exit(0)
 
