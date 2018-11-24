@@ -11,5 +11,6 @@
  - @RuthlessRuler (Requested to add support Aria2c downloader)
  - @alfari16 (Download from specific chapter)
  - @arsenico13 (fixed KeyError if a chapter has no lectures)
+ - @FaisalUmair (Special thanks for a quick help & Guide) <3.
 
-> Thanks to all other contributors if i missed any one.   
+> Thanks to all other contributors if i missed any one.

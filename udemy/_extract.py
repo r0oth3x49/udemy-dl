@@ -67,9 +67,10 @@ class Udemy(ProgressBar):
         return re.sub('\.+$', '', text.rstrip()) if text.endswith(".") else text.rstrip()
 
     def _course_name(self, url):
-        mobj = re.search(r'(?i)(?:(.+)\.com/(?P<course_name>[a-zA-Z0-9_-]+))', url, re.I)
+        # mobj = re.search(r'(?i)(?:(.+)\.com/(?P<course_name>[a-zA-Z0-9_-]+))', url, re.I)
+        mobj = re.search(r'(?i)(?://(?P<portal_name>.+?).udemy.com/(?P<course_name>[a-zA-Z0-9_-]+))', url)
         if mobj:
-            return mobj.group('course_name')
+            return mobj.group('portal_name'), mobj.group('course_name')
 
     def _extract_cookie_string(self, raw_cookies):
         cookies = {}
@@ -117,19 +118,30 @@ class Udemy(ProgressBar):
                     _temp = entry
         return _temp
 
-    def _extract_course_info(self, course_name):
-        url = MY_COURSES_URL.format(course_name=course_name)
+    def _extract_course_info(self, url):
+        portal_name, course_name = self._course_name(url)
+        self._session._headers.update({
+            'Host' : '{portal_name}.udemy.com'.format(portal_name=portal_name),
+            'Referer' : 'https://{portal_name}.udemy.com/home/my-courses/search/?q={course_name}'.format(portal_name=portal_name, course_name=course_name)
+            })
+        url = MY_COURSES_URL.format(portal_name=portal_name, course_name=course_name)
         try:
             webpage = self._session._get(url).json()
         except conn_error as e:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
             time.sleep(0.8)
             sys.exit(0)
+        except (ValueError, Exception) as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "%s.\n" % (e))
+            time.sleep(0.8)
+            sys.exit(0)
         else:
             course = self.__extract_course(response=webpage['results'], course_name=course_name)
+            course.update({'portal_name' : portal_name})
         if course:
             return course.get('id'), course
         else:
+            print("")
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "It seems you are not enrolled in '%s' course." % (course_name))
             sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
             if not self._cookies:
@@ -162,15 +174,16 @@ class Udemy(ProgressBar):
                             data['results'].append(d)
             return data
 
-    def _extract_course_json(self, course_id):
-        url = COURSE_URL.format(course_id=course_id)
+    def _extract_course_json(self, url, course_id, portal_name):
+        self._session._headers.update({'Referer' : url})
+        url = COURSE_URL.format(portal_name=portal_name, course_id=course_id)
         try:
             resp = self._session._get(url).json()
         except conn_error as e:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
             time.sleep(0.8)
             sys.exit(0)
-        except Exception as e:
+        except (ValueError, Exception) as e:
             resp = self._extract_large_course_content(url=url)
             return resp
         else:
@@ -364,14 +377,13 @@ class Udemy(ProgressBar):
     def _real_extract(self, url=''):
 
         _udemy      =   {}
-        course_id, course_info = self._extract_course_info(self._course_name(url))
+        course_id, course_info = self._extract_course_info(url)
 
         if course_info and isinstance(course_info, dict):
             course_title = course_info.get('published_title')
-        else:
-            course_title = self._course_name(url)
+            portal_name = course_info.get('portal_name')
 
-        course_json = self._extract_course_json(course_id)
+        course_json = self._extract_course_json(url, course_id, portal_name)
         course = course_json.get('results')
         resource = course_json.get('detail')
 

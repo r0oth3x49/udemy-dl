@@ -29,7 +29,6 @@ from ._compat import (
         sys,
         time,
         conn_error,
-        LOGIN_POPUP,
         LOGIN_URL,
         )
 from ._utils import (
@@ -72,14 +71,14 @@ class UdemyAuth(object):
 
     def authenticate(self, access_token='', client_id=''):
         if not access_token and not client_id:
-            form = self._form_hidden_input('login-form')
-            auth_response = self._session._post(LOGIN_URL, data=form)
-            auth_cookies = auth_response.cookies
-
-            access_token = auth_cookies.get('access_token') or None
-            client_id = auth_cookies.get('client_id') or None
+            data = {'email' : self.username, 'password' : self.password}
+            auth_response = self._session._post(LOGIN_URL, data=data)
+            auth_cookies, auth_response = auth_response.cookies, auth_response.json()
+            
+            access_token = auth_response.get('access_token', '')
+            client_id = auth_cookies.get('client_id', '')
         
-        if access_token and client_id:
+        if access_token:
             self._session._set_auth_headers(access_token=access_token, client_id=client_id)
             return self._session
         else:
