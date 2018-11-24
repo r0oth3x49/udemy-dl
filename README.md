@@ -61,13 +61,14 @@ experience the problem? All these details will help to fix any potential bugs as
 >
 > Any other information you want to share that is relevant to the issue being reported.
 
-## ***Extracting Cookies***
+## ***Extracting Cookies / Request Headers***
 
  - Login to your udemy account via browser.
  - Once you are logged in right click on page the search for option called **Inspect Element** and click on that.
  - Under that look for **Network Tab** and click on that. Under that **Network Tab** click on Requests type **XHR** .
  - Now click on **My Courses** in the Udemy navbar and refresh the page you will see some requests under **Network Tab**.
- - Right click on any of the Requests which is links to **udemy.com**. Simply copy **Request Headers** and save to text file.
+ - Right click on request links to **udemy.com/api-2.0/**. Simply copy **Request Headers** and save to text file.
+ - The above guide is for ***Firefox*** users. ***Chrome*** Users can follow [guide by @lamlephamngoc](https://github.com/r0oth3x49/udemy-dl/issues/303#issuecomment-441345792).
  - Done run the udemy-dl against that text file it will start downloading the course.
 
 ## ***Requirements***
