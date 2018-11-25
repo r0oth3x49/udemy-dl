@@ -44,6 +44,7 @@ from ._compat import (
             COURSE_URL,
             ParseCookie,
             MY_COURSES_URL,
+            COURSE_SEARCH
             )
 from ._sanitize import (
             slugify,
@@ -124,7 +125,7 @@ class Udemy(ProgressBar):
             'Host' : '{portal_name}.udemy.com'.format(portal_name=portal_name),
             'Referer' : 'https://{portal_name}.udemy.com/home/my-courses/search/?q={course_name}'.format(portal_name=portal_name, course_name=course_name)
             })
-        url = MY_COURSES_URL.format(portal_name=portal_name, course_name=course_name)
+        url = COURSE_SEARCH.format(portal_name=portal_name, course_name=course_name)
         try:
             webpage = self._session._get(url).json()
         except conn_error as e:
@@ -136,13 +137,28 @@ class Udemy(ProgressBar):
             time.sleep(0.8)
             sys.exit(0)
         else:
-            course = self.__extract_course(response=webpage['results'], course_name=course_name)
-            course.update({'portal_name' : portal_name})
+            results = webpage.get('results', [])
+            if not results:
+                try:
+                    url = MY_COURSES_URL.format(portal_name=portal_name)
+                    webpage = self._session._get(url).json()
+                except conn_error as e:
+                    sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+                    time.sleep(0.8)
+                    sys.exit(0)
+                except (ValueError, Exception) as e:
+                    sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "%s.\n" % (e))
+                    time.sleep(0.8)
+                    sys.exit(0)
+                else:
+                    results = webpage.get('results', [])
+            course = self.__extract_course(response=results, course_name=course_name)
         if course:
+            course.update({'portal_name' : portal_name})
             return course.get('id'), course
         else:
-            print("")
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "It seems you are not enrolled in '%s' course." % (course_name))
+            sys.stdout.write('\033[2K\033[1G\r\r' + fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fg + sb + "Downloading course information, course id not found .. (%s%sfailed%s%s)\n" % (fr, sb, fg, sb))
+            sys.stdout.write(fc + sd + "[" + fw + sb + "i" + fc + sd + "] : " + fw + sb + "It seems either you are not enrolled or you have to visit the course atleast once while you are logged in.\n")
             sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
             if not self._cookies:
                 self._logout()

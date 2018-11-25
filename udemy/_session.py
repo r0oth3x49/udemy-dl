@@ -48,7 +48,7 @@ class Session(object):
         if session.ok:
             return session
         if not session.ok:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s, it seems your cookie based session got expired ...\n" % (session.status_code, session.reason))
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s ...\n" % (session.status_code, session.reason))
             time.sleep(0.8)
             sys.exit(0)
 
