@@ -48,7 +48,8 @@ class Session(object):
         if session.ok:
             return session
         if not session.ok:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s ...\n" % (session.status_code, session.reason))
+            msg = session.json()
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s %s ...\n" % (session.status_code, session.reason, msg.get('detail', '')))
             time.sleep(0.8)
             sys.exit(0)
 
@@ -57,11 +58,11 @@ class Session(object):
         if session.ok:
             return session
         if not session.ok:
-            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s retry after few minutes ...\n" % (session.status_code, session.reason))
+            msg = session.json()
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s %s ...\n" % (session.status_code, session.reason, msg.get('detail', '')))
             time.sleep(0.8)
             sys.exit(0)
 
     def terminate(self):
-        self._get(LOGOUT_URL)
         self._set_auth_headers()
         return
