@@ -945,6 +945,9 @@ def main():
         help="Download course but skip captions/subtitle.")
 
     options = parser.parse_args()
+    if options.names_only:
+        options.save = True
+
     if options.cookies:
         f_in = open(options.cookies)
         cookies = '\n'.join([line for line in (l.strip() for l in f_in) if line])
@@ -1097,7 +1100,6 @@ def main():
                 else:
 
                     udemy.course_download(path=options.output, quality=options.quality, unsafe=options.unsafe)
-
 
     if not options.cookies:
         if not options.username and not options.password:
