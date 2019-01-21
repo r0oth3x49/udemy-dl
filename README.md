@@ -16,7 +16,7 @@
 - Save course direct download links to a text file (option: `--save`).
 - Cache credentials to a file and use it later for login purpose (option: `--cache`).
 - List down course contents and video resolution, suggest the best resolution (option: `--info`).
-- Download/skip all available subtitles for a video (options: `--skip-sub, --skip-sub`).
+- Download/skip all available subtitles for a video (options: `--sub-only, --skip-sub`).
 - Download spacific chapter in a course (option: `-c / --chapter`).
 - Download specific lecture in a chapter (option: `-l / --lecture`).
 - Download chapter(s) by providing range in a course (option: `--chapter-start, --chapter-end`).
