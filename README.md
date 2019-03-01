@@ -17,11 +17,11 @@
 - Cache credentials to a file and use it later for login purpose (option: `--cache`).
 - List down course contents and video resolution, suggest the best resolution (option: `--info`).
 - Download/skip all available subtitles for a video (options: `--sub-only, --skip-sub`).
-- Download spacific chapter in a course (option: `-c / --chapter`).
+- Download specific chapter in a course (option: `-c / --chapter`).
 - Download specific lecture in a chapter (option: `-l / --lecture`).
 - Download chapter(s) by providing range in a course (option: `--chapter-start, --chapter-end`).
 - Download lecture(s) by providing range in a chapter (option: `--lecture-start, --lecture-end`).
-- Download lecture(s) requested resolution (option: `-q / --quality`).
+- Download lecture(s) in requested resolution (option: `-q / --quality`).
 - Download course to user requested path (option: `-o / --output`).
 - Authentication using cookies (option: `-k / --cookies`).
 - Download/save lecture names (option: `--names`).
