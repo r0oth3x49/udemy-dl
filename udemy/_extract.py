@@ -44,7 +44,8 @@ from ._compat import (
             COURSE_URL,
             ParseCookie,
             MY_COURSES_URL,
-            COURSE_SEARCH
+            COURSE_SEARCH,
+            COLLECTION_URL
             )
 from ._sanitize import (
             slugify,
@@ -111,16 +112,8 @@ class Udemy(ProgressBar):
     def _logout(self):
         return self._session.terminate()
 
-    def __extract_course(self, response, course_name):
-        _temp = {}
-        if response:
-            for entry in response:
-                if entry.get('published_title') == course_name:
-                    _temp = entry
-        return _temp
-
-    def _extract_course_info(self, url):
-        portal_name, course_name = self._course_name(url)
+    def _subscribed_courses(self, portal_name, course_name):
+        results = []
         self._session._headers.update({
             'Host' : '{portal_name}.udemy.com'.format(portal_name=portal_name),
             'Referer' : 'https://{portal_name}.udemy.com/home/my-courses/search/?q={course_name}'.format(portal_name=portal_name, course_name=course_name)
@@ -138,25 +131,68 @@ class Udemy(ProgressBar):
             sys.exit(0)
         else:
             results = webpage.get('results', [])
-            if not results:
-                try:
-                    url = MY_COURSES_URL.format(portal_name=portal_name)
-                    webpage = self._session._get(url).json()
-                except conn_error as e:
-                    sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
-                    time.sleep(0.8)
-                    sys.exit(0)
-                except (ValueError, Exception) as e:
-                    sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "%s.\n" % (e))
-                    time.sleep(0.8)
-                    sys.exit(0)
-                else:
-                    results = webpage.get('results', [])
+        return results
+
+    def _my_courses(self, portal_name):
+        results = []
+        try:
+            url = MY_COURSES_URL.format(portal_name=portal_name)
+            webpage = self._session._get(url).json()
+        except conn_error as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+            time.sleep(0.8)
+            sys.exit(0)
+        except (ValueError, Exception) as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "%s.\n" % (e))
+            time.sleep(0.8)
+            sys.exit(0)
+        else:
+            results = webpage.get('results', [])
+        return results
+
+    def _subscribed_collection_courses(self, portal_name):
+        url = COLLECTION_URL.format(portal_name=portal_name)
+        courses_lists = []
+        try:
+            webpage = self._session._get(url).json()
+        except conn_error as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+            time.sleep(0.8)
+            sys.exit(0)
+        except (ValueError, Exception) as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "%s.\n" % (e))
+            time.sleep(0.8)
+            sys.exit(0)
+        else:
+            results = webpage.get('results', [])
+            if results:
+                [courses_lists.extend(courses.get('courses', [])) for courses in results if courses.get('courses', [])]
+        return courses_lists
+
+    def __extract_course(self, response, course_name):
+        _temp = {}
+        if response:
+            for entry in response:
+                if entry.get('published_title') == course_name:
+                    _temp = entry
+        return _temp
+
+    def _extract_course_info(self, url):
+        portal_name, course_name = self._course_name(url)
+        course = {}
+        results = self._subscribed_courses(portal_name=portal_name, course_name=course_name)
+        if not results:
+            results = self._my_courses(portal_name=portal_name)
+        if results:
             course = self.__extract_course(response=results, course_name=course_name)
+        if not course:
+            results = self._subscribed_collection_courses(portal_name=portal_name)
+            course = self.__extract_course(response=results, course_name=course_name)
+
         if course:
             course.update({'portal_name' : portal_name})
             return course.get('id'), course
-        else:
+        if not course:
             sys.stdout.write('\033[2K\033[1G\r\r' + fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fg + sb + "Downloading course information, course id not found .. (%s%sfailed%s%s)\n" % (fr, sb, fg, sb))
             sys.stdout.write(fc + sd + "[" + fw + sb + "i" + fc + sd + "] : " + fw + sb + "It seems either you are not enrolled or you have to visit the course atleast once while you are logged in.\n")
             sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to logout now...\n")
