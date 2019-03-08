@@ -30,30 +30,26 @@ class Udemy(WebVtt2Srt, ProgressBar):
         super(Udemy, self).__init__()
 
     def _write_to_file(self, filepath='', lecture='', names_only=False, unsafe=False):
-        retVal = {}
         filename = filepath
         filename += '-names-only.txt' if names_only else ".txt"
         fmode = "a"
-        if not unsafe:
-            title = lecture.title
-            url = lecture.url
-            url_or_name = url if not names_only else title
-            url_or_name += "\n"
+
+        title = lecture.title
         if unsafe:
             title = u'%s' % (lecture.unsafe_title)
-            url = lecture.url
-            url_or_name = url if not names_only else title
-            url_or_name += "\n"
+
+        url = lecture.url
+        url_or_name = url if not names_only else title
+        url_or_name += "\n"
+
+        return_value = {'status' : 'True', 'msg' : 'download'}
 
         if pyver == 3:
             with open(filename, fmode, encoding='utf-8') as f:
                 try:
                     f.write(url_or_name)
                 except Exception as e:
-                    retVal = {'status' : 'False', 'msg' : 'Python3 Exception : {}'.format(e)}
-                else:
-                    retVal = {'status' : 'True', 'msg' : 'download'}
-            f.close()
+                    return_value = {'status' : 'False', 'msg' : 'Python3 Exception : {}'.format(e)}
         else:
             if names_only and unsafe:
                 url_or_name = url_or_name.encode('utf-8')
@@ -61,12 +57,9 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 try:
                     f.write(url_or_name)
                 except Exception as e:
-                    retVal = {'status' : 'False', 'msg' : 'Python2 Exception : {}'.format(e)}
-                else:
-                    retVal = {'status' : 'True', 'msg' : 'download'}
-            f.close()
+                    return_value = {'status' : 'False', 'msg' : 'Python2 Exception : {}'.format(e)}
 
-        return retVal
+        return return_value
 
     def course_save(self, path='', quality='', caption_only=False, skip_captions=False, names_only=False, unsafe=False):
         if not self.cookies:
@@ -358,8 +351,8 @@ class Udemy(WebVtt2Srt, ProgressBar):
         if lecture_subtitles:
             for subtitles in lecture_subtitles:
                 title = subtitles.title + '-' + subtitles.language if not unsafe else "%s" % (subtitles)
-                if not unsafe:
-                    filename = "%s\\%s" % (filepath, subtitles.filename) if os.name == 'nt' else "%s/%s" % (filepath, subtitles.filename)
+                filename = "%s\\%s" % (filepath, subtitles.filename) if os.name == 'nt' else "%s/%s" % (filepath, subtitles.filename)
+
                 if unsafe:
                     filename = u"%s\\%s" % (filepath, subtitles.unsafe_filename) if os.name == 'nt' else u"%s/%s" % (filepath, subtitles.unsafe_filename)
 
@@ -395,17 +388,18 @@ class Udemy(WebVtt2Srt, ProgressBar):
             else:
                 msg     = retval.get('msg')
                 if msg == 'already downloaded':
-                    if not unsafe:
-                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_title) + fy + sb + "(already downloaded).\n")
                     if unsafe:
                         sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "'%s' " % (lecture_title) + fy + sb + "(already downloaded).\n")
+                    else:
+                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_title) + fy + sb + "(already downloaded).\n")
                 elif msg == 'download':
                     sys.stdout.write (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)\n" % (lecture_title))
                 else:
-                    if not unsafe:
-                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_title) + fc + sb + "(download skipped).\n")
                     if unsafe:
                         sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "'%s' " % (lecture_title) + fc + sb + "(download skipped).\n")
+                    else:
+                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_title) + fc + sb + "(download skipped).\n")
+
                     sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}\n".format(msg))
 
     def download_captions_only(self, lecture_subtitles='', lecture_assets='', filepath='', unsafe=False):
@@ -455,21 +449,25 @@ class Udemy(WebVtt2Srt, ProgressBar):
             chapter_title = chapter.title
             lectures = chapter.get_lectures()
             lectures_count = chapter.lectures
+
+            filepath = "%s\\%s" % (course_path, chapter_title) if os.name == 'nt' else "%s/%s" % (course_path, chapter_title)
             if unsafe:
                 filepath = u"%s\\%s" % (course_path, chapter.unsafe_title) if os.name == 'nt' else u"%s/%s" % (course_path, chapter.unsafe_title)
-            if not unsafe:
-                filepath = "%s\\%s" % (course_path, chapter_title) if os.name == 'nt' else "%s/%s" % (course_path, chapter_title)
+
             try:
                 os.makedirs(filepath)
             except Exception as e:
                 pass
+
             sys.stdout.write (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fm + sb + "Downloading chapter : ({index} of {total})\n".format(index=chapter_index, total=total_chapters))
-            if not unsafe:
-                sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chapter_title))
-                sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (lectures_count))
+
             if unsafe:
                 sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%02d-%s)\n" % (int(chapter_index), chapter_id))
                 sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (lectures_count))
+            else:
+                sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chapter_title))
+                sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (lectures_count))
+
             inner_index = 1
             for lecture in lectures:
                 lecture_id = lecture.id
@@ -512,10 +510,11 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 inner_index += 1
 
     def chapter_download(self, chapter_number='', chapter_start='', chapter_end='', lecture_number='', lecture_start='', lecture_end='', path='', quality='', caption_only=False, skip_captions=False, unsafe=False):
-        if not self.cookies:
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login as " + fm + sb +"(%s)" % (self.username) +  fg + sb +"...\n")
         if self.cookies:
             sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login using cookies ...\n")
+        else:
+            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login as " + fm + sb +"(%s)" % (self.username) +  fg + sb +"...\n")
+
         course = udemy.course(url=self.url, username=self.username, password=self.password, cookies=self.cookies)
         course_id = course.id
         course_name = course.title
@@ -546,21 +545,25 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 if lecture_end and lecture_end > lectures_count:
                     lecture_end = lectures_count
 
+
+                filepath = "%s\\%s" % (course_path, chapter_title) if os.name == 'nt' else "%s/%s" % (course_path, chapter_title)
                 if unsafe:
                     filepath = u"%s\\%s" % (course_path, chapter.unsafe_title) if os.name == 'nt' else u"%s/%s" % (course_path, chapter.unsafe_title)
-                if not unsafe:
-                    filepath = "%s\\%s" % (course_path, chapter_title) if os.name == 'nt' else "%s/%s" % (course_path, chapter_title)
+
                 try:
                     os.makedirs(filepath)
                 except Exception as e:
                     pass
+
                 sys.stdout.write (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fm + sb + "Downloading chapter : ({index})\n".format(index=chapter_index))
-                if not unsafe:
-                    sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chapter_title))
-                    sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (lectures_count))
+
                 if unsafe:
                     sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%02d-%s)\n" % (int(chapter_index), chapter_id))
                     sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (lectures_count))
+                else:
+                    sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chapter_title))
+                    sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (lectures_count))
+
                 lecture_start = _lectures_start
                 lecture_end = lectures_count if lecture_start and not lecture_end else _lectures_end
                 if lecture_number and lecture_number > 0 and lecture_number <= lectures_count:
@@ -692,21 +695,25 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 chapter_title = chapter.title
                 lectures = chapter.get_lectures()
                 lectures_count = chapter.lectures
+
+                filepath = "%s\\%s" % (course_path, chapter_title) if os.name == 'nt' else "%s/%s" % (course_path, chapter_title)
                 if unsafe:
                     filepath = u"%s\\%s" % (course_path, chapter.unsafe_title) if os.name == 'nt' else u"%s/%s" % (course_path, chapter.unsafe_title)
-                if not unsafe:
-                    filepath = "%s\\%s" % (course_path, chapter_title) if os.name == 'nt' else "%s/%s" % (course_path, chapter_title)
+
                 try:
                     os.makedirs(filepath)
                 except Exception as e:
                     pass
+
                 sys.stdout.write (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fm + sb + "Downloading chapter : ({index} of {total})\n".format(index=chapter_start, total=chapter_end))
-                if not unsafe:
-                    sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chapter_title))
-                    sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (lectures_count))
+
                 if unsafe:
                     sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%02d-%s)\n" % (int(chapter_index), chapter_id))
                     sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (lectures_count))
+                else:
+                    sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chapter_title))
+                    sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (lectures_count))
+
                 lecture_start = _lectures_start
                 lecture_end = lectures_count if lecture_start and not lecture_end else _lectures_end
                 if lecture_number and lecture_number > 0 and lecture_number <= lectures_count:
@@ -1108,10 +1115,10 @@ def main():
             config = use_cached_credentials()
             if config and isinstance(config, dict):
                 sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs..")
-                email = config.get('username') or None
-                passwd = config.get('password') or None
-                quality = config.get('quality') or None
-                output = config.get('output') or None
+                email = config.get('username')
+                passwd = config.get('password')
+                quality = config.get('quality')
+                output = config.get('output')
                 time.sleep(1)
                 if email and passwd:
                     sys.stdout.write ("\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs.. (" + fc + sb + "done" + fg + sd + ")\n")
