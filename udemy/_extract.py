@@ -66,7 +66,8 @@ class Udemy(ProgressBar):
     def _clean(self, text):
         ok = re.compile(r'[^\\/:*?"<>|]')
         text = "".join(x if ok.match(x) else "_" for x in text)
-        return re.sub('\.+$', '', text.rstrip()) if text.endswith(".") else text.rstrip()
+        text = re.sub(r'\.+$', '', text.strip())
+        return text
 
     def _course_name(self, url):
         # mobj = re.search(r'(?i)(?:(.+)\.com/(?P<course_name>[a-zA-Z0-9_-]+))', url, re.I)
@@ -525,7 +526,7 @@ class Udemy(ProgressBar):
                             text = '\r' + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading course information .. "
                             self._spinner(text)
                             lecture_index   = entry.get('object_index')
-                            lecture_title   = self._sanitize(entry.get('title'))
+                            lecture_title   = self._clean(self._sanitize(entry.get('title')))
                             lecture         = "{0:03d} {1!s}".format(lecture_index, lecture_title)
                             unsafe_lecture  = u'{0:03d} '.format(lecture_index) + entry.get('title')
                             data, subs      = self._html_to_json(view_html, lecture_id)
@@ -563,7 +564,7 @@ class Udemy(ProgressBar):
                             text = '\r' + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Downloading course information .. "
                             self._spinner(text)
                             lecture_index   = entry.get('object_index')
-                            lecture_title   = self._sanitize(entry.get('title'))
+                            lecture_title   = self._clean(self._sanitize(entry.get('title')))
                             lecture         = "{0:03d} {1!s}".format(lecture_index, lecture_title)
                             unsafe_lecture  = u'{0:03d} '.format(lecture_index) + self._clean(entry.get('title'))
                             data            = asset.get('stream_urls')
