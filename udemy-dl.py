@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import udemy
+import codecs
 import argparse
 
 from pprint import pprint
@@ -45,25 +46,13 @@ class Udemy(WebVtt2Srt, ProgressBar):
             url_or_name = url if not names_only else title
             url_or_name += "\n"
 
-        if pyver == 3:
-            with open(filename, fmode, encoding='utf-8') as f:
-                try:
-                    f.write(url_or_name)
-                except Exception as e:
-                    retVal = {'status' : 'False', 'msg' : 'Python3 Exception : {}'.format(e)}
-                else:
-                    retVal = {'status' : 'True', 'msg' : 'download'}
-            f.close()
+        try:
+            f = codecs.open(filename, fmode, encoding='utf-8', errors='ignore')
+            f.write(url_or_name)
+        except (OSError, Exception, UnicodeDecodeError, FileNotFoundError) as e:
+            retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
         else:
-            if names_only and unsafe:
-                url_or_name = url_or_name.encode('utf-8')
-            with open(filename, fmode) as f:
-                try:
-                    f.write(url_or_name)
-                except Exception as e:
-                    retVal = {'status' : 'False', 'msg' : 'Python2 Exception : {}'.format(e)}
-                else:
-                    retVal = {'status' : 'True', 'msg' : 'download'}
+            retVal = {'status' : 'True', 'msg' : 'download'}
             f.close()
 
         return retVal

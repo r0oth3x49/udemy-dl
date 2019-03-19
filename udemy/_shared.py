@@ -28,6 +28,7 @@ from ._compat import (
                 sys,
                 time,
                 pyver,
+                codecs,
                 compat_urlerr,
                 compat_opener,
                 compat_request,
@@ -250,14 +251,15 @@ class UdemyLectures(object):
             retVal = {"status" : "True", "msg" : "already downloaded"}
             return retVal
         
-        with open(filename, 'wb') as f:
-            try:
-                f.write(html)
-            except Exception as e:
-                retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
-            else:
-                retVal = {'status' : 'True', 'msg' : 'download'}
-        f.close()
+        try:
+            f = codecs.open(filename, 'wb', encoding='utf-8', errors='ignore')
+            f.write(html)
+        except (OSError, Exception, UnicodeDecodeError, FileNotFoundError) as e:
+            retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
+        else:
+            retVal = {'status' : 'True', 'msg' : 'download'}
+            f.close()
+
         return retVal
 
 class UdemyLectureStream(object):
@@ -505,27 +507,21 @@ class UdemyLectureAssets(object):
         filename += ".{}".format(self.extension)
         return filename
 
-    def _write_external_links(self, filepath):
+    def _write_external_links(self, filepath, unsafe=False):
         retVal = {}
         filename = filepath
-        if pyver == 3:
-            with open('{}.txt'.format(filename), 'a', encoding='utf-8') as f:
-                try:
-                    f.write('{}\n'.format(self.url))
-                except Exception as e:
-                    retVal = {'status' : 'False', 'msg' : 'Python3 Exception : {}'.format(e)}
-                else:
-                    retVal = {'status' : 'True', 'msg' : 'download'}
-            f.close()
+
+        try:
+            filename += '.txt' if not unsafe else u'.txt'
+            f = codecs.open(filename, 'a', encoding='utf-8', errors='ignore')
+            data = '{}\n'.format(self.url) if not unsafe else u'{}\n'.format(self.url)
+            f.write(data)
+        except (OSError, Exception, UnicodeDecodeError, FileNotFoundError) as e:
+            retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
         else:
-            with open('{}.txt'.format(filename), 'a') as f:
-                try:
-                    f.write('{}\n'.format(self.url))
-                except Exception as e:
-                    retVal = {'status' : 'False', 'msg' : 'Python2 Exception : {}'.format(e)}
-                else:
-                    retVal = {'status' : 'True', 'msg' : 'download'}
+            retVal = {'status' : 'True', 'msg' : 'download'}
             f.close()
+
         return retVal
 
     @property
@@ -591,7 +587,7 @@ class UdemyLectureAssets(object):
         filepath = os.path.join(savedir, filename)
         
         if self.mediatype=='external_link':
-            return self._write_external_links(filepath)
+            return self._write_external_links(filepath, unsafe=unsafe)
 
         if os.path.isfile(filepath):
             retVal = {"status" : "True", "msg" : "already downloaded"}
