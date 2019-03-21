@@ -379,7 +379,7 @@ class Udemy(ProgressBar):
                 download_url = track.get('url')
                 if not download_url or not isinstance(download_url, encoding):
                     continue
-                lang = track.get('language') or track.get('srclang') or track.get('label') or track['locale'].get('locale').split('_')[0]
+                lang = track.get('language') or track.get('srclang') or track.get('label') or track['locale_id'].split('_')[0]
                 ext = 'vtt' if 'vtt' in download_url.rsplit('.', 1)[-1] else 'srt'
                 _temp.append({
                     'type' : 'subtitle',
