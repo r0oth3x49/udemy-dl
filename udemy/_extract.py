@@ -234,7 +234,6 @@ class Udemy(ProgressBar):
             resp = self._session._get(url)
             if resp.status_code == 502:
                 resp = self._extract_large_course_content(url=url)
-                return resp
             else :
                 resp = resp.json()
         except conn_error as e:
