@@ -231,7 +231,11 @@ class Udemy(ProgressBar):
         self._session._headers.update({'Referer' : url})
         url = COURSE_URL.format(portal_name=portal_name, course_id=course_id)
         try:
-            resp = self._session._get(url).json()
+            resp = self._session._get(url)
+            if resp.status_code == 502:
+                resp = self._extract_large_course_content(url=url)
+            else:
+                resp = resp.json()
         except conn_error as e:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
             time.sleep(0.8)
