@@ -45,7 +45,7 @@ class Session(object):
 
     def _get(self, url):
         session = self._session.get(url, headers=self._headers)
-        if session.ok:
+        if session.ok or session.status_code == 502:
             return session
         if not session.ok:
             msg = session.json()

@@ -252,7 +252,7 @@ class UdemyLectures(object):
             return retVal
         
         try:
-            f = codecs.open(filename, 'wb', encoding='utf-8', errors='ignore')
+            f = codecs.open(filename, 'wb', errors='ignore')
             f.write(html)
         except (OSError, Exception, UnicodeDecodeError) as e:
             retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
