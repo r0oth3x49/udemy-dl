@@ -79,8 +79,9 @@ class Udemy(ProgressBar):
         cookies = {}
         cookie_parser = ParseCookie()
         try:
-            cookie_string = re.search(r'(?i)(?:Cookie\:(?P<cookie>.+)\s*)', raw_cookies)
-            cookie_string = cookie_string.group('cookie').replace(re.search(r'\sud_last_auth_information(.*?);', cookie_string.group('cookie')).group(), '')
+            cookie_string = re.search(r'(?i)(?:Cookie\:(?P<cookie>.+)\s*)', raw_cookies).group('cookie')
+            if cookie_string.find('ud_last_auth_information') != -1:
+                cookie_string = cookie_string.replace(re.search(r'\sud_last_auth_information(.*?);', cookie_string).group(), '')
         except:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Cookies error, Request Headers is required.\n")
             sys.stdout.write(fc + sd + "[" + fm + sb + "i" + fc + sd + "] : " + fg + sb + "Copy Request Headers for single request to a file, while you are logged in.\n")
