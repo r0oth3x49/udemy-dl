@@ -39,7 +39,7 @@ class Session(object):
         self._headers = HEADERS
         self._session = requests.sessions.Session()
 
-    def _set_auth_headers(self, access_token='', client_id=''):
+    def _set_auth_headers(self, access_token=''):
         self._headers['Authorization'] = "Bearer {}".format(access_token)
         self._headers['X-Udemy-Authorization'] = "Bearer {}".format(access_token)
 
