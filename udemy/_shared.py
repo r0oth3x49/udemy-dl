@@ -357,6 +357,7 @@ class UdemyLectureStream(object):
     def download(self, filepath="", unsafe=False, quiet=False, callback=lambda *x: None):
         savedir = filename = ""
         retVal  = {}
+        file_exist = False
 
         if filepath and os.path.isdir(filepath):
             savedir, filename = filepath, self.filename if not unsafe else self.unsafe_filename
@@ -370,9 +371,8 @@ class UdemyLectureStream(object):
         filepath = os.path.join(savedir, filename)
 
         if os.path.isfile(filepath):
-            retVal = {"status" : "True", "msg" : "already downloaded"}
-            return retVal
-        
+            file_exist = True
+            
         temp_filepath = filepath + ".part"
 
         status_string = ('  {:,} Bytes [{:.2%}] received. Rate: [{:4.0f} '
@@ -397,6 +397,9 @@ class UdemyLectureStream(object):
             return retVal
         else:
             total = int(response.info()['Content-Length'].strip())
+            if file_exist == True and total <= os.path.getsize(filepath):
+                retVal = {"status" : "True", "msg" : "already downloaded"}
+                return retVal
             chunksize, bytesdone, t0 = 16384, 0, time.time()
 
             fmode, offset = "wb", 0
