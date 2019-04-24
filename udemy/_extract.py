@@ -71,7 +71,7 @@ class Udemy(ProgressBar):
 
     def _course_name(self, url):
         # mobj = re.search(r'(?i)(?:(.+)\.com/(?P<course_name>[a-zA-Z0-9_-]+))', url, re.I)
-        mobj = re.search(r'(?i)(?://(?P<portal_name>.+?).udemy.com/(?P<course_name>[a-zA-Z0-9_-]+))', url)
+        mobj = re.search(r'(?i)(?://(?P<portal_name>.+?).udemy.com/(?:course/)?(?P<course_name>[a-zA-Z0-9_-]+))', url)
         if mobj:
             return mobj.group('portal_name'), mobj.group('course_name')
 
