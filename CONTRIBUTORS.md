@@ -13,5 +13,6 @@
  - @arsenico13 (fixed KeyError if a chapter has no lectures)
  - @FaisalUmair (Special thanks for a quick help & Guide) <3.
  - @pavelnazimok (Thanks for the quick patch)
+ - @brundidge (Thanks for a quick bug fixes)
 
 > Thanks to all other contributors if i missed any one.
