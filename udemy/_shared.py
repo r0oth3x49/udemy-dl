@@ -516,7 +516,7 @@ class UdemyLectureAssets(object):
             f = codecs.open(filename, 'a', encoding='utf-8', errors='ignore')
             data = '{}\n'.format(self.url) if not unsafe else u'{}\n'.format(self.url)
             f.write(data)
-        except (OSError, Exception, UnicodeDecodeError, FileNotFoundError) as e:
+        except (OSError, Exception, UnicodeDecodeError) as e:
             retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
         else:
             retVal = {'status' : 'True', 'msg' : 'download'}
