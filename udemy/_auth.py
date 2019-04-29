@@ -23,6 +23,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
 
+import re
 from pprint import pprint
 from ._session import Session
 from ._compat import (
@@ -71,11 +72,14 @@ class UdemyAuth(object):
 
     def authenticate(self, access_token='', client_id=''):
         if not access_token and not client_id:
-            data = {'email' : self.username, 'password' : self.password}
+            res = self._session._get(LOGIN_URL)
+            csrf = re.search(r'(?i)(?:csrfmiddlewaretoken\' value=\'(?P<csrf_token>[a-zA-Z0-9]+))', res.text).group(
+                'csrf_token')
+            data = {'email': self.username, 'password': self.password, 'csrfmiddlewaretoken': csrf}
             auth_response = self._session._post(LOGIN_URL, data=data)
-            auth_cookies, auth_response = auth_response.cookies, auth_response.json()
-            
-            access_token = auth_response.get('access_token', '')
+            auth_cookies = auth_response.history[0].cookies
+
+            access_token = auth_cookies.get('access_token', '')
             client_id = auth_cookies.get('client_id', '')
         
         if access_token:
