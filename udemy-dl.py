@@ -918,11 +918,6 @@ def main():
         action='store_true',\
         help="Do not download but save lecture names to file.")
     other.add_argument(
-        '--unsafe',\
-        dest='unsafe',\
-        action='store_true',\
-        help="Download all course with unsafe names.")
-    other.add_argument(
         '--sub-only',\
         dest='caption_only',\
         action='store_true',\
@@ -934,6 +929,12 @@ def main():
         help="Download course but skip captions/subtitle.")
 
     options = parser.parse_args()
+
+    if not (2, 8) < sys.version_info < (3, 3):
+        unsafe = True
+    else:
+        unsafe = False
+
     if options.names_only:
         options.save = True
 
@@ -944,13 +945,13 @@ def main():
         udemy = Udemy(url=options.course, cookies=cookies)
         if options.list and not options.save:
                 try:
-                    udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=options.unsafe)
+                    udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=unsafe)
                 except KeyboardInterrupt as e:
                     sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
                     sys.exit(0)
         elif not options.list and options.save:
             try:
-                udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions, names_only=options.names_only, unsafe=options.unsafe)
+                udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions, names_only=options.names_only, unsafe=unsafe)
             except KeyboardInterrupt as e:
                 sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
                 sys.exit(0)
@@ -962,39 +963,39 @@ def main():
 
 
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.lecture_start and options.lecture_end and not options.lecture:
 
 
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.lecture_start and not options.lecture_end and not options.lecture:
 
 
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 else:
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, unsafe=unsafe)
 
             elif options.chapter_start and options.chapter_end and not options.chapter:
                 
@@ -1002,39 +1003,39 @@ def main():
 
 
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.lecture_start and options.lecture_end and not options.lecture:
 
 
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.lecture_start and not options.lecture_end and not options.lecture:
 
 
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=unsafe)
                         
                 else:
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
             elif options.chapter_start and not options.chapter_end and not options.chapter:
                 
@@ -1042,53 +1043,53 @@ def main():
 
 
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.lecture_start and options.lecture_end and not options.lecture:
 
 
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.lecture_start and not options.lecture_end and not options.lecture:
 
 
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 else:
                     if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                     elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                     else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
             else:
 
                 if options.caption_only and not options.skip_captions:
 
-                    udemy.course_download(caption_only=options.caption_only, path=options.output, unsafe=options.unsafe)
+                    udemy.course_download(caption_only=options.caption_only, path=options.output, unsafe=unsafe)
 
                 elif not options.caption_only and options.skip_captions:
 
-                    udemy.course_download(skip_captions=options.skip_captions, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                    udemy.course_download(skip_captions=options.skip_captions, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 else:
 
-                    udemy.course_download(path=options.output, quality=options.quality, unsafe=options.unsafe)
+                    udemy.course_download(path=options.output, quality=options.quality, unsafe=unsafe)
 
     if not options.cookies:
         if not options.username and not options.password:
@@ -1124,13 +1125,13 @@ def main():
 
             if options.list and not options.save:
                 try:
-                    udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=options.unsafe)
+                    udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=unsafe)
                 except KeyboardInterrupt as e:
                     sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
                     sys.exit(0)
             elif not options.list and options.save:
                 try:
-                    udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions, names_only=options.names_only, unsafe=options.unsafe)
+                    udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions, names_only=options.names_only, unsafe=unsafe)
                 except KeyboardInterrupt as e:
                     sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
                     sys.exit(0)
@@ -1142,39 +1143,39 @@ def main():
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and not options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     else:
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.chapter_start and options.chapter_end and not options.chapter:
                     
@@ -1182,39 +1183,39 @@ def main():
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and not options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=unsafe)
                             
                     else:
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.chapter_start and not options.chapter_end and not options.chapter:
                     
@@ -1222,53 +1223,53 @@ def main():
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and not options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     else:
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 else:
 
                     if options.caption_only and not options.skip_captions:
 
-                        udemy.course_download(caption_only=options.caption_only, path=options.output, unsafe=options.unsafe)
+                        udemy.course_download(caption_only=options.caption_only, path=options.output, unsafe=unsafe)
 
                     elif not options.caption_only and options.skip_captions:
 
-                        udemy.course_download(skip_captions=options.skip_captions, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.course_download(skip_captions=options.skip_captions, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     else:
 
-                        udemy.course_download(path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.course_download(path=options.output, quality=options.quality, unsafe=unsafe)
 
         elif options.username and options.password:
             
@@ -1279,7 +1280,7 @@ def main():
 
             if options.list and not options.save:
                 try:
-                    udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=options.unsafe)
+                    udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=unsafe)
                 except KeyboardInterrupt as e:
                     sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
                     sys.exit(0)
@@ -1287,7 +1288,7 @@ def main():
                 # pprint(vars(options))
                 # exit(0)
                 try:
-                    udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions, names_only=options.names_only, unsafe=options.unsafe)
+                    udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions, names_only=options.names_only, unsafe=unsafe)
                 except KeyboardInterrupt as e:
                     sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
                     sys.exit(0)
@@ -1299,39 +1300,39 @@ def main():
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and not options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     else:
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.chapter_start and options.chapter_end and not options.chapter:
 
@@ -1339,39 +1340,39 @@ def main():
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and not options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     else:
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 elif options.chapter_start and not options.chapter_end and not options.chapter:
 
@@ -1379,53 +1380,53 @@ def main():
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     elif options.lecture_start and not options.lecture_end and not options.lecture:
 
 
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     else:
                         if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, caption_only=options.caption_only, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, caption_only=options.caption_only, unsafe=unsafe)
                         elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=unsafe)
                         else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, unsafe=unsafe)
 
                 else:
 
                     if options.caption_only and not options.skip_captions:
 
-                        udemy.course_download(caption_only=options.caption_only, path=options.output, unsafe=options.unsafe)
+                        udemy.course_download(caption_only=options.caption_only, path=options.output, unsafe=unsafe)
 
                     elif not options.caption_only and options.skip_captions:
 
-                        udemy.course_download(skip_captions=options.skip_captions, path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.course_download(skip_captions=options.skip_captions, path=options.output, quality=options.quality, unsafe=unsafe)
 
                     else:
 
-                        udemy.course_download(path=options.output, quality=options.quality, unsafe=options.unsafe)
+                        udemy.course_download(path=options.output, quality=options.quality, unsafe=unsafe)
 
 if __name__ == '__main__':
     try:

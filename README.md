@@ -25,7 +25,6 @@
 - Download course to user requested path (option: `-o / --output`).
 - Authentication using cookies (option: `-k / --cookies`).
 - Download/save lecture names (option: `--names`).
-- Download lectures containing unsafe *unicode* characters in title/name (option: `--unsafe`).
 
 ## ***Issue Reporting Guideline***
 
@@ -158,7 +157,7 @@ Author: Nasir khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)
 usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l]
                    [--chapter-start] [--chapter-end] [--lecture-start]
                    [--lecture-end] [--save] [--info] [--cache] [--names]
-                   [--unsafe] [--sub-only] [--skip-sub]
+                   [--sub-only] [--skip-sub]
                    course
 
 A cross-platform python based utility to download courses from udemy for
@@ -191,7 +190,6 @@ Others:
   --info            List all lectures with available resolution.
   --cache           Cache your credentials to use it later.
   --names           Do not download but save lecture names to file.
-  --unsafe          Download all course with unsafe names.
   --sub-only        Download captions/subtitle only.
   --skip-sub        Download course but skip captions/subtitle.
 
