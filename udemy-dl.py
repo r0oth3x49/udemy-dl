@@ -930,7 +930,7 @@ def main():
 
     options = parser.parse_args()
 
-    if not (2, 8) < sys.version_info < (3, 3):
+    if not (2, 8) < sys.version_info:
         unsafe = True
     else:
         unsafe = False
