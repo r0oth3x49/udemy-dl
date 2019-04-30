@@ -49,7 +49,7 @@ class UdemyAuth(object):
 
     def _form_hidden_input(self, form_id):
         try:
-            webpage = self._session._get(LOGIN_POPUP).text
+            webpage = self._session._get(LOGIN_URL).text
         except conn_error as e:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
             time.sleep(0.8)
@@ -71,11 +71,11 @@ class UdemyAuth(object):
 
     def authenticate(self, access_token='', client_id=''):
         if not access_token and not client_id:
-            data = {'email' : self.username, 'password' : self.password}
-            auth_response = self._session._post(LOGIN_URL, data=data)
-            auth_cookies, auth_response = auth_response.cookies, auth_response.json()
+            data = self._form_hidden_input(form_id='login-form')
+            auth_response = self._session._post(LOGIN_URL, data=data, redirect=False)
+            auth_cookies = auth_response.cookies
             
-            access_token = auth_response.get('access_token', '')
+            access_token = auth_cookies.get('access_token', '')
             client_id = auth_cookies.get('client_id', '')
         
         if access_token:

@@ -53,8 +53,8 @@ class Session(object):
             time.sleep(0.8)
             sys.exit(0)
 
-    def _post(self, url, data):
-        session = self._session.post(url, data, headers=self._headers)
+    def _post(self, url, data, redirect=True):
+        session = self._session.post(url, data, headers=self._headers, allow_redirects=redirect)
         if session.ok:
             return session
         if not session.ok:
