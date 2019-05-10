@@ -48,7 +48,10 @@ class Session(object):
         if session.ok or session.status_code == 502:
             return session
         if not session.ok:
-            msg = session.json()
+            if session.status_code == 403:
+                msg = {'detail': 'You should use cookie base method to authenticate or try again in few minutes'}
+            else:
+                msg = {'detail': ''}
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s %s ...\n" % (session.status_code, session.reason, msg.get('detail', '')))
             time.sleep(0.8)
             sys.exit(0)
@@ -58,8 +61,12 @@ class Session(object):
         if session.ok:
             return session
         if not session.ok:
-            msg = session.json()
+            if session.status_code == 403:
+                msg = {'detail': 'You should use cookie base method to authenticate or try again in few minutes'}
+            else:
+                msg = {'detail': ''}
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s %s ...\n" % (session.status_code, session.reason, msg.get('detail', '')))
+            sys.stdout.flush()
             time.sleep(0.8)
             sys.exit(0)
 
