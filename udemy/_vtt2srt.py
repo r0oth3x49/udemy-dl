@@ -39,7 +39,7 @@ class WebVtt2Srt(object):
 
     def _vttcontents(self, fname):
         try:
-            f = codecs.open(filename=fname, encoding='utf-8')
+            f = codecs.open(filename=fname, encoding='utf-8', errors='ignore')
         except Exception as e:
             return {'status' : 'False', 'msg' : 'failed to open file : file not found ..'}
         content = [line for line in (l.strip() for l in f)]
