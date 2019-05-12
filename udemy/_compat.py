@@ -82,9 +82,6 @@ HEADERS = {
             'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive'
-            # 'X-Requested-With'  : 'XMLHttpRequest',
-            # This header is taken from https://github.com/FaisalUmair/udemy-downloader-gui thanks to @FaisalUmair for quick help.
-            # "Authorization": "Basic YWQxMmVjYTljYmUxN2FmYWM2MjU5ZmU1ZDk4NDcxYTY6YTdjNjMwNjQ2MzA4ODI0YjIzMDFmZGI2MGVjZmQ4YTA5NDdlODJkNQ=="
             }
 
 

@@ -78,14 +78,19 @@ class Udemy(ProgressBar):
     def _extract_cookie_string(self, raw_cookies):
         cookies = {}
         try:
-            client_id = re.search(r'(?i)(?:client_id=(?P<client_id>\w+))', raw_cookies)
+            # client_id = re.search(r'(?i)(?:client_id=(?P<client_id>\w+))', raw_cookies)
             access_token = re.search(r'(?i)(?:access_token=(?P<access_token>\w+))', raw_cookies)
         except:
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Cookies error, Request Headers is required.\n")
             sys.stdout.write(fc + sd + "[" + fm + sb + "i" + fc + sd + "] : " + fg + sb + "Copy Request Headers for single request to a file, while you are logged in.\n")
             sys.exit(0)
-        cookies.update({'client_id': client_id.group('client_id'),
-                        'access_token': access_token.group('access_token')})
+        if not access_token:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Cookies error, unable to find access_token, proper cookies required.\n")
+            sys.stdout.flush()
+            sys.exit(0)
+        access_token = access_token.group('access_token')
+        cookies.update({'access_token': access_token})
+        #'client_id': client_id.group('client_id'),
         return cookies
 
     def _sanitize(self, unsafetext):
