@@ -70,7 +70,11 @@ class Udemy(ProgressBar):
         return text
 
     def _course_name(self, url):
-        # mobj = re.search(r'(?i)(?:(.+)\.com/(?P<course_name>[a-zA-Z0-9_-]+))', url, re.I)
+        # Check if draft course
+        draft = re.search(r'(?://(?P<portal_name>.+?).udemy.com(?P<course_name>/draft/\d+))', url)
+        if draft:
+            return draft.group('portal_name'), draft.group('course_name')
+
         mobj = re.search(r'(?i)(?://(?P<portal_name>.+?).udemy.com/(?:course/)?(?P<course_name>[a-zA-Z0-9_-]+))', url)
         if mobj:
             return mobj.group('portal_name'), mobj.group('course_name')
@@ -179,7 +183,9 @@ class Udemy(ProgressBar):
         if response:
             for entry in response:
                 if entry.get('published_title') == course_name:
-                    _temp = entry
+                    return entry
+                elif '{}/learn/'.format(course_name) == entry.get('url'):
+                    return entry
         return _temp
 
     def _extract_course_info(self, url):
