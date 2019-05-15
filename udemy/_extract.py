@@ -70,10 +70,9 @@ class Udemy(ProgressBar):
         return text
 
     def _course_name(self, url):
-        # mobj = re.search(r'(?i)(?:(.+)\.com/(?P<course_name>[a-zA-Z0-9_-]+))', url, re.I)
-        mobj = re.search(r'(?i)(?://(?P<portal_name>.+?).udemy.com/(?:course/)?(?P<course_name>[a-zA-Z0-9_-]+))', url)
+        mobj = re.search(r'(?i)(?://(?P<portal_name>.+?).udemy.com/(?:(course|draft)/)?(?P<name_or_id>[a-zA-Z0-9_-]+))', url)
         if mobj:
-            return mobj.group('portal_name'), mobj.group('course_name')
+            return mobj.group('portal_name'), mobj.group('name_or_id')
 
     def _extract_cookie_string(self, raw_cookies):
         cookies = {}
@@ -178,7 +177,9 @@ class Udemy(ProgressBar):
         _temp = {}
         if response:
             for entry in response:
-                if entry.get('published_title') == course_name:
+                course_id = entry.get('id')
+                published_title = entry.get('published_title')
+                if course_name in (published_title, course_id):
                     _temp = entry
         return _temp
 
