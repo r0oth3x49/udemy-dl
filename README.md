@@ -64,7 +64,7 @@ experience the problem? All these details will help to fix any potential bugs as
 ## ***How to login with cookie***
 
  - ***Firefox*** users : [guide by @01ttouch](https://github.com/r0oth3x49/udemy-dl/issues/389#issuecomment-491903900)
- - ***Chrome*** users : [guide by @lamlephamngoc](https://github.com/r0oth3x49/udemy-dl/issues/303#issuecomment-441345792).
+ - ***Chrome*** users : [guide by @01ttouch](https://github.com/r0oth3x49/udemy-dl/issues/389#issuecomment-492569372)
 
 ## ***Requirements***
 
