@@ -513,6 +513,8 @@ class UdemyLectureAssets(object):
 
         try:
             filename += '.txt' if not unsafe else u'.txt'
+            if os.name == 'nt' and len(filename) > 259:
+                filename = '\\\\?\\' + filename
             f = codecs.open(filename, 'a', encoding='utf-8', errors='ignore')
             data = '{}\n'.format(self.url) if not unsafe else u'{}\n'.format(self.url)
             f.write(data)
