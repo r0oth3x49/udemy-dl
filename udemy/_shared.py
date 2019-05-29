@@ -513,7 +513,7 @@ class UdemyLectureAssets(object):
 
         try:
             filename += '.txt' if not unsafe else u'.txt'
-            f = codecs.open(filename, 'a', encoding='utf-8', errors='ignore')
+            f = codecs.open(filename, 'w', encoding='utf-8', errors='ignore')
             data = '{}\n'.format(self.url) if not unsafe else u'{}\n'.format(self.url)
             f.write(data)
         except (OSError, Exception, UnicodeDecodeError) as e:
