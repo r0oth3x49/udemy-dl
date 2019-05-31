@@ -513,14 +513,14 @@ class UdemyLectureAssets(object):
 
         try:
             filename += '.txt' if not unsafe else u'.txt'
-            f = codecs.open(filename, 'a', encoding='utf-8', errors='ignore')
-            data = '{}\n'.format(self.url) if not unsafe else u'{}\n'.format(self.url)
-            f.write(data)
+            with codecs.open(filename, 'a+', encoding='utf-8', errors='ignore') as f:
+                f.seek(0)
+                data = '{}\n'.format(self.url) if not unsafe else u'{}\n'.format(self.url)
+                if data.strip('\n') not in f.read().splitlines():
+                    f.write(data)
+            retVal = {'status': 'True', 'msg': 'download'}
         except (OSError, Exception, UnicodeDecodeError) as e:
             retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
-        else:
-            retVal = {'status' : 'True', 'msg' : 'download'}
-            f.close()
 
         return retVal
 
