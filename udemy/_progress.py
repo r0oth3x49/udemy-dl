@@ -23,13 +23,13 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
 import itertools
-from ._compat import (
+from _compat import (
                 os,
                 sys,
                 time,
                 pyver,
             )
-from ._colorized import *
+from _colorized import *
 
 _spin = itertools.cycle(['-', '|', '/', '\\'])
 

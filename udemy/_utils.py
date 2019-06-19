@@ -23,7 +23,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
 
-from ._compat import (
+from _compat import (
                         os,
                         re,
                         sys,

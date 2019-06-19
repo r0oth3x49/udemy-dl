@@ -24,21 +24,21 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
 from pprint import pprint
-from ._session import Session
-from ._compat import (
+from _session import Session
+from _compat import (
         sys,
         time,
         conn_error,
         LOGIN_URL,
         )
-from ._utils import (
+from _utils import (
         parse_json,
         js_to_json,
         search_regex,
         hidden_inputs,
         unescapeHTML,
         )
-from ._colorized import *
+from _colorized import *
 
 class UdemyAuth(object):
 

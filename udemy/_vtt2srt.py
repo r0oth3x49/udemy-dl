@@ -22,8 +22,8 @@ ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
-from ._utils import unescapeHTML
-from ._compat import (
+from _utils import unescapeHTML
+from _compat import (
                         os,
                         re,
                         sys,

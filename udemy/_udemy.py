@@ -23,7 +23,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
 
-from ._internal import InternUdemyCourse as Udemy
+from _internal import InternUdemyCourse as Udemy
 
 
 def course(url, username='', password='', cookies='', basic=True, callback=None):

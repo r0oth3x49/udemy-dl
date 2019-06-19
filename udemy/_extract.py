@@ -29,14 +29,14 @@ import sys
 import json
 
 from pprint  import  pprint
-from ._auth  import  UdemyAuth
-from ._utils import (
+from _auth  import  UdemyAuth
+from _utils import (
             parse_json,
             js_to_json,
             search_regex,
             unescapeHTML
             )
-from ._compat import (
+from _compat import (
             re,
             time,
             encoding,
@@ -47,13 +47,13 @@ from ._compat import (
             COURSE_SEARCH,
             COLLECTION_URL
             )
-from ._sanitize import (
+from _sanitize import (
             slugify,
             sanitize,
             SLUG_OK
             )
-from ._colorized import *
-from ._progress import ProgressBar
+from _colorized import *
+from _progress import ProgressBar
 
 
 class Udemy(ProgressBar):

@@ -26,9 +26,9 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import sys
 import time
 
-from ._colorized import *
-from ._extract import Udemy
-from ._shared import (
+from _colorized import *
+from _extract import Udemy
+from _shared import (
         UdemyCourse, 
         UdemyChapters, 
         UdemyLectures, 

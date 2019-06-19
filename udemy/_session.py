@@ -23,14 +23,14 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
 
-from ._compat import (
+from _compat import (
                 sys,
                 time,
                 requests,
                 HEADERS,
                 LOGOUT_URL,
             )
-from ._colorized import *
+from _colorized import *
 
 
 class Session(object):
