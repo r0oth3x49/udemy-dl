@@ -174,14 +174,12 @@ class Udemy(ProgressBar):
         return courses_lists
 
     def __extract_course(self, response, course_name):
-        _temp = {}
-        if response:
-            for entry in response:
-                course_id = entry.get('id')
-                published_title = entry.get('published_title')
-                if course_name in (published_title, course_id):
-                    _temp = entry
-        return _temp
+        for entry in response:
+            if course_name == str(entry.get('id')) or course_name == \
+                    entry.get('published_title'):
+                return entry
+
+        return {}
 
     def _extract_course_info(self, url):
         portal_name, course_name = self._course_name(url)

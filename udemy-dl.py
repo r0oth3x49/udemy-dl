@@ -940,7 +940,6 @@ def main():
     if options.cookies:
         f_in = open(options.cookies)
         cookies = '\n'.join([line for line in (l.strip() for l in f_in) if line])
-        print(cookies)
         f_in.close()
         udemy = Udemy(url=options.course, cookies=cookies)
         if options.list and not options.save:
