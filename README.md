@@ -75,6 +75,7 @@ experience the problem? All these details will help to fix any potential bugs as
 - Python module `unidecode`
 - Python module `six`
 - Python module `requests[security]` or `pyOpenSSL`
+- GNU `wget`
 
 ## ***Module Installation***
 
