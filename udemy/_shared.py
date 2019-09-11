@@ -505,7 +505,7 @@ class UdemyLectureStream(Downloader):
                 self._fsize = 0
         return self._fsize
 
-class UdemyLectureAssets(object):
+class UdemyLectureAssets(Downloader):
 
     def __init__(self, parent):
 
