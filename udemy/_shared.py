@@ -21,7 +21,6 @@ ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
-
 from ._compat import (
                 re,
                 os,
@@ -29,6 +28,8 @@ from ._compat import (
                 time,
                 pyver,
                 codecs,
+                requests,
+                conn_error,
                 compat_urlerr,
                 compat_opener,
                 compat_request,
@@ -40,6 +41,155 @@ from ._compat import (
 early_py_version = sys.version_info[:2] < (2, 7)
 
 
+class Downloader(object):
+
+    def __init__(self):
+        self._url = None
+        self._filename = None
+        self._sess = requests.session()
+
+    @property
+    def url(self):
+        """abac"""
+        return self._url
+
+    @property
+    def filename(self):
+        if not self._filename:
+            self._filename = self._generate_filename()
+        return self._filename
+
+    @property
+    def unsafe_filename(self):
+        if not self._filename:
+            self._filename = self._generate_unsafe_filename()
+        return self._filename
+
+    def _generate_filename():
+        pass
+
+    def _generate_unsafe_filename():
+        pass
+
+    def download(self, filepath="", unsafe=False, quiet=False, callback=lambda *x: None):
+        savedir = filename = ""
+        retVal = {}
+
+        if filepath and os.path.isdir(filepath):
+            savedir, filename = filepath, self.filename if not unsafe else self.unsafe_filename
+
+        elif filepath:
+            savedir, filename = os.path.split(filepath)
+
+        else:
+            filename = self.filename if not unsafe else self.unsafe_filename
+
+        filepath = os.path.join(savedir, filename)
+
+        if os.path.isfile(filepath):
+            retVal = {"status": "True", "msg": "already downloaded"}
+            return retVal
+
+        temp_filepath = filepath + ".part"
+
+        self._active = True
+        bytes_to_be_downloaded = None
+        fmode, offset = "wb", 0
+        chunksize, bytesdone, t0 = 16384, 0, time.time()
+        headers = {'User-Agent': HEADERS.get('User-Agent')}
+        if os.path.exists(temp_filepath):
+            offset = os.stat(temp_filepath).st_size
+
+        if offset:
+            offset_range = 'bytes={}-'.format(offset)
+            headers['Range'] = offset_range
+            bytesdone = offset
+            fmode = "ab"
+
+        status_string = ('  {:,} Bytes [{:.2%}] received. Rate: [{:4.0f} '
+                         'KB/s].  ETA: [{:.0f} secs]')
+
+        if early_py_version:
+            status_string = ('  {0:} Bytes [{1:.2%}] received. Rate:'
+                             ' [{2:4.0f} KB/s].  ETA: [{3:.0f} secs]')
+
+        try:
+            try:
+                response = self._sess.get(self.url, headers=headers, stream=True, timeout=10)
+            except conn_error as error:
+                return {'status': 'False', 'msg': 'ConnectionError: %s' % (str(error))}
+            with response:
+                if response.ok:
+                    bytes_to_be_downloaded = total = int(response.headers.get('Content-Length'))
+                    if bytesdone > 0:
+                        bytes_to_be_downloaded = bytes_to_be_downloaded + bytesdone
+                    total = bytes_to_be_downloaded
+                    with open(temp_filepath, fmode) as media_file:
+                        is_malformed = False
+                        for chunk in response.iter_content(chunksize):
+                            if not chunk:
+                                break
+                            media_file.write(chunk)
+                            elapsed = time.time() - t0
+                            bytesdone += len(chunk)
+                            if elapsed:
+                                try:
+                                    rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
+                                    eta = (total - bytesdone) / (rate * 1024.0)
+                                except ZeroDivisionError:
+                                    is_malformed = True
+                                    try:
+                                        os.unlink(temp_filepath)
+                                    except Exception:
+                                        pass
+                                    retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
+                                    break
+                            else:
+                                rate = 0
+                                eta = 0
+
+                            if not is_malformed:
+                                progress_stats = (
+                                    bytesdone, bytesdone * 1.0 / total, rate, eta)
+
+                                if not quiet:
+                                    status = status_string.format(*progress_stats)
+                                    sys.stdout.write(
+                                        "\r" + status + ' ' * 4 + "\r")
+                                    sys.stdout.flush()
+
+                                if callback:
+                                    callback(total, *progress_stats)
+                if not response.ok:
+                    code = response.status_code
+                    reason = response.reason
+                    retVal = {
+                        "status": "False", "msg": "Udemy returned HTTP Code %s: %s" % (code, reason)}
+        except KeyboardInterrupt as error:
+            raise error
+        except Exception as error:
+            retVal = {"status": "False",
+                      "msg": "Reason : {}".format(str(error))}
+            return retVal
+        # check if file is downloaded completely
+        if os.path.isfile(temp_filepath):
+            total_bytes_done = os.stat(temp_filepath).st_size
+            if total_bytes_done == bytes_to_be_downloaded:
+                self._active = False
+            if total_bytes_done < bytes_to_be_downloaded:
+                # set active to be True as remaining bytes to be downloaded
+                self._active = True
+                # try downloading back again remaining bytes until we download completely
+                self.download(filepath=filepath,
+                              unsafe=unsafe,
+                              quiet=quiet)
+
+
+        if not self._active:
+            os.rename(temp_filepath, filepath)
+            retVal = {"status": "True", "msg": "download"}
+
+        return retVal
 
 class UdemyCourse(object):
 
@@ -262,7 +412,7 @@ class UdemyLectures(object):
 
         return retVal
 
-class UdemyLectureStream(object):
+class UdemyLectureStream(Downloader):
 
 
     def __init__(self, parent):
@@ -278,6 +428,8 @@ class UdemyLectureStream(object):
         self._filename = None
         self._fsize = None
         self._active = False
+
+        Downloader.__init__(self)
 
     def __repr__(self):
         out = "%s:%s@%s" % (self.mediatype, self.extension, self.quality)
@@ -345,138 +497,13 @@ class UdemyLectureStream(object):
 
     def get_filesize(self):
         if not self._fsize:
-            try:
-                cl = 'content-length'
-                opener = compat_opener()
-                opener.addheaders = [('User-Agent', HEADERS.get('User-Agent'))]
-                self._fsize = int(opener.open(self.url).headers[cl])
-            except (compat_urlerr, compat_httperr):
+            headers = {'User-Agent', HEADERS.get('User-Agent')}
+            resp = requests.get(self.url, headers=headers)
+            if resp.ok:
+                self._fsize = resp.headers.get('Content-Length', 0)
+            if not resp.ok:
                 self._fsize = 0
         return self._fsize
-
-    def download(self, filepath="", unsafe=False, quiet=False, callback=lambda *x: None):
-        savedir = filename = ""
-        retVal  = {}
-
-        if filepath and os.path.isdir(filepath):
-            savedir, filename = filepath, self.filename if not unsafe else self.unsafe_filename
-
-        elif filepath:
-            savedir, filename = os.path.split(filepath)
-
-        else:
-            filename = self.filename if not unsafe else self.unsafe_filename
-
-        filepath = os.path.join(savedir, filename)
-
-        if os.path.isfile(filepath):
-            retVal = {"status" : "True", "msg" : "already downloaded"}
-            return retVal
-        
-        temp_filepath = filepath + ".part"
-
-        status_string = ('  {:,} Bytes [{:.2%}] received. Rate: [{:4.0f} '
-                         'KB/s].  ETA: [{:.0f} secs]')
-
-
-        if early_py_version:
-            status_string = ('  {0:} Bytes [{1:.2%}] received. Rate:'
-                             ' [{2:4.0f} KB/s].  ETA: [{3:.0f} secs]')
-
-        try:    
-            req = compat_request(self.url, headers={'User-Agent' : HEADERS.get('User-Agent')})
-            response = compat_urlopen(req)
-        except compat_urlerr as e:
-            retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
-            return retVal
-        except compat_httperr as e:
-            if e.code == 401:
-                retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
-            else:
-                retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
-            return retVal
-        else:
-            total = int(response.info()['Content-Length'].strip())
-            chunksize, bytesdone, t0 = 16384, 0, time.time()
-
-            fmode, offset = "wb", 0
-
-            if os.path.exists(temp_filepath):
-                if os.stat(temp_filepath).st_size < total:
-                    offset = os.stat(temp_filepath).st_size
-                    fmode = "ab"
-
-            try:
-                outfh = open(temp_filepath, fmode)
-            except Exception as e:
-                if os.name == 'nt':
-                    file_length = len(temp_filepath)
-                    if file_length > 255:
-                        retVal  =   {"status" : "False", "msg" : "file length is too long to create. try downloading to other drive (e.g :- -o 'E:\\')"}
-                        return retVal
-                retVal  =   {"status" : "False", "msg" : "Reason : {}".format(e)}
-                return retVal
-
-            if offset:
-                resume_opener = compat_opener()
-                resume_opener.addheaders = [('User-Agent', HEADERS.get('User-Agent')),
-                                            ("Range", "bytes=%s-" % offset)]
-                try:
-                    response = resume_opener.open(self.url)
-                except compat_urlerr as e:
-                    retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
-                    return retVal
-                except compat_httperr as e:
-                    if e.code == 401:
-                        retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
-                    else:
-                        retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
-                    return retVal
-                else:
-                    bytesdone = offset
-
-            self._active = True
-            while self._active:
-                chunk = response.read(chunksize)
-                outfh.write(chunk)
-                elapsed = time.time() - t0
-                bytesdone += len(chunk)
-                if elapsed:
-                    try:
-                        rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                        eta  = (total - bytesdone) / (rate * 1024.0)
-                    except ZeroDivisionError as e:
-                        outfh.close()
-                        try:
-                            os.unlink(temp_filepath)
-                        except Exception as e:
-                            pass
-                        retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
-                        return retVal
-                else:
-                    rate = 0
-                    eta = 0
-                progress_stats = (bytesdone, bytesdone * 1.0 / total, rate, eta)
-
-                if not chunk:
-                    outfh.close()
-                    break
-                if not quiet:
-                    status = status_string.format(*progress_stats)
-                    sys.stdout.write("\r" + status + ' ' * 4 + "\r")
-                    sys.stdout.flush()
-
-                if callback:
-                    callback(total, *progress_stats)
-
-            if self._active:
-                os.rename(temp_filepath, filepath)
-                retVal = {"status" : "True", "msg" : "download"}
-            else:
-                outfh.close()
-                retVal = {"status" : "True", "msg" : "download"}
-
-        return retVal
 
 class UdemyLectureAssets(object):
 
@@ -490,6 +517,8 @@ class UdemyLectureAssets(object):
         self._filename = None
         self._fsize = None
         self._active = False
+
+        Downloader.__init__(self)
 
     def __repr__(self):
         out = "%s:%s@%s" % (self.mediatype, self.extension, self.extension)
@@ -562,143 +591,15 @@ class UdemyLectureAssets(object):
 
     def get_filesize(self):
         if not self._fsize:
-            try:
-                cl = 'content-length'
-                opener = compat_opener()
-                opener.addheaders = [('User-Agent', HEADERS.get('User-Agent'))]
-                self._fsize = int(opener.open(self.url).headers[cl])
-            except (compat_urlerr, compat_httperr):
+            headers = {'User-Agent', HEADERS.get('User-Agent')}
+            resp = requests.get(self.url, headers=headers)
+            if resp.ok:
+                self._fsize = resp.headers.get('Content-Length', 0)
+            if not resp.ok:
                 self._fsize = 0
         return self._fsize
 
-    def download(self, filepath="", unsafe=False, quiet=False, callback=lambda *x: None):
-        savedir = filename = ""
-        retVal  = {}
-
-        if filepath and os.path.isdir(filepath):
-            savedir, filename = filepath, self.filename if not unsafe else self.unsafe_filename
-
-        elif filepath:
-            savedir, filename = os.path.split(filepath)
-
-        else:
-            filename = self.filename if not unsafe else self.unsafe_filename
-
-        filepath = os.path.join(savedir, filename)
-        
-        if self.mediatype=='external_link':
-            return self._write_external_links(filepath, unsafe=unsafe)
-
-        if os.path.isfile(filepath):
-            retVal = {"status" : "True", "msg" : "already downloaded"}
-            return retVal
-        
-        temp_filepath = filepath + ".part"
-
-        status_string = ('  {:,} Bytes [{:.2%}] received. Rate: [{:4.0f} '
-                         'KB/s].  ETA: [{:.0f} secs]')
-
-
-        if early_py_version:
-            status_string = ('  {0:} Bytes [{1:.2%}] received. Rate:'
-                             ' [{2:4.0f} KB/s].  ETA: [{3:.0f} secs]')
-
-        try:    
-            req = compat_request(self.url, headers={'User-Agent' : HEADERS.get('User-Agent')})
-            response = compat_urlopen(req)
-        except compat_urlerr as e:
-            retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
-            return retVal
-        except compat_httperr as e:
-            if e.code == 401:
-                retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
-            else:
-                retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
-            return retVal
-        else:
-            total = int(response.info()['Content-Length'].strip())
-            chunksize, bytesdone, t0 = 16384, 0, time.time()
-
-            fmode, offset = "wb", 0
-
-            if os.path.exists(temp_filepath):
-                if os.stat(temp_filepath).st_size < total:
-                    offset = os.stat(temp_filepath).st_size
-                    fmode = "ab"
-
-            try:
-                outfh = open(temp_filepath, fmode)
-            except Exception as e:
-                if os.name == 'nt':
-                    file_length = len(temp_filepath)
-                    if file_length > 255:
-                        retVal  =   {"status" : "False", "msg" : "file length is too long to create. try downloading to other drive (e.g :- -o 'E:\\')"}
-                        return retVal
-                retVal  =   {"status" : "False", "msg" : "Reason : {}".format(e)}
-                return retVal
-
-            if offset:
-                resume_opener = compat_opener()
-                resume_opener.addheaders = [('User-Agent', HEADERS.get('User-Agent')),
-                                            ("Range", "bytes=%s-" % offset)]
-                try:
-                    response = resume_opener.open(self.url)
-                except compat_urlerr as e:
-                    retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
-                    return retVal
-                except compat_httperr as e:
-                    if e.code == 401:
-                        retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
-                    else:
-                        retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
-                    return retVal
-                else:
-                    bytesdone = offset
-
-            self._active = True
-            while self._active:
-                chunk = response.read(chunksize)
-                outfh.write(chunk)
-                elapsed = time.time() - t0
-                bytesdone += len(chunk)
-                if elapsed:
-                    try:
-                        rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                        eta  = (total - bytesdone) / (rate * 1024.0)
-                    except ZeroDivisionError as e:
-                        outfh.close()
-                        try:
-                            os.unlink(temp_filepath)
-                        except Exception as e:
-                            pass
-                        retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
-                        return retVal
-                else:
-                    rate = 0
-                    eta = 0
-                progress_stats = (bytesdone, bytesdone * 1.0 / total, rate, eta)
-
-                if not chunk:
-                    outfh.close()
-                    break
-                if not quiet:
-                    status = status_string.format(*progress_stats)
-                    sys.stdout.write("\r" + status + ' ' * 4 + "\r")
-                    sys.stdout.flush()
-
-                if callback:
-                    callback(total, *progress_stats)
-
-            if self._active:
-                os.rename(temp_filepath, filepath)
-                retVal = {"status" : "True", "msg" : "download"}
-            else:
-                outfh.close()
-                retVal = {"status" : "True", "msg" : "download"}
-
-        return retVal
-
-class UdemyLectureSubtitles(object):
+class UdemyLectureSubtitles(Downloader):
 
     def __init__(self, parent):
 
@@ -711,6 +612,8 @@ class UdemyLectureSubtitles(object):
         self._filename = None
         self._fsize = None
         self._active = False
+
+        Downloader.__init__(self)
 
     def __repr__(self):
         out = "%s:%s@%s" % (self.mediatype, self.language, self.extension)
@@ -770,140 +673,10 @@ class UdemyLectureSubtitles(object):
 
     def get_filesize(self):
         if not self._fsize:
-            try:
-                cl = 'content-length'
-                opener = compat_opener()
-                opener.addheaders = [('User-Agent', HEADERS.get('User-Agent'))]
-                self._fsize = int(opener.open(self.url).headers[cl])
-            except (compat_urlerr, compat_httperr):
+            headers = {'User-Agent', HEADERS.get('User-Agent')}
+            resp = requests.get(self.url, headers=headers)
+            if resp.ok:
+                self._fsize = resp.headers.get('Content-Length', 0)
+            if not resp.ok:
                 self._fsize = 0
         return self._fsize
-
-    def download(self, filepath="", unsafe=False, quiet=False, callback=lambda *x: None):
-        savedir = filename = ""
-        retVal  = {}
-
-        if filepath and os.path.isdir(filepath):
-            savedir, filename = filepath, self.filename if not unsafe else self.unsafe_filename
-
-        elif filepath:
-            savedir, filename = os.path.split(filepath)
-
-        else:
-            filename = self.filename if not unsafe else self.unsafe_filename
-
-        filepath = os.path.join(savedir, filename)
-
-        if 'vtt' in filepath and filepath.endswith('.vtt'):
-            vttfilePath = filepath.replace('.vtt', '.srt')
-            if os.path.isfile(vttfilePath):
-                retVal = {"status" : "True", "msg" : "already downloaded"}
-                return retVal
-
-        if os.path.isfile(filepath):
-            retVal = {"status" : "True", "msg" : "already downloaded"}
-            return retVal
-        
-        temp_filepath = filepath + ".part"
-
-        status_string = ('  {:,} Bytes [{:.2%}] received. Rate: [{:4.0f} '
-                         'KB/s].  ETA: [{:.0f} secs]')
-
-
-        if early_py_version:
-            status_string = ('  {0:} Bytes [{1:.2%}] received. Rate:'
-                             ' [{2:4.0f} KB/s].  ETA: [{3:.0f} secs]')
-
-        try:    
-            req = compat_request(self.url, headers={'User-Agent' : HEADERS.get('User-Agent')})
-            response = compat_urlopen(req)
-        except compat_urlerr as e:
-            retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
-            return retVal
-        except compat_httperr as e:
-            if e.code == 401:
-                retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
-            else:
-                retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
-            return retVal
-        else:
-            total = int(response.info()['Content-Length'].strip())
-            chunksize, bytesdone, t0 = 16384, 0, time.time()
-
-            fmode, offset = "wb", 0
-
-            if os.path.exists(temp_filepath):
-                if os.stat(temp_filepath).st_size < total:
-                    offset = os.stat(temp_filepath).st_size
-                    fmode = "ab"
-            try:
-                outfh = open(temp_filepath, fmode)
-            except Exception as e:
-                if os.name == 'nt':
-                    file_length = len(temp_filepath)
-                    if file_length > 256:
-                        retVal  =   {"status" : "False", "msg" : "file length is too long to create. try downloading to other drive (e.g :- -o 'E:\\')"}
-                        return retVal
-                retVal  =   {"status" : "False", "msg" : "Reason : {}".format(e)}
-                return retVal
-
-            if offset:
-                resume_opener = compat_opener()
-                resume_opener.addheaders = [('User-Agent', HEADERS.get('User-Agent')),
-                                            ("Range", "bytes=%s-" % offset)]
-                try:
-                    response = resume_opener.open(self.url)
-                except compat_urlerr as e:
-                    retVal  =   {"status" : "False", "msg" : "URLError : either your internet connection is not working or server aborted the request"}
-                    return retVal
-                except compat_httperr as e:
-                    if e.code == 401:
-                        retVal  =   {"status" : "False", "msg" : "Udemy Says (HTTP Error 401 : Unauthorized)"}
-                    else:
-                        retVal  =   {"status" : "False", "msg" : "HTTPError-{} : direct download link is expired run the udemy-dl with '--skip-sub' option ...".format(e.code)}
-                    return retVal
-                else:
-                    bytesdone = offset
-
-            self._active = True
-            while self._active:
-                chunk = response.read(chunksize)
-                outfh.write(chunk)
-                elapsed = time.time() - t0
-                bytesdone += len(chunk)
-                if elapsed:
-                    try:
-                        rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                        eta  = (total - bytesdone) / (rate * 1024.0)
-                    except ZeroDivisionError as e:
-                        outfh.close()
-                        try:
-                            os.unlink(temp_filepath)
-                        except Exception as e:
-                            pass
-                        retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
-                        return retVal
-                else:
-                    rate = 0
-                    eta = 0
-                progress_stats = (bytesdone, bytesdone * 1.0 / total, rate, eta)
-
-                if not chunk:
-                    outfh.close()
-                    break
-                if not quiet:
-                    status = status_string.format(*progress_stats)
-                    sys.stdout.write("\r" + status + ' ' * 4 + "\r")
-                    sys.stdout.flush()
-
-                if callback:
-                    callback(total, *progress_stats)
-
-            if self._active:
-                os.rename(temp_filepath, filepath)
-                retVal = {"status" : "True", "msg" : "download"}
-            else:
-                outfh.close()
-                retVal = {"status" : "True", "msg" : "download"}
-
-        return retVal
