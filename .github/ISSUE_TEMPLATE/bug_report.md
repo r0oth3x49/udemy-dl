@@ -1,18 +1,8 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
 
 ---
-
-### Before creating an issue, please do the following:
-
-1. **Use the GitHub issue search** &mdash; check if the issue is already reported.
-2. **Check if the issue is already fixed** &mdash; try to reproduce it using the latest `master` in the repository.
-3. Make sure, that information you are about to report is related to this repository 
-   and not the one available on ***Python's repository, PyPi***, Because this repository cannot be downloaded/installed via pip command.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
