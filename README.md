@@ -9,6 +9,15 @@
 
 [![udemy-dl-0-5.png](https://s26.postimg.cc/67x3wfak9/udemy-dl-0-5.png)](https://postimg.cc/image/s73ijmred/)
 
+
+### Before creating an issue, please do the following:
+
+1. **Use the GitHub issue search** &mdash; check if the issue is already reported.
+2. **Check if the issue is already fixed** &mdash; try to reproduce it using the latest `master` in the repository.
+3. Make sure, that information you are about to report is related to this repository 
+   and not the one available on ***Python's repository, PyPi***, Because this repository cannot be downloaded/installed via pip command.
+
+
 ## ***Features***
 
 - Resume capability for a course video.
