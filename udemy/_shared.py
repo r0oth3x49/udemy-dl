@@ -497,7 +497,7 @@ class UdemyLectureStream(Downloader):
 
     def get_filesize(self):
         if not self._fsize:
-            headers = {'User-Agent', HEADERS.get('User-Agent')}
+            headers = {'User-Agent': HEADERS.get('User-Agent')}
             resp = requests.get(self.url, headers=headers)
             if resp.ok:
                 self._fsize = resp.headers.get('Content-Length', 0)
@@ -591,7 +591,7 @@ class UdemyLectureAssets(Downloader):
 
     def get_filesize(self):
         if not self._fsize:
-            headers = {'User-Agent', HEADERS.get('User-Agent')}
+            headers = {'User-Agent': HEADERS.get('User-Agent')}
             resp = requests.get(self.url, headers=headers)
             if resp.ok:
                 self._fsize = resp.headers.get('Content-Length', 0)
@@ -673,7 +673,7 @@ class UdemyLectureSubtitles(Downloader):
 
     def get_filesize(self):
         if not self._fsize:
-            headers = {'User-Agent', HEADERS.get('User-Agent')}
+            headers = {'User-Agent': HEADERS.get('User-Agent')}
             resp = requests.get(self.url, headers=headers)
             if resp.ok:
                 self._fsize = resp.headers.get('Content-Length', 0)
