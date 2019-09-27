@@ -86,6 +86,12 @@ class Downloader(object):
 
         filepath = os.path.join(savedir, filename)
 
+        if filepath and filepath.endswith('.vtt'):
+            filepath_vtt2srt = filepath.replace('.vtt', '.srt')
+            if os.path.isfile(filepath_vtt2srt):
+                retVal = {"status" : "True", "msg" : "already downloaded"}
+                return retVal
+
         if os.path.isfile(filepath):
             retVal = {"status": "True", "msg": "already downloaded"}
             return retVal
@@ -93,7 +99,7 @@ class Downloader(object):
         temp_filepath = filepath + ".part"
 
         self._active = True
-        bytes_to_be_downloaded = None
+        bytes_to_be_downloaded = 0
         fmode, offset = "wb", 0
         chunksize, bytesdone, t0 = 16384, 0, time.time()
         headers = {'User-Agent': HEADERS.get('User-Agent')}
