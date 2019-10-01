@@ -46,12 +46,22 @@ class Downloader(object):
     def __init__(self):
         self._url = None
         self._filename = None
+        self._mediatype = None
+        self._extension = None
         self._sess = requests.session()
 
     @property
     def url(self):
         """abac"""
         return self._url
+
+    @property
+    def mediatype(self):
+        return self._mediatype
+
+    @property
+    def extension(self):
+        return self._extension
 
     @property
     def filename(self):
@@ -71,6 +81,30 @@ class Downloader(object):
     def _generate_unsafe_filename():
         pass
 
+    def _write_external_links(self, filepath, unsafe=False):
+        retVal = {}
+        savedirs, name = os.path.split(filepath)
+        filename = 'external-assets-links.txt' if not unsafe else u'external-assets-links.txt'
+        filename = os.path.join(savedirs, filename)
+
+        file_data = []
+        if os.path.isfile(filename):
+            file_data = [i.strip().lower() for i in open(filename) if i]
+
+        try:
+            f = codecs.open(filename, 'a', encoding='utf-8', errors='ignore')
+            data = '\n{}\n{}\n'.format(name, self.url) if not unsafe else u'\n{}\n{}\n'.format(
+                name, self.url)
+            if name.lower() not in file_data:
+                f.write(data)
+        except (OSError, Exception, UnicodeDecodeError) as e:
+            retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
+        else:
+            retVal = {'status' : 'True', 'msg' : 'download'}
+            f.close()
+
+        return retVal
+
     def download(self, filepath="", unsafe=False, quiet=False, callback=lambda *x: None):
         savedir = filename = ""
         retVal = {}
@@ -85,6 +119,9 @@ class Downloader(object):
             filename = self.filename if not unsafe else self.unsafe_filename
 
         filepath = os.path.join(savedir, filename)
+
+        if self.mediatype == 'external_link':
+            return self._write_external_links(filepath, unsafe)
 
         if filepath and filepath.endswith('.vtt'):
             filepath_vtt2srt = filepath.replace('.vtt', '.srt')
@@ -504,10 +541,13 @@ class UdemyLectureStream(Downloader):
     def get_filesize(self):
         if not self._fsize:
             headers = {'User-Agent': HEADERS.get('User-Agent')}
-            resp = requests.get(self.url, headers=headers)
-            if resp.ok:
-                self._fsize = resp.headers.get('Content-Length', 0)
-            if not resp.ok:
+            try:
+                with requests.get(self.url, stream=True, headers=headers) as resp:
+                    if resp.ok:
+                        self._fsize = float(resp.headers.get('Content-Length', 0))
+                    if not resp.ok:
+                        self._fsize = 0
+            except conn_error:
                 self._fsize = 0
         return self._fsize
 
@@ -541,23 +581,6 @@ class UdemyLectureAssets(Downloader):
         filename = "".join(x if ok.match(x) else "_" for x in self.unsafe_title)
         filename += ".{}".format(self.extension)
         return filename
-
-    def _write_external_links(self, filepath, unsafe=False):
-        retVal = {}
-        filename = filepath
-
-        try:
-            filename += '.txt' if not unsafe else u'.txt'
-            f = codecs.open(filename, 'a', encoding='utf-8', errors='ignore')
-            data = '{}\n'.format(self.url) if not unsafe else u'{}\n'.format(self.url)
-            f.write(data)
-        except (OSError, Exception, UnicodeDecodeError) as e:
-            retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
-        else:
-            retVal = {'status' : 'True', 'msg' : 'download'}
-            f.close()
-
-        return retVal
 
     @property
     def id(self):
@@ -598,10 +621,13 @@ class UdemyLectureAssets(Downloader):
     def get_filesize(self):
         if not self._fsize:
             headers = {'User-Agent': HEADERS.get('User-Agent')}
-            resp = requests.get(self.url, headers=headers)
-            if resp.ok:
-                self._fsize = resp.headers.get('Content-Length', 0)
-            if not resp.ok:
+            try:
+                with requests.get(self.url, stream=True, headers=headers) as resp:
+                    if resp.ok:
+                        self._fsize = float(resp.headers.get('Content-Length', 0))
+                    if not resp.ok:
+                        self._fsize = 0
+            except conn_error:
                 self._fsize = 0
         return self._fsize
 
@@ -680,9 +706,12 @@ class UdemyLectureSubtitles(Downloader):
     def get_filesize(self):
         if not self._fsize:
             headers = {'User-Agent': HEADERS.get('User-Agent')}
-            resp = requests.get(self.url, headers=headers)
-            if resp.ok:
-                self._fsize = resp.headers.get('Content-Length', 0)
-            if not resp.ok:
+            try:
+                with requests.get(self.url, stream=True, headers=headers) as resp:
+                    if resp.ok:
+                        self._fsize = float(resp.headers.get('Content-Length', 0))
+                    if not resp.ok:
+                        self._fsize = 0
+            except conn_error:
                 self._fsize = 0
         return self._fsize
