@@ -181,6 +181,7 @@ class Udemy(ProgressBar):
                 published_title = entry.get('published_title')
                 if course_name in (published_title, course_id):
                     _temp = entry
+                    break
         return _temp
 
     def _extract_course_info(self, url):
