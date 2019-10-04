@@ -70,7 +70,7 @@ class Udemy(ProgressBar):
         return text
 
     def _course_name(self, url):
-        mobj = re.search(r'(?i)(?://(?P<portal_name>.+?).udemy.com/(?:(course|draft)/)?(?P<name_or_id>[a-zA-Z0-9_-]+))', url)
+        mobj = re.search(r'(?i)(?://(?P<portal_name>.+?).udemy.com/(?:course(/draft)*/)?(?P<name_or_id>[a-zA-Z0-9_-]+))', url)
         if mobj:
             return mobj.group('portal_name'), mobj.group('name_or_id')
 
@@ -177,7 +177,7 @@ class Udemy(ProgressBar):
         _temp = {}
         if response:
             for entry in response:
-                course_id = entry.get('id')
+                course_id = str(entry.get('id'))
                 published_title = entry.get('published_title')
                 if course_name in (published_title, course_id):
                     _temp = entry
