@@ -119,6 +119,8 @@ class Downloader(object):
             filename = self.filename if not unsafe else self.unsafe_filename
 
         filepath = os.path.join(savedir, filename)
+        if os.name == "nt" and len(filepath) > 250:
+            filepath = "\\\\?\\{}".format(filepath)
 
         if self.mediatype == 'external_link':
             return self._write_external_links(filepath, unsafe)
