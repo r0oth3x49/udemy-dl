@@ -1115,7 +1115,7 @@ def main():
                 print("")
             if email and passwd:
                 if options.cache:
-                    cache_credentials(username=email, password=passwd)
+                    cache_credentials(username=email, password=passwd, quality=options.quality, output=options.output)
                 udemy = Udemy(url=options.course, username=email, password=passwd)
             else:
                 sys.stdout.write('\n' + fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password is required.\n")
@@ -1274,7 +1274,7 @@ def main():
             udemy = Udemy(url=options.course, username=options.username, password=options.password)
             
             if options.cache:
-                cache_credentials(username=options.username, password=options.password)
+                cache_credentials(username=options.username, password=options.password, quality=options.quality, output=options.output)
 
             if options.list and not options.save:
                 try:
