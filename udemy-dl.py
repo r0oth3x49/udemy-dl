@@ -1097,10 +1097,10 @@ def main():
             config = use_cached_credentials()
             if config and isinstance(config, dict):
                 sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs..")
-                email = config.get('username') or None
-                passwd = config.get('password') or None
-                quality = config.get('quality') or None
-                output = config.get('output') or None
+                email = config.get('username')
+                passwd = config.get('password')
+                options.quality = config.get('quality')
+                options.output = config.get('output')
                 time.sleep(1)
                 if email and passwd:
                     sys.stdout.write ("\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs.. (" + fc + sb + "done" + fg + sd + ")\n")
