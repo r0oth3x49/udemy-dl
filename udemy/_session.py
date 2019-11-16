@@ -44,8 +44,8 @@ class Session(object):
         self._headers['X-Udemy-Authorization'] = "Bearer {}".format(access_token)
 
     def _get(self, url):
-        session = self._session.get(url, headers=self._headers)
-        if session.ok or session.status_code == 502:
+        session = self._session.get(url, headers=self._headers, timeout=15)
+        if session.ok or session.status_code in [502, 503]:
             return session
         if not session.ok:
             if session.status_code == 403:
