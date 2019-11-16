@@ -238,7 +238,7 @@ class Udemy(ProgressBar):
         url = COURSE_URL.format(portal_name=portal_name, course_id=course_id)
         try:
             resp = self._session._get(url)
-            if resp.status_code == 502:
+            if resp.status_code in [502, 503]:
                 resp = self._extract_large_course_content(url=url)
             else:
                 resp = resp.json()
