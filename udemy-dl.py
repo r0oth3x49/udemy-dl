@@ -941,7 +941,18 @@ def main():
         f_in = open(options.cookies)
         cookies = '\n'.join([line for line in (l.strip() for l in f_in) if line])
         f_in.close()
+        if options.cache:
+            cache_credentials(username="", password="", quality=options.quality, output=options.output)
         udemy = Udemy(url=options.course, cookies=cookies)
+        if not options.cache:
+            config = use_cached_credentials()
+            if config and isinstance(config, dict):
+                sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs..")
+                options.quality = config.get('quality')
+                options.output = config.get('output')
+                time.sleep(1)
+                sys.stdout.write ("\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs.. (" + fc + sb + "done" + fg + sd + ")\n")
+                sys.stdout.flush()
         if options.list and not options.save:
                 try:
                     udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=options.unsafe)
