@@ -28,6 +28,7 @@
 - Download/skip all available subtitles for a video (options: `--sub-only, --skip-sub`).
 - Download specific chapter in a course (option: `-c / --chapter`).
 - Download specific lecture in a chapter (option: `-l / --lecture`).
+- Download specific subtitle for a lecture (option: `-s / --sub-lang`).
 - Download chapter(s) by providing range in a course (option: `--chapter-start, --chapter-end`).
 - Download lecture(s) by providing range in a chapter (option: `--lecture-start, --lecture-end`).
 - Download lecture(s) in requested resolution (option: `-q / --quality`).
@@ -119,13 +120,17 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 
     python udemy-dl.py COURSE_URL -c NUMBER -l NUMBER --info
 
+***Download specific subtite by using language code such as (en, es) if lang switch is not specified then default will be all subtitles***
+
+    python udemy-dl.py COURSE_URL --sub-lang en
+
 
 ## **Advanced Usage**
 
 <pre><code>
 Author: Nasir khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)
 
-usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l]
+usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l] [-s]
                    [--chapter-start] [--chapter-end] [--lecture-start]
                    [--lecture-end] [--save] [--info] [--cache] [--names]
                    [--unsafe] [--sub-only] [--skip-sub]
@@ -151,6 +156,7 @@ Advance:
   -q , --quality    Download specific video quality.
   -c , --chapter    Download specific chapter from course.
   -l , --lecture    Download specific lecture from chapter(s).
+  -s , --sub-lang   Download specific subtitle/caption (e.g:- en).
   --chapter-start   Download from specific position within course.
   --chapter-end     Download till specific position within course.
   --lecture-start   Download from specific position within chapter(s).

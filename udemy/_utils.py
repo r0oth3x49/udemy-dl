@@ -32,14 +32,15 @@ from ._compat import (
                         compat_HTMLParser,
                         )
 
-def cache_credentials(username, password, quality="", output=""):
+def cache_credentials(username, password, quality="", output="", language=""):
     fname = "configuration"
     fmode = "w"
     creds = {
                 "username"          : username,
                 "password"          : password,
                 "quality"           : quality,
-                "output"            : output
+                "output"            : output,
+                "language"          : language
             }
     fout = open(fname, fmode)
     json.dump(creds, fout, indent=4)
