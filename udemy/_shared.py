@@ -656,13 +656,13 @@ class UdemyLectureSubtitles(Downloader):
     def _generate_filename(self):
         ok = re.compile(r'[^\\/:*?"<>|]')
         filename = "".join(x if ok.match(x) else "_" for x in self.title)
-        filename += "-{}.{}".format(self.language, self.extension)
+        filename += ".{}.{}".format(self.language, self.extension)
         return filename
 
     def _generate_unsafe_filename(self):
         ok = re.compile(r'[^\\/:*?"<>|]')
         filename = "".join(x if ok.match(x) else "_" for x in self.unsafe_title)
-        filename += "-{}.{}".format(self.language, self.extension)
+        filename += ".{}.{}".format(self.language, self.extension)
         return filename
 
     @property
