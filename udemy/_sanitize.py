@@ -60,6 +60,8 @@ def slugify(s, ok=SLUG_OK, lower=True, spaces=False, only_ascii=False, space_rep
 
     """
 
+    s = re.sub('&', 'and', s)
+
     if only_ascii and ok != SLUG_OK and hasattr(ok, 'decode'):
         try:
             ok.decode('ascii')
@@ -84,6 +86,8 @@ def slugify(s, ok=SLUG_OK, lower=True, spaces=False, only_ascii=False, space_rep
         new = re.sub('[%s\s]+' % space_replacement, space_replacement, new)
     if lower:
         new = new.lower()
+
+    new = re.sub('\s+', ' ', new)
 
     return new
 

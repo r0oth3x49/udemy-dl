@@ -544,6 +544,8 @@ class Udemy(ProgressBar):
                                 sources     = data.get('sources')
                                 tracks      = data.get('tracks') if isinstance(data.get('tracks'), list) else subs
                                 duration    = data.get('duration')
+                                subtitles   = self._extract_subtitles(tracks)
+                                sources     = self._extract_sources(sources)
                                 lectures.append({
                                     'lecture_index' :   lecture_index,
                                     'lectures_id' : lecture_id,
@@ -552,10 +554,10 @@ class Udemy(ProgressBar):
                                     'duration' : duration,
                                     'assets' : retVal,
                                     'assets_count' : len(retVal),
-                                    'sources' : self._extract_sources(sources),
-                                    'subtitles' : self._extract_subtitles(tracks),
-                                    'subtitle_count' : len(self._extract_subtitles(tracks)),
-                                    'sources_count' : len(self._extract_sources(sources)),
+                                    'sources' : sources,
+                                    'subtitles' : subtitles,
+                                    'subtitle_count' : len(subtitles),
+                                    'sources_count' : len(sources),
                                     })
                             else:
                                 lectures.append({
@@ -582,6 +584,8 @@ class Udemy(ProgressBar):
                                 sources     = data.get('Video')
                                 tracks      = asset.get('captions')
                                 duration    = asset.get('time_estimation')
+                                subtitles   = self._extract_subtitles(tracks)
+                                sources     = self._extract_sources(sources)
                                 lectures.append({
                                     'lecture_index' :   lecture_index,
                                     'lectures_id' : lecture_id,
@@ -590,10 +594,10 @@ class Udemy(ProgressBar):
                                     'duration' : duration,
                                     'assets' : retVal,
                                     'assets_count' : len(retVal),
-                                    'sources' : self._extract_sources(sources),
-                                    'subtitles' : self._extract_subtitles(tracks),
-                                    'subtitle_count' : len(self._extract_subtitles(tracks)),
-                                    'sources_count' : len(self._extract_sources(sources)),
+                                    'sources' : sources,
+                                    'subtitles' : subtitles,
+                                    'subtitle_count' : len(subtitles),
+                                    'sources_count' : len(sources),
                                     })
                             else:
                                 lectures.append({
