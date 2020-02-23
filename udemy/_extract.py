@@ -188,9 +188,9 @@ class Udemy(ProgressBar):
         portal_name, course_name = self._course_name(url)
         course = {}
         results = self._subscribed_courses(portal_name=portal_name, course_name=course_name)
-        if not results:
+        course = self.__extract_course(response=results, course_name=course_name)
+        if not course:
             results = self._my_courses(portal_name=portal_name)
-        if results:
             course = self.__extract_course(response=results, course_name=course_name)
         if not course:
             results = self._subscribed_collection_courses(portal_name=portal_name)
