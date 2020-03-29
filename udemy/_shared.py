@@ -163,53 +163,53 @@ class Downloader(object):
                 response = self._sess.get(self.url, headers=headers, stream=True, timeout=10)
             except conn_error as error:
                 return {'status': 'False', 'msg': 'ConnectionError: %s' % (str(error))}
-            with response:
-                if response.ok:
-                    bytes_to_be_downloaded = total = int(response.headers.get('Content-Length'))
-                    if bytesdone > 0:
-                        bytes_to_be_downloaded = bytes_to_be_downloaded + bytesdone
-                    total = bytes_to_be_downloaded
-                    with open(temp_filepath, fmode) as media_file:
-                        is_malformed = False
-                        for chunk in response.iter_content(chunksize):
-                            if not chunk:
-                                break
-                            media_file.write(chunk)
-                            elapsed = time.time() - t0
-                            bytesdone += len(chunk)
-                            if elapsed:
+            if response.ok:
+                bytes_to_be_downloaded = total = int(response.headers.get('Content-Length'))
+                if bytesdone > 0:
+                    bytes_to_be_downloaded = bytes_to_be_downloaded + bytesdone
+                total = bytes_to_be_downloaded
+                with open(temp_filepath, fmode) as media_file:
+                    is_malformed = False
+                    for chunk in response.iter_content(chunksize):
+                        if not chunk:
+                            break
+                        media_file.write(chunk)
+                        elapsed = time.time() - t0
+                        bytesdone += len(chunk)
+                        if elapsed:
+                            try:
+                                rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
+                                eta = (total - bytesdone) / (rate * 1024.0)
+                            except ZeroDivisionError:
+                                is_malformed = True
                                 try:
-                                    rate = ((float(bytesdone) - float(offset)) / 1024.0) / elapsed
-                                    eta = (total - bytesdone) / (rate * 1024.0)
-                                except ZeroDivisionError:
-                                    is_malformed = True
-                                    try:
-                                        os.unlink(temp_filepath)
-                                    except Exception:
-                                        pass
-                                    retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
-                                    break
-                            else:
-                                rate = 0
-                                eta = 0
+                                    os.unlink(temp_filepath)
+                                except Exception:
+                                    pass
+                                retVal = {"status" : "False", "msg" : "ZeroDivisionError : it seems, lecture has malfunction or is zero byte(s) .."}
+                                break
+                        else:
+                            rate = 0
+                            eta = 0
 
-                            if not is_malformed:
-                                progress_stats = (
-                                    bytesdone, bytesdone * 1.0 / total, rate, eta)
+                        if not is_malformed:
+                            progress_stats = (
+                                bytesdone, bytesdone * 1.0 / total, rate, eta)
 
-                                if not quiet:
-                                    status = status_string.format(*progress_stats)
-                                    sys.stdout.write(
-                                        "\r" + status + ' ' * 4 + "\r")
-                                    sys.stdout.flush()
+                            if not quiet:
+                                status = status_string.format(*progress_stats)
+                                sys.stdout.write(
+                                    "\r" + status + ' ' * 4 + "\r")
+                                sys.stdout.flush()
 
-                                if callback:
-                                    callback(total, *progress_stats)
-                if not response.ok:
-                    code = response.status_code
-                    reason = response.reason
-                    retVal = {
-                        "status": "False", "msg": "Udemy returned HTTP Code %s: %s" % (code, reason)}
+                            if callback:
+                                callback(total, *progress_stats)
+            if not response.ok:
+                code = response.status_code
+                reason = response.reason
+                retVal = {
+                    "status": "False", "msg": "Udemy returned HTTP Code %s: %s" % (code, reason)}
+                response.close()
         except KeyboardInterrupt as error:
             raise error
         except Exception as error:
