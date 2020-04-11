@@ -154,6 +154,23 @@ class Udemy(ProgressBar):
             results = webpage.get('results', [])
         return results
 
+    def _archived_courses(self, portal_name):
+        results = []
+        try:
+            url = MY_COURSES_URL.format(portal_name=portal_name) + "&is_archived=true"
+            webpage = self._session._get(url).json()
+        except conn_error as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Connection error : make sure your internet connection is working.\n")
+            time.sleep(0.8)
+            sys.exit(0)
+        except (ValueError, Exception) as e:
+            sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "%s.\n" % (e))
+            time.sleep(0.8)
+            sys.exit(0)
+        else:
+            results = webpage.get('results', [])
+        return results
+
     def _subscribed_collection_courses(self, portal_name):
         url = COLLECTION_URL.format(portal_name=portal_name)
         courses_lists = []
@@ -194,6 +211,9 @@ class Udemy(ProgressBar):
             course = self.__extract_course(response=results, course_name=course_name)
         if not course:
             results = self._subscribed_collection_courses(portal_name=portal_name)
+            course = self.__extract_course(response=results, course_name=course_name)
+        if not course:
+            results = self._archived_courses(portal_name=portal_name)
             course = self.__extract_course(response=results, course_name=course_name)
 
         if course:
