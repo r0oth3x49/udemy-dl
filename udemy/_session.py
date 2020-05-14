@@ -54,7 +54,7 @@ class Session(object):
                 msg = {'detail': ''}
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s %s ...\n" % (session.status_code, session.reason, msg.get('detail', '')))
             time.sleep(0.8)
-            sys.exit(0)
+            sys.exit(2)
 
     def _post(self, url, data, redirect=True):
         session = self._session.post(url, data, headers=self._headers, allow_redirects=redirect)
@@ -68,7 +68,7 @@ class Session(object):
             sys.stdout.write(fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Udemy Says : %s %s %s ...\n" % (session.status_code, session.reason, msg.get('detail', '')))
             sys.stdout.flush()
             time.sleep(0.8)
-            sys.exit(0)
+            sys.exit(2)
 
     def terminate(self):
         self._set_auth_headers()
