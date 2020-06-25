@@ -62,6 +62,7 @@
 - Kali linux (2017.2)
 - Ubuntu-LTS (64-bit) (tested with super user)
 - Mac OSX 10.9.5 (tested with super user)
+- Docker's container
  
 ## ***Download udemy-dl***
 
@@ -176,3 +177,16 @@ Example:
   python udemy-dl.py  COURSE_URL -k cookies.txt
   python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL
 </code></pre>
+
+
+## **Run with docker-compose as a Docker's container**
+
+1. [Download the latest version of udemy-dl](#download-udemy-dl)
+2. [Get required cookie to login](#how-to-login-with-cookie)
+3. Set the required values for environment variables in `.container/udemy-dl/.env` file
+    - Set right value for `UDEMY_COURSE_URL`
+    - Set right value for `UDEMYDL_ARGS`. Default value: `--info`. Read more in [Features](#features), [Usage](#usage) or [Advanced Usage](#advanced-usage).    
+4. Inside project root execute:
+```
+docker-compose -f .container/udemy-dl/docker-compose.yml up -d
+``` 

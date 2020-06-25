@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  udemydl:
+    container_name: udemy_dl
+    image: udemy-dl:latest
+    build:
+      context: ../../
+      dockerfile: .container/udemy-dl/Dockerfile
+      args:
+        - PYTHON_VERSION=${PYTHON_VERSION}
+    environment:
+      - UDEMY_COURSE_URL=${UDEMY_COURSE_URL}
+      - UDEMYDL_ARGS=${UDEMYDL_ARGS}
+    volumes:
+      - ../../cookies.txt:/udemy-dl/src/cookies.txt
+      - ../../courses:/udemy-dl/src/courses
