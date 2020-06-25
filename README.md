@@ -176,3 +176,14 @@ Example:
   python udemy-dl.py  COURSE_URL -k cookies.txt
   python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL
 </code></pre>
+
+
+
+## ***Updates comming soon for next major release udemy-dl 1.0***
+ - Restructure code.
+ - add proper logging for information and errors.
+ - add support to download multiple courses from file
+ - add support to download just EN subtitles by default
+ - add switch to keep vtt subtitles as well.
+ - Add support to download 1080p if available. (most waited feature)
+ - Add support to download course on a flaky connection.
