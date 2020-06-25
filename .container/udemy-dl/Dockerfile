@@ -23,7 +23,7 @@ ENV UDEMYDL_ARGS ${UDEMYDL_ARGS}
 
 
 # System Configuration
-# .: 1. Install apt-utils package & Required Locales
+# .: 1. Install required packages
 RUN set -eux; \
     apt-get -qq update; \
     apt-get -qqy install  \
@@ -32,7 +32,7 @@ RUN set -eux; \
         build-essential; \
     rm -rf /var/lib/apt/lists/*;
 
-# .: 2. Create file system Add application user and group
+# .: 2. Create file system. Add application user and group
 RUN set -eux; \
     groupadd -r -g $UDEMY_GROUP_GID $UDEMY_GROUP; \
     useradd -r -u $UDEMY_USER_UID -d $APP_HOME -g $UDEMY_GROUP $UDEMY_USER; \
