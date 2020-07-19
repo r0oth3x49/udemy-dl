@@ -179,7 +179,7 @@ Example:
 
 
 
-## ***Updates for next major release udemy-dl 1.0***
+## ***Todo (for next release)***
  - Restructure code.
  - add proper logging for information and errors.
  - add support to download multiple courses from file
