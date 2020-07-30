@@ -89,7 +89,7 @@ class Downloader(object):
 
         file_data = []
         if os.path.isfile(filename):
-            file_data = [i.strip().lower() for i in open(filename, encoding='utf-8') if i]
+            file_data = [i.strip().lower() for i in codecs.open(filename, encoding='utf-8') if i]
 
         try:
             f = codecs.open(filename, 'a', encoding='utf-8', errors='ignore')
