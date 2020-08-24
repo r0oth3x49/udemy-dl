@@ -43,6 +43,14 @@
 
 ## ***How to login with cookie***
 
+The `cookies.txt` file should have the following simple format, eg:
+
+```ini
+access_token=JKU9QNs2IQDBKoYKvOBclSPXN97baf32o1Jo2L9vX
+```
+
+### Finding your access token value
+
  - ***Firefox*** users : [guide by @01ttouch](https://github.com/r0oth3x49/udemy-dl/issues/389#issuecomment-491903900)
  - ***Chrome*** users : [guide by @01ttouch](https://github.com/r0oth3x49/udemy-dl/issues/389#issuecomment-492569372)
 
