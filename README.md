@@ -41,6 +41,15 @@
 - Download/save lecture names (option: `--names`).
 - Download lectures containing unsafe *unicode* characters in title/name (option: `--unsafe`).
 
+
+## ***Create a local website for the downloaded course***
+[This tool](https://github.com/karimelgazar/course_to_local_website) creates a local website on your machine
+- You can access your videos, subtitles and html files all in one place 
+- provides lots of shortcuts to make you more productive and to save you alot of time
+- great design
+
+Please, go to [this link](https://github.com/karimelgazar/course_to_local_website) to know more about it and how to use it 
+
 ## ***How to login with cookie***
 
 The `cookies.txt` file should have the following simple format, eg:
