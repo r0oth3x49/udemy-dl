@@ -70,7 +70,7 @@ access_token=JKU9QNs2IQDBKoYKvOBclSPXN97baf32o1Jo2L9vX
 
 ## ***Module Installation***
 
-  pip install -r requirements.txt
+    pip install -r requirements.txt
 
 ## ***HLS streams download requirements***
 - You would need FFmpeg to be installed and added to environment variable so that udemy-dl can access.
@@ -89,7 +89,7 @@ access_token=JKU9QNs2IQDBKoYKvOBclSPXN97baf32o1Jo2L9vX
 
 You can download the latest version of udemy-dl by cloning the GitHub repository.
 
-  git clone https://github.com/r0oth3x49/udemy-dl.git
+    git clone https://github.com/r0oth3x49/udemy-dl.git
 
 
 ## ***Usage***
