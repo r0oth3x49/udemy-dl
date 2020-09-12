@@ -23,13 +23,17 @@
 
 
 ## ***Features***
-
+- Added proper session management.
 - Resume capability for a course video.
+- Added proper logging errors and warnings.
+- Support multiple courses download from file.
 - Supports organization and individual udemy users both.
-- Save course direct download links to a text file (option: `--save`).
-- Cache credentials to a file and use it later for login purpose (option: `--cache`).
+- Added support to download hls based streams if available.
+- Convert WebVTT to SRT but donot delete WebVTT. (option: `--keep-vtt`)
+- Skip fetching HLS streams, This will make the fetching fast. (option: `--skip-hls`)
 - List down course contents and video resolution, suggest the best resolution (option: `--info`).
 - Download/skip all available subtitles for a video (options: `--sub-only, --skip-sub`).
+- Download/skip all available assets for a video (options: `--assets-only, --skip-assets`).
 - Download specific chapter in a course (option: `-c / --chapter`).
 - Download specific lecture in a chapter (option: `-l / --lecture`).
 - Download specific subtitle for a lecture (option: `-s / --sub-lang`).
@@ -38,8 +42,6 @@
 - Download lecture(s) in requested resolution (option: `-q / --quality`).
 - Download course to user requested path (option: `-o / --output`).
 - Authentication using cookies (option: `-k / --cookies`).
-- Download/save lecture names (option: `--names`).
-- Download lectures containing unsafe *unicode* characters in title/name (option: `--unsafe`).
 
 ## ***How to login with cookie***
 
@@ -56,18 +58,26 @@ access_token=JKU9QNs2IQDBKoYKvOBclSPXN97baf32o1Jo2L9vX
 
 ## ***Requirements***
 
-- Python (2 or 3)
+- Python 3
 - Python `pip`
 - Python module `requests`
 - Python module `colorama`
 - Python module `unidecode`
 - Python module `six`
+- Python module `cloudscraper`
 - Python module `requests[security]` or `pyOpenSSL`
+- FFmpeg (to downlaod hls based streams properly)
 
 ## ***Module Installation***
 
-	pip install -r requirements.txt
-	
+  pip install -r requirements.txt
+
+## ***HLS streams download requirements***
+- You would need FFmpeg to be installed and added to environment variable so that udemy-dl can access.
+- Download [FFmpeg from here](https://ffmpeg.org/download.html)
+- On ubuntu you can install it via `apt install ffmpeg`.
+- Add to environment variables then udemy-dl will be able to use it when download HLS streams.
+  
 ## ***Tested on***
 
 - Windows 7/8/8.1/10
@@ -79,7 +89,7 @@ access_token=JKU9QNs2IQDBKoYKvOBclSPXN97baf32o1Jo2L9vX
 
 You can download the latest version of udemy-dl by cloning the GitHub repository.
 
-	git clone https://github.com/r0oth3x49/udemy-dl.git
+  git clone https://github.com/r0oth3x49/udemy-dl.git
 
 
 ## ***Usage***
@@ -87,6 +97,10 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 ***Download a course***
 
     python udemy-dl.py COURSE_URL
+
+***Download a courses from file***
+
+    python udemy-dl.py FILE-CONTAINING-COURSE-URLs
   
 ***Download course with specific resolution***
 
@@ -142,14 +156,11 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 <pre><code>
 Author: Nasir khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)
 
-usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l] [-s]
-                   [--chapter-start] [--chapter-end] [--lecture-start]
-                   [--lecture-end] [--save] [--info] [--cache] [--names]
-                   [--unsafe] [--sub-only] [--skip-sub]
+usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l] [-s] [--chapter-start] [--chapter-end] [--lecture-start] [--lecture-end] [--info]
+                   [--keep-vtt] [--sub-only] [--skip-sub] [--skip-hls] [--assets-only] [--skip-assets]
                    course
 
-A cross-platform python based utility to download courses from udemy for
-personal offline use.
+A cross-platform python based utility to download courses from udemy for personal offline use.
 
 positional arguments:
   course            Udemy course.
@@ -175,13 +186,13 @@ Advance:
   --lecture-end     Download till specific position within chapter(s).
 
 Others:
-  --save            Do not download but save links to a file.
   --info            List all lectures with available resolution.
-  --cache           Cache your credentials to use it later.
-  --names           Do not download but save lecture names to file.
-  --unsafe          Download all course with unsafe names.
+  --keep-vtt        Keep WebVTT caption(s).
   --sub-only        Download captions/subtitle only.
   --skip-sub        Download course but skip captions/subtitle.
+  --skip-hls        Download course but skip hls streams. (fast fetching).
+  --assets-only     Download asset(s) only.
+  --skip-assets     Download course but skip asset(s).
 
 Example:
   python udemy-dl.py  COURSE_URL
@@ -191,11 +202,5 @@ Example:
 
 
 
-## ***Todo (for next release)***
- - Restructure code.
- - add proper logging for information and errors.
- - add support to download multiple courses from file
- - add support to download just EN subtitles by default
- - add switch to keep vtt subtitles as well.
- - Add support to download 1080p if available. (most waited feature)
+## ***TODO***
  - Add support to download course on a flaky connection.

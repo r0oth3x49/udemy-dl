@@ -1,16 +1,16 @@
-#!/usr/bin/python
+# pylint: disable=R,C,W,E
+#!/usr/bin/env python3
 # -*- coding: utf-8
 
 from __future__ import unicode_literals
 
 import re
-import os
 import six
 import unicodedata
 from unidecode import unidecode
 
 
-def smart_text(s, encoding='utf-8', errors='strict'):
+def smart_text(s, encoding="utf-8", errors="strict"):
     if isinstance(s, six.text_type):
         return s
 
@@ -20,7 +20,7 @@ def smart_text(s, encoding='utf-8', errors='strict'):
                 s = six.text_type(s, encoding, errors)
             else:
                 s = six.text_type(s)
-        elif hasattr(s, '__unicode__'):
+        elif hasattr(s, "__unicode__"):
             s = six.text_type(s)
         else:
             s = six.text_type(bytes(s), encoding, errors)
@@ -30,10 +30,12 @@ def smart_text(s, encoding='utf-8', errors='strict'):
 
 
 # Extra characters outside of alphanumerics that we'll allow.
-SLUG_OK = '-_~'
+SLUG_OK = "-_~"
 
 
-def slugify(s, ok=SLUG_OK, lower=True, spaces=False, only_ascii=False, space_replacement='-'):
+def slugify(
+    s, ok=SLUG_OK, lower=True, spaces=False, only_ascii=False, space_replacement="-"
+):
     """
     Creates a unicode slug for given string with several options.
 
@@ -60,75 +62,81 @@ def slugify(s, ok=SLUG_OK, lower=True, spaces=False, only_ascii=False, space_rep
 
     """
 
-    if only_ascii and ok != SLUG_OK and hasattr(ok, 'decode'):
+    if only_ascii and ok != SLUG_OK and hasattr(ok, "decode"):
         try:
-            ok.decode('ascii')
+            ok.decode("ascii")
         except UnicodeEncodeError:
-            raise ValueError(('You can not use "only_ascii=True" with '
-                              'a non ascii available chars in "ok" ("%s" given)') % ok)
+            raise ValueError(
+                (
+                    'You can not use "only_ascii=True" with '
+                    'a non ascii available chars in "ok" ("%s" given)'
+                )
+                % ok
+            )
 
     rv = []
-    for c in unicodedata.normalize('NFKC', smart_text(s)):
+    for c in unicodedata.normalize("NFKC", smart_text(s)):
         cat = unicodedata.category(c)[0]
-        if cat in 'LN' or c in ok:
+        if cat in "LN" or c in ok:
             rv.append(c)
-        elif cat == 'Z':  # space
-            rv.append(' ')
-    new = ''.join(rv).strip()
+        elif cat == "Z":  # space
+            rv.append(" ")
+    new = "".join(rv).strip()
 
     if only_ascii:
         new = unidecode(new)
     if not spaces:
         if space_replacement and space_replacement not in ok:
-            space_replacement = ok[0] if ok else ''
-        new = re.sub('[%s\s]+' % space_replacement, space_replacement, new)
+            space_replacement = ok[0] if ok else ""
+        new = re.sub("[%s\s]+" % space_replacement, space_replacement, new)
     if lower:
         new = new.lower()
 
     return new
 
+
 def sanitize(title):
     _locale = {
-        '194'  : 'A',
-        '199'  : 'C',
-        '286'  : 'G',
-        '304'  : 'I',
-        '206'  : 'I',
-        '214'  : 'O',
-        '350'  : 'S',
-        '219'  : 'U',
-        '226'  : 'a',
-        '231'  : 'c',
-        '287'  : 'g',
-        '305'  : 'i',
-        '238'  : 'i',
-        '246'  : 'o',
-        '351'  : 's',
-        '251'  : 'u',
-        '191'  : '',
-        '225'  : 'a',
-        '233'  : 'e',
-        '237'  : 'i',
-        '243'  : 'o',
-        '250'  : 'u',
-        '252'  : 'u',
-        '168u' : 'u',
-        '241'  : 'n',
-        '193'  : 'A',
-        '201'  : 'E',
-        '205'  : 'I',
-        '211'  : 'O',
-        '218'  : 'U',
-        '220'  : 'U',
-        '168U' : 'U',
-        '209'  : 'N',
-        '223'  : 'ss',
+        "194": "A",
+        "199": "C",
+        "286": "G",
+        "304": "I",
+        "206": "I",
+        "214": "O",
+        "350": "S",
+        "219": "U",
+        "226": "a",
+        "231": "c",
+        "287": "g",
+        "305": "i",
+        "238": "i",
+        "246": "o",
+        "351": "s",
+        "251": "u",
+        "191": "",
+        "225": "a",
+        "233": "e",
+        "237": "i",
+        "243": "o",
+        "250": "u",
+        "252": "u",
+        "168u": "u",
+        "241": "n",
+        "193": "A",
+        "201": "E",
+        "205": "I",
+        "211": "O",
+        "218": "U",
+        "220": "U",
+        "168U": "U",
+        "209": "N",
+        "223": "ss",
     }
-    _temp   = ''.join([str(ord(i)) if ord(i) > 128 else i for i in title])
-    for _ascii,_char in _locale.items():
+    _temp = "".join([str(ord(i)) if ord(i) > 128 else i for i in title])
+    for _ascii, _char in _locale.items():
         if _ascii in _temp:
             _temp = _temp.replace(_ascii, _char)
 
     ok = re.compile(r'[^\\/:*?"<>]')
-    _title      = ''.join(x if ok.match(x) else "_" for x in _temp)
+    _title = "".join(x if ok.match(x) else "_" for x in _temp)
     return _title

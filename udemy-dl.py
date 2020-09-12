@@ -1,1456 +1,609 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+# pylint: disable=R,C0330,C0301,C0303
+
+"""
+
+Author  : Nasir Khan (r0ot h3x49)
+Github  : https://github.com/r0oth3x49
+License : MIT
+
+
+Copyright (c) 2018-2025 Nasir Khan (r0ot h3x49)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the
+Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+"""
 
 import os
 import sys
-import time
-import udemy
-import codecs
 import argparse
 
-from pprint import pprint
-from udemy import __version__
-from udemy._colorized import *
-from udemy._compat import pyver
-from udemy._getpass import GetPass
-from udemy._vtt2srt import WebVtt2Srt
-from udemy._progress import ProgressBar
-from udemy._colorized.banner import banner
-from udemy._utils import cache_credentials
-from udemy._utils import use_cached_credentials
-getpass = GetPass()
+import udemy
+from udemy.logger import logger
+from udemy.getpass import getpass
+from udemy.vtt2srt import WebVtt2Srt
+from udemy.progress import ProgressBar
+from udemy.colorized.banner import banner
+from udemy.utils import (
+    to_configs,
+    to_filepath,
+    load_configs,
+    to_human_readable,
+    extract_url_or_courses,
+)
 
 
 class Udemy(WebVtt2Srt, ProgressBar):
+    """Udemy is class which implements downloading/lising and all"""
 
-    def __init__(self, url, username='', password='', cookies=''):
-        self.url        =   url
-        self.username   =   username
-        self.password   =   password
-        self.cookies    =   cookies
+    def __init__(self, url_or_courses, username="", password="", cookies=""):
+        self.username = username
+        self.password = password
+        self.cookies = cookies
+        self.url_or_courses = url_or_courses
         super(Udemy, self).__init__()
 
-    def _write_to_file(self, filepath='', lecture='', names_only=False, unsafe=False):
-        retVal = {}
-        filename = filepath
-        filename += '-names-only.txt' if names_only else ".txt"
-        fmode = "a"
-        if not unsafe:
+    def download_assets(self, assets, filepath):
+        """This function will simply download the asstes.."""
+        if assets:
+            for asset in assets:
+                title = asset.filename
+                logger.info(msg="Downloading asset(s)", new_line=True, before=True)
+                logger.info(msg=f"Downloading ({title})", new_line=True)
+                try:
+                    retval = asset.download(
+                        filepath=filepath, quiet=True, callback=self.show_progress,
+                    )
+                    msg = retval.get("msg")
+                    if msg == "already downloaded":
+                        logger.already_downloaded(msg=f"Asset : '{title}'")
+                    elif msg == "download":
+                        logger.info(msg=f"Downloaded  ({title})", new_line=True)
+                    else:
+                        logger.download_skipped(msg=f"Asset : '{title}' ", reason=msg)
+                except KeyboardInterrupt:
+                    logger.error(msg="User Interrupted..", new_line=True)
+                    sys.exit(0)
+
+    def download_lecture(self, lecture, filepath, current, total, quality):
+        """This function will simply download the lectures.."""
+        if quality:
+            lecture = lecture.get_quality(quality)
+        if lecture:
             title = lecture.title
-            url = lecture.url
-            url_or_name = url if not names_only else title
-            url_or_name += "\n"
-        if unsafe:
-            title = u'%s' % (lecture.unsafe_title)
-            url = lecture.url
-            url_or_name = url if not names_only else title
-            url_or_name += "\n"
-
-        try:
-            f = codecs.open(filename, fmode, encoding='utf-8', errors='ignore')
-            f.write(url_or_name)
-        except (OSError, Exception, UnicodeDecodeError) as e:
-            retVal = {'status' : 'False', 'msg' : '{}'.format(e)}
-        else:
-            retVal = {'status' : 'True', 'msg' : 'download'}
-            f.close()
-
-        return retVal
-
-    def course_save(self, path='', quality='', caption_only=False, skip_captions=False, names_only=False, unsafe=False):
-        if not self.cookies:
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login as " + fm + sb +"(%s)" % (self.username) +  fg + sb +"...\n")
-        if self.cookies:
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login using cookies ...\n")
-        course = udemy.course(url=self.url, username=self.username, password=self.password, cookies=self.cookies)
-        course_id = course.id
-        course_name = course.title
-        total_lectures = course.lectures
-        total_chapters = course.chapters
-        course_name = (course_name.lower()).replace(' ', '-')
-        chapters = course.get_chapters()
-        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Course " + fb + sb + "'%s'.\n" % (course_name))
-        sys.stdout.write (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Chapter(s) (%s).\n" % (total_chapters))
-        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (total_lectures))
-        if path:
-            if '~' in path:
-                path    = os.path.expanduser(path)
-            course_path    = "%s\\%s" % (path, course_name) if os.name == 'nt' else "%s/%s" % (path, course_name)
-        else:
-            path        = os.getcwd()
-            course_path = "%s\\%s" % (path, course_name) if os.name == 'nt' else "%s/%s" % (path, course_name)
-        filepath = '%s.txt' % (course_path)
-        if os.path.isfile(filepath):
-            with open(filepath, 'w') as f:
-                f.close()
-        if not names_only:
-            sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Writing course content(s) to '%s.txt'\n" % (course_name))
-        if names_only:
-            sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Writing course lecture names to '%s-names-only.txt'\n" % (course_name))
-        for chapter in chapters:
-            chapter_id = chapter.id
-            chapter_title = chapter.title
-            lectures = chapter.get_lectures()
-            lectures_count = chapter.lectures
-            for lecture in lectures:
-                lecture_id = lecture.id
-                lecture_streams = lecture.streams
-                lecture_best = lecture.getbest()
-                lecture_assets = lecture.assets
-                lecture_subtitles = lecture.subtitles
-                if quality:
-                    index = 0
-                    while index < len(lecture_streams):
-                        dimension = int(lecture_streams[index].dimention[1])
-                        if dimension == quality:
-                            lecture_best = lecture_streams[index]
-                            break
-                        index += 1
-                    if not lecture_best:
-                        lecture_best = lecture_best
-                if caption_only and not skip_captions:
-                    if lecture_subtitles:
-                        for subtitle in lecture_subtitles:
-                            self._write_to_file(filepath=course_path, lecture=subtitle, names_only=names_only, unsafe=unsafe)
-                    if lecture_assets:
-                        for asset in lecture_assets:
-                            self._write_to_file(filepath=course_path, lecture=asset, names_only=names_only, unsafe=unsafe)
-                elif skip_captions and not caption_only:
-                    if lecture_best:
-                        self._write_to_file(filepath=course_path, lecture=lecture_best, names_only=names_only, unsafe=unsafe)
-                    if lecture_assets:
-                        for asset in lecture_assets:
-                            self._write_to_file(filepath=course_path, lecture=asset, names_only=names_only, unsafe=unsafe)
+            logger.info(
+                msg=f"Lecture(s) : ({current} of {total})", new_line=True, before=True
+            )
+            logger.info(msg=f"Downloading ({title})", new_line=True)
+            try:
+                retval = lecture.download(
+                    filepath=filepath, quiet=True, callback=self.show_progress,
+                )
+                msg = retval.get("msg")
+                if msg == "already downloaded":
+                    logger.already_downloaded(msg=f"Lecture : '{title}'")
+                elif msg == "download":
+                    logger.info(msg=f"Downloaded  ({title})", new_line=True)
                 else:
-                    if lecture_best:
-                        self._write_to_file(filepath=course_path, lecture=lecture_best, names_only=names_only, unsafe=unsafe)
-                    if lecture_assets:
-                        for asset in lecture_assets:
-                            self._write_to_file(filepath=course_path, lecture=asset, names_only=names_only, unsafe=unsafe)
-                    if lecture_subtitles:
-                        for subtitle in lecture_subtitles:
-                            self._write_to_file(filepath=course_path, lecture=subtitle, names_only=names_only, unsafe=unsafe)
-        if not names_only:
-            sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Written successfully under '{name}.txt'.\n".format(name=course_path))
-        if names_only:
-            sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Written successfully under '{name}-names-only.txt'.\n".format(name=course_path))
+                    logger.download_skipped(msg=f"Lecture : '{title}' ", reason=msg)
+            except KeyboardInterrupt:
+                logger.error(msg="User Interrupted..", new_line=True)
+                sys.exit(0)
 
-    def course_list_down(self, chapter_number='', lecture_number='', unsafe=False):
+    def downalod_subtitles(self, subtitles, filepath, language="en", keep_vtt=False):
+        """This function will simply download the subtitles.."""
+        if language and subtitles:
+            subtitle = subtitles.pop()
+            subtitles = subtitle.get_subtitle(language)
+        if subtitles:
+            for sub in subtitles:
+                title = f"{sub.title}.{sub.language}"
+                filename = os.path.join(filepath, sub.filename)
+                logger.info(msg="Downloading subtitle(s)", new_line=True, before=True)
+                logger.info(msg=f"Downloading ({title})", new_line=True)
+                try:
+                    retval = sub.download(
+                        filepath=filepath, quiet=True, callback=self.show_progress,
+                    )
+                    msg = retval.get("msg")
+                    if msg == "already downloaded":
+                        logger.already_downloaded(msg=f"Subtitle : '{title}'")
+                    elif msg == "download":
+                        logger.info(msg=f"Downloaded  ({title})", new_line=True)
+                        self.convert(filename=filename, keep_vtt=keep_vtt)
+                    else:
+                        logger.download_skipped(
+                            msg=f"Subtitle : '{title}' ", reason=msg
+                        )
+                except KeyboardInterrupt:
+                    logger.error(msg="User Interrupted..", new_line=True)
+                    sys.exit(0)
+
+    def course_listdown(
+        self,
+        chapter_number=None,
+        chapter_start=None,
+        chapter_end=None,
+        lecture_number=None,
+        lecture_start=None,
+        lecture_end=None,
+        skip_hls_stream=False,
+    ):
+        """This function will listdown the course contents .."""
         if not self.cookies:
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login as " + fm + sb +"(%s)" % (self.username) +  fg + sb +"...\n")
+            logger.info(msg="Trying to login as", status=self.username)
         if self.cookies:
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login using cookies ...\n")
-        course = udemy.course(url=self.url, username=self.username, password=self.password, cookies=self.cookies)
-        course_id = course.id
-        course_name = course.title
-        total_lectures = course.lectures
-        total_chapters = course.chapters
-        chapters = course.get_chapters()
-        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Course " + fb + sb + "'%s'.\n" % (course_name))
-        sys.stdout.write (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Chapter(s) (%s).\n" % (total_chapters))
-        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (total_lectures))
-        if chapter_number and chapter_number > 0 and chapter_number <= total_chapters:
-            chapter = chapters[chapter_number-1]
-            chapter_id = chapter.id
-            chapter_title = chapter.title if not unsafe else "%02d" % (int(chapter.index))
-            lectures = chapter.get_lectures()
-            lectures_count = chapter.lectures
-            sys.stdout.write ('\n' + fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s-%s)\n" % (chapter_title, chapter_id))
-            sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (lectures_count))
-            if lecture_number and lecture_number > 0 and lecture_number <= lectures_count:
-                lecture = lectures[lecture_number-1]
-                lecture_id = lecture.id
-                lecture_streams = lecture.streams
-                lecture_best = lecture.getbest()
-                lecture_assets = lecture.assets
-                lecture_subtitles = lecture.subtitles
-                if lecture_streams:
-                    sys.stdout.write(fc + sd + "     - " + fy + sb + "duration   : " + fm + sb + str(lecture.duration)+ fy + sb + ".\n")
-                    sys.stdout.write(fc + sd + "     - " + fy + sb + "Lecture id : " + fm + sb + str(lecture_id)+ fy + sb + ".\n")
-                    for stream in lecture_streams:
-                        content_length = stream.get_filesize()
-                        if content_length != 0:
-                            if content_length <= 1048576.00:
-                                size = round(float(content_length) / 1024.00, 2)
-                                sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                in_MB = 'KB' if size < 1024.00 else 'MB'
-                            else:
-                                size = round(float(content_length) / 1048576, 2)
-                                sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                in_MB = "MB " if size < 1024.00 else 'GB '
-                            if lecture_best.dimention[1] == stream.dimention[1]:
-                                in_MB = in_MB + fc + sb + "(Best)" + fg + sd
-                            sys.stdout.write('\t- ' + fg + sd + "{:<22} {:<8}{}{}{}{}\n".format(str(stream), stream.dimention[1] + 'p', sz, in_MB, fy, sb))
-                if lecture_assets:
-                    for asset in lecture_assets:
-                        if asset.mediatype != 'external_link':
-                            content_length = asset.get_filesize()
-                            if content_length != 0:
-                                if content_length <= 1048576.00:
-                                    size = round(float(content_length) / 1024.00, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = 'KB' if size < 1024.00 else 'MB'
-                                else:
-                                    size = round(float(content_length) / 1048576, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = "MB " if size < 1024.00 else 'GB '
-                                sys.stdout.write('\t- ' + fg + sd + "{:<22} {:<8}{}{}{}{}\n".format(str(asset), asset.extension, sz, in_MB, fy, sb))
-                if lecture_subtitles:
-                    for subtitle in lecture_subtitles:
-                        content_length = subtitle.get_filesize()
-                        if content_length != 0:
-                            if content_length <= 1048576.00:
-                                size = round(float(content_length) / 1024.00, 2)
-                                sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                in_MB = 'KB' if size < 1024.00 else 'MB'
-                            else:
-                                size = round(float(content_length) / 1048576, 2)
-                                sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                in_MB = "MB " if size < 1024.00 else 'GB '
-                            sys.stdout.write('\t- ' + fg + sd + "{:<22} {:<8}{}{}{}{}\n".format(str(subtitle), subtitle.extension, sz, in_MB, fy, sb))
-            else:
-                for lecture in lectures:
-                    lecture_id = lecture.id
-                    lecture_streams = lecture.streams
-                    lecture_best = lecture.getbest()
-                    lecture_assets = lecture.assets
-                    lecture_subtitles = lecture.subtitles
-                    if lecture_streams:
-                        sys.stdout.write(fc + sd + "     - " + fy + sb + "duration   : " + fm + sb + str(lecture.duration)+ fy + sb + ".\n")
-                        sys.stdout.write(fc + sd + "     - " + fy + sb + "Lecture id : " + fm + sb + str(lecture_id)+ fy + sb + ".\n")
-                        for stream in lecture_streams:
-                            content_length = stream.get_filesize()
-                            if content_length != 0:
-                                if content_length <= 1048576.00:
-                                    size = round(float(content_length) / 1024.00, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = 'KB' if size < 1024.00 else 'MB'
-                                else:
-                                    size = round(float(content_length) / 1048576, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = "MB " if size < 1024.00 else 'GB '
-                                if lecture_best.dimention[1] == stream.dimention[1]:
-                                    in_MB = in_MB + fc + sb + "(Best)" + fg + sd
-                                sys.stdout.write('\t- ' + fg + sd + "{:<22} {:<8}{}{}{}{}\n".format(str(stream), stream.dimention[1] + 'p', sz, in_MB, fy, sb))
-                    if lecture_assets:
-                        for asset in lecture_assets:
-                            if asset.mediatype != 'external_link':
-                                content_length = asset.get_filesize()
-                                if content_length != 0:
-                                    if content_length <= 1048576.00:
-                                        size = round(float(content_length) / 1024.00, 2)
-                                        sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                        in_MB = 'KB' if size < 1024.00 else 'MB'
-                                    else:
-                                        size = round(float(content_length) / 1048576, 2)
-                                        sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                        in_MB = "MB " if size < 1024.00 else 'GB '
-                                    sys.stdout.write('\t- ' + fg + sd + "{:<22} {:<8}{}{}{}{}\n".format(str(asset), asset.extension, sz, in_MB, fy, sb))
-                    if lecture_subtitles:
-                        for subtitle in lecture_subtitles:
-                            content_length = subtitle.get_filesize()
-                            if content_length != 0:
-                                if content_length <= 1048576.00:
-                                    size = round(float(content_length) / 1024.00, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = 'KB' if size < 1024.00 else 'MB'
-                                else:
-                                    size = round(float(content_length) / 1048576, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = "MB " if size < 1024.00 else 'GB '
-                                sys.stdout.write('\t- ' + fg + sd + "{:<22} {:<8}{}{}{}{}\n".format(str(subtitle), subtitle.extension, sz, in_MB, fy, sb))
-        else:
+            logger.info(msg="Trying to login using session cookie", new_line=True)
+        for url in self.url_or_courses:
+            course = udemy.course(
+                url=url,
+                username=self.username,
+                password=self.password,
+                cookies=self.cookies,
+                skip_hls_stream=skip_hls_stream,
+            )
+            course_name = course.title
+            chapters = course.get_chapters(
+                chapter_number=chapter_number,
+                chapter_start=chapter_start,
+                chapter_end=chapter_end,
+            )
+            total_lectures = course.lectures
+            total_chapters = course.chapters
+            logger.success(msg=course_name, course=True)
+            logger.info(msg=f"Chapter(s) ({total_chapters})", new_line=True)
+            logger.info(msg=f"Lecture(s) ({total_lectures})", new_line=True)
             for chapter in chapters:
                 chapter_id = chapter.id
-                chapter_title = chapter.title if not unsafe else "%02d" % (int(chapter.index))
-                lectures = chapter.get_lectures()
+                chapter_title = chapter.title
+                lectures = chapter.get_lectures(
+                    lecture_number=lecture_number,
+                    lecture_start=lecture_start,
+                    lecture_end=lecture_end,
+                )
                 lectures_count = chapter.lectures
-                sys.stdout.write ('\n' + fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s-%s)\n" % (chapter_title, chapter_id))
-                sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (lectures_count))
+                logger.info(
+                    msg=f"Chapter ({chapter_title}-{chapter_id})",
+                    new_line=True,
+                    before=True,
+                    cc=15,
+                    cc_msg=15,
+                )
+                logger.info(msg=f"Lecture(s) ({lectures_count})", new_line=True)
                 for lecture in lectures:
                     lecture_id = lecture.id
                     lecture_streams = lecture.streams
                     lecture_best = lecture.getbest()
                     lecture_assets = lecture.assets
                     lecture_subtitles = lecture.subtitles
-                    if lecture_streams:
-                        sys.stdout.write(fc + sd + "     - " + fy + sb + "duration   : " + fm + sb + str(lecture.duration)+ fy + sb + ".\n")
-                        sys.stdout.write(fc + sd + "     - " + fy + sb + "Lecture id : " + fm + sb + str(lecture_id)+ fy + sb + ".\n")
-                        for stream in lecture_streams:
+                    if not lecture_streams:
+                        continue
+                    logger.info(
+                        indent="     - ",
+                        msg="duration   : ",
+                        new_line=True,
+                        cc=80,
+                        cc_msg=10,
+                        post_msg=f"{lecture.duration}.",
+                        cc_pmsg=80,
+                    )
+                    logger.info(
+                        indent="     - ",
+                        msg="Lecture id : ",
+                        new_line=True,
+                        cc=80,
+                        cc_msg=10,
+                        post_msg=f"{lecture_id}.",
+                        cc_pmsg=80,
+                    )
+                    indent = "\t- "
+                    for stream in lecture_streams:
+                        post_msg = None
+                        if stream.is_hls:
+                            human_readable = ""
+                        if not stream.is_hls:
                             content_length = stream.get_filesize()
-                            if content_length != 0:
-                                if content_length <= 1048576.00:
-                                    size = round(float(content_length) / 1024.00, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = 'KB' if size < 1024.00 else 'MB'
-                                else:
-                                    size = round(float(content_length) / 1048576, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = "MB " if size < 1024.00 else 'GB '
-                                if lecture_best.dimention[1] == stream.dimention[1]:
-                                    in_MB = in_MB + fc + sb + "(Best)" + fg + sd
-                                sys.stdout.write('\t- ' + fg + sd + "{:<22} {:<8}{}{}{}{}\n".format(str(stream), stream.dimention[1] + 'p', sz, in_MB, fy, sb))
+                            if content_length == 0:
+                                continue
+                            human_readable = to_human_readable(content_length)
+                            if lecture_best.quality == stream.quality:
+                                post_msg = "(Best)"
+                        msg = "{:<22} {:<8}{}".format(
+                            f"{stream}", f"{stream.quality}p", human_readable
+                        )
+                        logger.info(
+                            indent=indent,
+                            msg=msg,
+                            new_line=True,
+                            cc=15,
+                            post_msg=post_msg,
+                            cc_pmsg=30,
+                        )
                     if lecture_assets:
                         for asset in lecture_assets:
-                            if asset.mediatype != 'external_link':
-                                content_length = asset.get_filesize()
-                                if content_length != 0:
-                                    if content_length <= 1048576.00:
-                                        size = round(float(content_length) / 1024.00, 2)
-                                        sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                        in_MB = 'KB' if size < 1024.00 else 'MB'
-                                    else:
-                                        size = round(float(content_length) / 1048576, 2)
-                                        sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                        in_MB = "MB " if size < 1024.00 else 'GB '
-                                    sys.stdout.write('\t- ' + fg + sd + "{:<22} {:<8}{}{}{}{}\n".format(str(asset), asset.extension, sz, in_MB, fy, sb))
+                            if asset.mediatype == "external_link":
+                                continue
+                            content_length = asset.get_filesize()
+                            if content_length == 0:
+                                continue
+                            human_readable = to_human_readable(content_length)
+                            msg = "{:<22} {:<8}{}".format(
+                                f"{asset}", asset.extension, human_readable
+                            )
+                            logger.info(
+                                indent=indent, msg=msg, new_line=True, cc=15,
+                            )
                     if lecture_subtitles:
-                        for subtitle in lecture_subtitles:
-                            content_length = subtitle.get_filesize()
-                            if content_length != 0:
-                                if content_length <= 1048576.00:
-                                    size = round(float(content_length) / 1024.00, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = 'KB' if size < 1024.00 else 'MB'
-                                else:
-                                    size = round(float(content_length) / 1048576, 2)
-                                    sz = format(size if size < 1024.00 else size/1024.00, '.2f')
-                                    in_MB = "MB " if size < 1024.00 else 'GB '
-                                sys.stdout.write('\t- ' + fg + sd + "{:<22} {:<8}{}{}{}{}\n".format(str(subtitle), subtitle.extension, sz, in_MB, fy, sb))
+                        for sub in lecture_subtitles:
+                            content_length = sub.get_filesize()
+                            if content_length == 0:
+                                continue
+                            human_readable = to_human_readable(content_length)
+                            msg = "{:<22} {:<8}{}".format(
+                                f"{sub}", sub.extension, human_readable
+                            )
+                            logger.info(
+                                indent=indent, msg=msg, new_line=True, cc=15,
+                            )
 
-    def download_assets(self, lecture_assets='', filepath='', unsafe=False):
-        if lecture_assets:
-            for assets in lecture_assets:
-                title = assets.filename if not unsafe else "%s" % (assets)
-                mediatype = assets.mediatype
-                if mediatype == "external_link":
-                    assets.download(filepath=filepath, unsafe=unsafe, quiet=True, callback=self.show_progress)
-                else:
-                    sys.stdout.write(fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading asset(s)\n")
-                    sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)\n" % (title))
-                    try:
-                        retval = assets.download(filepath=filepath, unsafe=unsafe, quiet=True, callback=self.show_progress)
-                    except KeyboardInterrupt:
-                        sys.stdout.write (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
-                        sys.exit(0)
-                    else:
-                        msg     = retval.get('msg')
-                        if msg == 'already downloaded':
-                            sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Asset : '%s' " % (title) + fy + sb + "(already downloaded).\n")
-                        elif msg == 'download':
-                            sys.stdout.write (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)\n" % (title))
-                        else:
-                            sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Asset : '%s' " % (title) + fc + sb + "(download skipped).\n")
-                            sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}\n".format(msg))
-
-    def download_subtitles(self, lecture_subtitles='', language='', filepath='', unsafe=False):
-        if language:
-            _lecture_subtitles = [i for i in lecture_subtitles if i.language == language]
-            if _lecture_subtitles:
-                lecture_subtitles = _lecture_subtitles
-        if lecture_subtitles:
-            for subtitles in lecture_subtitles:
-                title = subtitles.title + '-' + subtitles.language if not unsafe else "%s" % (subtitles)
-                if not unsafe:
-                    filename = "%s\\%s" % (filepath, subtitles.filename) if os.name == 'nt' else "%s/%s" % (filepath, subtitles.filename)
-                if unsafe:
-                    filename = u"%s\\%s" % (filepath, subtitles.unsafe_filename) if os.name == 'nt' else u"%s/%s" % (filepath, subtitles.unsafe_filename)
-
-                sys.stdout.write(fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading subtitle(s)\n")
-                sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)\n" % (title))
-                
-                try:
-                    retval = subtitles.download(filepath=filepath, unsafe=unsafe, quiet=True, callback=self.show_progress)
-                except KeyboardInterrupt:
-                    sys.stdout.write (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
-                    sys.exit(0)
-                else:
-                    msg     = retval.get('msg')
-                    if msg == 'already downloaded':
-                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Subtitle : '%s' " % (title) + fy + sb + "(already downloaded).\n")
-                        self.convert(filename=filename)
-                    elif msg == 'download':
-                        sys.stdout.write (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)\n" % (title))
-                        self.convert(filename=filename)
-                    else:
-                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Subtitle : '%s' " % (title) + fc + sb + "(download skipped).\n")
-                        sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}\n".format(msg))
-
-    def download_lectures(self, lecture_best='', lecture_title='', inner_index='', lectures_count='', filepath='', unsafe=False):
-        if lecture_best:
-            sys.stdout.write(fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) : ({index} of {total})\n".format(index=inner_index, total=lectures_count))
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Downloading (%s)\n" % (lecture_title))
-            try:
-                retval = lecture_best.download(filepath=filepath, unsafe=unsafe, quiet=True, callback=self.show_progress)
-            except KeyboardInterrupt:
-                sys.stdout.write (fc + sd + "\n[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
-                sys.exit(0)
-            else:
-                msg     = retval.get('msg')
-                if msg == 'already downloaded':
-                    if not unsafe:
-                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_title) + fy + sb + "(already downloaded).\n")
-                    if unsafe:
-                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "'%s' " % (lecture_title) + fy + sb + "(already downloaded).\n")
-                elif msg == 'download':
-                    sys.stdout.write (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Downloaded  (%s)\n" % (lecture_title))
-                else:
-                    if not unsafe:
-                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture : '%s' " % (lecture_title) + fc + sb + "(download skipped).\n")
-                    if unsafe:
-                        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "'%s' " % (lecture_title) + fc + sb + "(download skipped).\n")
-                    sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "{}\n".format(msg))
-
-    def download_captions_only(self, lecture_subtitles='', language='', lecture_assets='', filepath='', unsafe=False):
-        if lecture_subtitles:
-            self.download_subtitles(lecture_subtitles=lecture_subtitles, language=language, filepath=filepath, unsafe=unsafe)
-        if lecture_assets:
-            self.download_assets(lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-
-    def download_lectures_only(self, lecture_best='', lecture_title='', inner_index='', lectures_count='', lecture_assets='', filepath='', unsafe=False):
-        if lecture_best:
-            self.download_lectures(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=inner_index, lectures_count=lectures_count, filepath=filepath, unsafe=unsafe)
-        if lecture_assets:
-            self.download_assets(lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-
-    def download_lectures_and_captions(self, lecture_best='', lecture_title='', inner_index='', lectures_count='', lecture_subtitles='', language='', lecture_assets='', filepath='', unsafe=False):
-        if lecture_best:
-            self.download_lectures(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=inner_index, lectures_count=lectures_count, filepath=filepath, unsafe=unsafe)
-        if lecture_subtitles:
-            self.download_subtitles(lecture_subtitles=lecture_subtitles, language=language, filepath=filepath, unsafe=unsafe)
-        if lecture_assets:
-            self.download_assets(lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-
-    def course_download(self, path='', quality='', language='', caption_only=False, skip_captions=False, unsafe=False):
+    def course_download(
+        self,
+        path="",
+        quality="",
+        language="en",
+        dl_assets=True,
+        dl_lecture=True,
+        dl_subtitles=True,
+        chapter_number=None,
+        chapter_start=None,
+        chapter_end=None,
+        lecture_number=None,
+        lecture_start=None,
+        lecture_end=None,
+        logs_filepath=None,
+        keep_vtt=False,
+        skip_hls_stream=False,
+    ):
+        """This function will download the course contents .."""
         if not self.cookies:
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login as " + fm + sb +"(%s)" % (self.username) +  fg + sb +"...\n")
+            logger.info(msg="Trying to login as", status=self.username)
         if self.cookies:
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login using cookies ...\n")
-        course = udemy.course(url=self.url, username=self.username, password=self.password, cookies=self.cookies)
-        course_id = course.id
-        course_name = course.title
-        chapters = course.get_chapters()
-        total_lectures = course.lectures
-        total_chapters = course.chapters
-        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Course " + fb + sb + "'%s'.\n" % (course_name))
-        sys.stdout.write (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Chapter(s) (%s).\n" % (total_chapters))
-        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (total_lectures))
-        if path:
-            if '~' in path:
-                path    = os.path.expanduser(path)
-            course_path    = "%s\\%s" % (path, course_name) if os.name == 'nt' else "%s/%s" % (path, course_name)
-        else:
-            path        = os.getcwd()
-            course_path = "%s\\%s" % (path, course_name) if os.name == 'nt' else "%s/%s" % (path, course_name)
-        for chapter in chapters:
-            chapter_id = chapter.id
-            chapter_index = chapter.index
-            chapter_title = chapter.title
-            lectures = chapter.get_lectures()
-            lectures_count = chapter.lectures
-            if unsafe:
-                filepath = u"%s\\%s" % (course_path, chapter.unsafe_title) if os.name == 'nt' else u"%s/%s" % (course_path, chapter.unsafe_title)
-            if not unsafe:
-                filepath = "%s\\%s" % (course_path, chapter_title) if os.name == 'nt' else "%s/%s" % (course_path, chapter_title)
-            try:
-                os.makedirs(filepath)
-            except Exception as e:
-                pass
-            sys.stdout.write (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fm + sb + "Downloading chapter : ({index} of {total})\n".format(index=chapter_index, total=total_chapters))
-            if not unsafe:
-                sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chapter_title))
-                sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (lectures_count))
-            if unsafe:
-                sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%02d-%s)\n" % (int(chapter_index), chapter_id))
-                sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (lectures_count))
-            inner_index = 1
-            for lecture in lectures:
-                lecture_id = lecture.id
-                lecture_index = lecture.index
-                lecture_title = lecture.title if not unsafe else "Lecture id : %s" % (lecture_id)
-                lecture_assets = lecture.assets
-                lecture_subtitles = lecture.subtitles
-                lecture_best = lecture.getbest()
-                lecture_streams = lecture.streams
-                if caption_only and not skip_captions:
-                    self.download_captions_only(lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                elif skip_captions and not caption_only:
-                    if quality:
-                        index = 0
-                        while index < len(lecture_streams):
-                            dimension = int(lecture_streams[index].dimention[1])
-                            if dimension == quality:
-                                lecture_best = lecture_streams[index]
-                                break
-                            index += 1
-                        if not lecture_best:
-                            lecture_best = lecture_best
-                    if lecture.html:
-                        lecture.dump(filepath=filepath, unsafe=unsafe)
-                    self.download_lectures_only(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=inner_index, lectures_count=lectures_count, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                else:
-                    if quality:
-                        index = 0
-                        while index < len(lecture_streams):
-                            dimension = int(lecture_streams[index].dimention[1])
-                            if dimension == quality:
-                                lecture_best = lecture_streams[index]
-                                break
-                            index += 1
-                        if not lecture_best:
-                            lecture_best = lecture_best
-                    if lecture.html:
-                        lecture.dump(filepath=filepath, unsafe=unsafe)
-                    self.download_lectures_and_captions(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=inner_index, lectures_count=lectures_count, lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                inner_index += 1
-
-    def chapter_download(self, chapter_number='', chapter_start='', chapter_end='', lecture_number='', lecture_start='', lecture_end='', path='', quality='', language='', caption_only=False, skip_captions=False, unsafe=False):
-        if not self.cookies:
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login as " + fm + sb +"(%s)" % (self.username) +  fg + sb +"...\n")
-        if self.cookies:
-            sys.stdout.write(fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Trying to login using cookies ...\n")
-        course = udemy.course(url=self.url, username=self.username, password=self.password, cookies=self.cookies)
-        course_id = course.id
-        course_name = course.title
-        chapters = course.get_chapters()
-        total_lectures = course.lectures
-        total_chapters = course.chapters
-        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sb + "Course " + fb + sb + "'%s'.\n" % (course_name))
-        sys.stdout.write (fc + sd + "[" + fm + sb + "+" + fc + sd + "] : " + fg + sd + "Chapter(s) (%s).\n" % (total_chapters))
-        sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (total_lectures))
-        if path:
-            if '~' in path:
-                path    = os.path.expanduser(path)
-            course_path    = "%s\\%s" % (path, course_name) if os.name == 'nt' else "%s/%s" % (path, course_name)
-        else:
-            path        = os.getcwd()
-            course_path = "%s\\%s" % (path, course_name) if os.name == 'nt' else "%s/%s" % (path, course_name)
-        _lectures_start, _lectures_end = lecture_start, lecture_end
-        if chapter_start and not chapter_end:
-            chapter_end = total_chapters
-        if chapter_number and chapter_number > 0 and chapter_number <= total_chapters:
-            chapter = chapters[chapter_number-1]
-            if chapter:
-                chapter_id = chapter.id
+            logger.info(msg="Trying to login using session cookie", new_line=True)
+        for url in self.url_or_courses:
+            course = udemy.course(
+                url=url,
+                username=self.username,
+                password=self.password,
+                cookies=self.cookies,
+                skip_hls_stream=skip_hls_stream,
+            )
+            course_name = course.title
+            if path:
+                if "~" in path:
+                    path = os.path.expanduser(path)
+            course_path = os.path.join(path, course_name)
+            if not logs_filepath:
+                logs_filepath = os.path.join(course_path, "udemy-dl.log")
+            chapters = course.get_chapters(
+                chapter_number=chapter_number,
+                chapter_start=chapter_start,
+                chapter_end=chapter_end,
+            )
+            total_lectures = course.lectures
+            total_chapters = course.chapters
+            logger.success(msg=course_name, course=True)
+            logger.info(msg=f"Chapter(s) ({total_chapters})", new_line=True)
+            logger.info(msg=f"Lecture(s) ({total_lectures})", new_line=True)
+            for chapter in chapters:
                 chapter_index = chapter.index
                 chapter_title = chapter.title
-                lectures = chapter.get_lectures()
+                lectures = chapter.get_lectures(
+                    lecture_number=lecture_number,
+                    lecture_start=lecture_start,
+                    lecture_end=lecture_end,
+                )
                 lectures_count = chapter.lectures
-                if lecture_end and lecture_end > lectures_count:
-                    lecture_end = lectures_count
-
-                if unsafe:
-                    filepath = u"%s\\%s" % (course_path, chapter.unsafe_title) if os.name == 'nt' else u"%s/%s" % (course_path, chapter.unsafe_title)
-                if not unsafe:
-                    filepath = "%s\\%s" % (course_path, chapter_title) if os.name == 'nt' else "%s/%s" % (course_path, chapter_title)
-                try:
-                    os.makedirs(filepath)
-                except Exception as e:
-                    pass
-                sys.stdout.write (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fm + sb + "Downloading chapter : ({index})\n".format(index=chapter_index))
-                if not unsafe:
-                    sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chapter_title))
-                    sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (lectures_count))
-                if unsafe:
-                    sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%02d-%s)\n" % (int(chapter_index), chapter_id))
-                    sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (lectures_count))
-                lecture_start = _lectures_start
-                lecture_end = lectures_count if lecture_start and not lecture_end else _lectures_end
-                if lecture_number and lecture_number > 0 and lecture_number <= lectures_count:
-                    lecture = lectures[lecture_number-1]
-                    lecture_id = lecture.id
-                    lecture_index = lecture.index
-                    lecture_title = lecture.title if not unsafe else "Lecture id : %s" % (lecture_id)
+                filepath = to_filepath(course_path, chapter_title)
+                logger.set_log_filepath(logs_filepath)
+                chapter_progress = (
+                    chapter_index
+                    if chapter_number
+                    else f"{chapter_index} of {total_chapters}"
+                )
+                logger.info(
+                    msg=f"Downloading chapter : ({chapter_progress})",
+                    new_line=True,
+                    before=True,
+                    cc=80,
+                    cc_msg=80,
+                )
+                logger.info(
+                    msg=f"Chapter ({chapter_title})", new_line=True, cc=15, cc_msg=60
+                )
+                logger.info(
+                    msg=f"Found ({lectures_count}) lecture(s).", new_line=True,
+                )
+                lecture_index = 0
+                if lecture_number:
+                    lecture_index = lecture_number - 1
+                if lecture_start:
+                    lecture_index = lecture_start - 1
+                if lecture_index < 0:
+                    lecture_index = 0
+                for lecture in lectures:
                     lecture_assets = lecture.assets
                     lecture_subtitles = lecture.subtitles
                     lecture_best = lecture.getbest()
-                    lecture_streams = lecture.streams
-                    if caption_only and not skip_captions:
-                        self.download_captions_only(lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                    elif skip_captions and not caption_only:
-                        if quality:
-                            index = 0
-                            while index < len(lecture_streams):
-                                dimension = int(lecture_streams[index].dimention[1])
-                                if dimension == quality:
-                                    lecture_best = lecture_streams[index]
-                                    break
-                                index += 1
-                            if not lecture_best:
-                                lecture_best = lecture_best
+                    if dl_lecture:
+                        lecture_index = lecture_index + 1
                         if lecture.html:
                             lecture.dump(filepath=filepath)
-                        self.download_lectures_only(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=lecture_number, lectures_count=lectures_count, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                    else:
-                        if quality:
-                            index = 0
-                            while index < len(lecture_streams):
-                                dimension = int(lecture_streams[index].dimention[1])
-                                if dimension == quality:
-                                    lecture_best = lecture_streams[index]
-                                    break
-                                index += 1
-                            if not lecture_best:
-                                lecture_best = lecture_best
-                        if lecture.html:
-                            lecture.dump(filepath=filepath)
-                        self.download_lectures_and_captions(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=lecture_number, lectures_count=lectures_count, lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                elif lecture_start and lecture_start > 0 and lecture_start <= lecture_end and lecture_end <= lectures_count:
-                    while lecture_start <= lecture_end:
-                        lecture = lectures[lecture_start-1]
-                        lecture_id = lecture.id
-                        lecture_index = lecture.index
-                        lecture_title = lecture.title if not unsafe else "Lecture id : %s" % (lecture_id)
-                        lecture_assets = lecture.assets
-                        lecture_subtitles = lecture.subtitles
-                        lecture_best = lecture.getbest()
-                        lecture_streams = lecture.streams
-                        if caption_only and not skip_captions:
-                            self.download_captions_only(lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        elif skip_captions and not caption_only:
-                            if quality:
-                                index = 0
-                                while index < len(lecture_streams):
-                                    dimension = int(lecture_streams[index].dimention[1])
-                                    if dimension == quality:
-                                        lecture_best = lecture_streams[index]
-                                        break
-                                    index += 1
-                                if not lecture_best:
-                                    lecture_best = lecture_best
-                            if lecture.html:
-                                lecture.dump(filepath=filepath, unsafe=unsafe)
-                            self.download_lectures_only(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=lecture_start, lectures_count=lecture_end, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        else:
-                            if quality:
-                                index = 0
-                                while index < len(lecture_streams):
-                                    dimension = int(lecture_streams[index].dimention[1])
-                                    if dimension == quality:
-                                        lecture_best = lecture_streams[index]
-                                        break
-                                    index += 1
-                                if not lecture_best:
-                                    lecture_best = lecture_best
-                            if lecture.html:
-                                lecture.dump(filepath=filepath, unsafe=unsafe)
-                            self.download_lectures_and_captions(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=lecture_start, lectures_count=lecture_end, lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        lecture_start += 1
-                else:
-                    inner_index = 1
-                    for lecture in lectures:
-                        lecture_id = lecture.id
-                        lecture_index = lecture.index
-                        lecture_title = lecture.title if not unsafe else "Lecture id : %s" % (lecture_id)
-                        lecture_assets = lecture.assets
-                        lecture_subtitles = lecture.subtitles
-                        lecture_best = lecture.getbest()
-                        lecture_streams = lecture.streams
-                        if caption_only and not skip_captions:
-                            self.download_captions_only(lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        elif skip_captions and not caption_only:
-                            if quality:
-                                index = 0
-                                while index < len(lecture_streams):
-                                    dimension = int(lecture_streams[index].dimention[1])
-                                    if dimension == quality:
-                                        lecture_best = lecture_streams[index]
-                                        break
-                                    index += 1
-                                if not lecture_best:
-                                    lecture_best = lecture_best
-                            if lecture.html:
-                                lecture.dump(filepath=filepath, unsafe=unsafe)
-                            self.download_lectures_only(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=inner_index, lectures_count=lectures_count, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        else:
-                            if quality:
-                                index = 0
-                                while index < len(lecture_streams):
-                                    dimension = int(lecture_streams[index].dimention[1])
-                                    if dimension == quality:
-                                        lecture_best = lecture_streams[index]
-                                        break
-                                    index += 1
-                                if not lecture_best:
-                                    lecture_best = lecture_best
-                            if lecture.html:
-                                lecture.dump(filepath=filepath, unsafe=unsafe)
-                            self.download_lectures_and_captions(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=inner_index, lectures_count=lectures_count, lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        inner_index += 1
-        elif chapter_start and chapter_start > 0 and chapter_start <= chapter_end and chapter_end <= total_chapters:
-            while chapter_start <= chapter_end:
-                chapter = chapters[chapter_start-1]
-                chapter_id = chapter.id
-                chapter_index = chapter.index
-                chapter_title = chapter.title
-                lectures = chapter.get_lectures()
-                lectures_count = chapter.lectures
-                if unsafe:
-                    filepath = u"%s\\%s" % (course_path, chapter.unsafe_title) if os.name == 'nt' else u"%s/%s" % (course_path, chapter.unsafe_title)
-                if not unsafe:
-                    filepath = "%s\\%s" % (course_path, chapter_title) if os.name == 'nt' else "%s/%s" % (course_path, chapter_title)
-                try:
-                    os.makedirs(filepath)
-                except Exception as e:
-                    pass
-                sys.stdout.write (fc + sd + "\n[" + fm + sb + "*" + fc + sd + "] : " + fm + sb + "Downloading chapter : ({index} of {total})\n".format(index=chapter_start, total=chapter_end))
-                if not unsafe:
-                    sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%s)\n" % (chapter_title))
-                    sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Found (%s) lectures ...\n" % (lectures_count))
-                if unsafe:
-                    sys.stdout.write (fc + sd + "[" + fw + sb + "+" + fc + sd + "] : " + fw + sd + "Chapter (%02d-%s)\n" % (int(chapter_index), chapter_id))
-                    sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Lecture(s) (%s).\n" % (lectures_count))
-                lecture_start = _lectures_start
-                lecture_end = lectures_count if lecture_start and not lecture_end else _lectures_end
-                if lecture_number and lecture_number > 0 and lecture_number <= lectures_count:
-                    lecture = lectures[lecture_number-1]
-                    lecture_id = lecture.id
-                    lecture_index = lecture.index
-                    lecture_title = lecture.title if not unsafe else "Lecture id : %s" % (lecture_id)
-                    lecture_assets = lecture.assets
-                    lecture_subtitles = lecture.subtitles
-                    lecture_best = lecture.getbest()
-                    lecture_streams = lecture.streams
-                    if caption_only and not skip_captions:
-                        self.download_captions_only(lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                    elif skip_captions and not caption_only:
-                        if quality:
-                            index = 0
-                            while index < len(lecture_streams):
-                                dimension = int(lecture_streams[index].dimention[1])
-                                if dimension == quality:
-                                    lecture_best = lecture_streams[index]
-                                    break
-                                index += 1
-                            if not lecture_best:
-                                lecture_best = lecture_best
-                        self.download_lectures_only(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=lecture_number, lectures_count=lectures_count, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                    else:
-                        if quality:
-                            index = 0
-                            while index < len(lecture_streams):
-                                dimension = int(lecture_streams[index].dimention[1])
-                                if dimension == quality:
-                                    lecture_best = lecture_streams[index]
-                                    break
-                                index += 1
-                            if not lecture_best:
-                                lecture_best = lecture_best
-                        self.download_lectures_and_captions(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=lecture_number, lectures_count=lectures_count, lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                elif lecture_start and lecture_start > 0 and lecture_start <= lecture_end and lecture_end <= lectures_count:
-                    while lecture_start <= lecture_end:
-                        lecture = lectures[lecture_start-1]
-                        lecture_id = lecture.id
-                        lecture_index = lecture.index
-                        lecture_title = lecture.title if not unsafe else "Lecture id : %s" % (lecture_id)
-                        lecture_assets = lecture.assets
-                        lecture_subtitles = lecture.subtitles
-                        lecture_best = lecture.getbest()
-                        lecture_streams = lecture.streams
-                        if caption_only and not skip_captions:
-                            self.download_captions_only(lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        elif skip_captions and not caption_only:
-                            if quality:
-                                index = 0
-                                while index < len(lecture_streams):
-                                    dimension = int(lecture_streams[index].dimention[1])
-                                    if dimension == quality:
-                                        lecture_best = lecture_streams[index]
-                                        break
-                                    index += 1
-                                if not lecture_best:
-                                    lecture_best = lecture_best
-                            self.download_lectures_only(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=lecture_start, lectures_count=lecture_end, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        else:
-                            if quality:
-                                index = 0
-                                while index < len(lecture_streams):
-                                    dimension = int(lecture_streams[index].dimention[1])
-                                    if dimension == quality:
-                                        lecture_best = lecture_streams[index]
-                                        break
-                                    index += 1
-                                if not lecture_best:
-                                    lecture_best = lecture_best
-                            self.download_lectures_and_captions(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=lecture_start, lectures_count=lecture_end, lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        lecture_start += 1
-                else:
-                    inner_index = 1
-                    for lecture in lectures:
-                        lecture_id = lecture.id
-                        lecture_index = lecture.index
-                        lecture_title = lecture.title if not unsafe else "Lecture id : %s" % (lecture_id)
-                        lecture_assets = lecture.assets
-                        lecture_subtitles = lecture.subtitles
-                        lecture_best = lecture.getbest()
-                        lecture_streams = lecture.streams
-                        if caption_only and not skip_captions:
-                            self.download_captions_only(lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        elif skip_captions and not caption_only:
-                            if quality:
-                                index = 0
-                                while index < len(lecture_streams):
-                                    dimension = int(lecture_streams[index].dimention[1])
-                                    if dimension == quality:
-                                        lecture_best = lecture_streams[index]
-                                        break
-                                    index += 1
-                                if not lecture_best:
-                                    lecture_best = lecture_best
-                            self.download_lectures_only(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=inner_index, lectures_count=lectures_count, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        else:
-                            if quality:
-                                index = 0
-                                while index < len(lecture_streams):
-                                    dimension = int(lecture_streams[index].dimention[1])
-                                    if dimension == quality:
-                                        lecture_best = lecture_streams[index]
-                                        break
-                                    index += 1
-                                if not lecture_best:
-                                    lecture_best = lecture_best
-                            self.download_lectures_and_captions(lecture_best=lecture_best, lecture_title=lecture_title, inner_index=inner_index, lectures_count=lectures_count, lecture_subtitles=lecture_subtitles, language=language, lecture_assets=lecture_assets, filepath=filepath, unsafe=unsafe)
-                        inner_index += 1
-                chapter_start += 1
-        else:
-            if not chapter_end and not chapter_number and not chapter_start:
-                sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Argument(s) are missing : Chapter(s) range or chapter(s) number is required.\n")
-            elif chapter_end and chapter_end > total_chapters or chapter_number and chapter_number > total_chapters:
-                sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Chapter(s) Range exceeded : Chapter(s) ending or chapter(s) number is out of range\n")
-            elif chapter_start and chapter_start > chapter_end:
-                sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Chapter(s) Range exception : Chapter(s) starting point cannot be greater than chapter(s) ending point\n")
-            elif chapter_end and not chapter_start:
-                sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Argument(s) are missing : Chapter(s) range starting point is missing ..\n")
-            sys.stdout.write (fc + sd + "[" + fy + sb + "i" + fc + sd + "] : " + fw + sb + "Chapter(s) number or range should be in between ({start} to {end}).\n".format(start=1, end=total_chapters))
-            sys.exit(0)
+                        self.download_lecture(
+                            lecture_best,
+                            filepath,
+                            lecture_index,
+                            lectures_count,
+                            quality,
+                        )
+                    if dl_assets:
+                        self.download_assets(lecture_assets, filepath)
+                    if dl_subtitles:
+                        self.downalod_subtitles(
+                            lecture_subtitles,
+                            filepath,
+                            language=language,
+                            keep_vtt=keep_vtt,
+                        )
+
 
 def main():
+    """main function"""
     sys.stdout.write(banner())
-    version     = "%(prog)s {version}".format(version=__version__)
-    description = 'A cross-platform python based utility to download courses from udemy for personal offline use.'
-    parser = argparse.ArgumentParser(description=description, conflict_handler="resolve")
-    parser.add_argument('course', help="Udemy course.", type=str)
+    version = "%(prog)s {version}".format(version="0.6")
+    description = "A cross-platform python based utility to download courses from udemy for personal offline use."
+    parser = argparse.ArgumentParser(
+        description=description, conflict_handler="resolve"
+    )
+    parser.add_argument("course", help="Udemy course.", type=str)
     general = parser.add_argument_group("General")
+    general.add_argument("-h", "--help", action="help", help="Shows the help.")
     general.add_argument(
-        '-h', '--help',\
-        action='help',\
-        help="Shows the help.")
-    general.add_argument(
-        '-v', '--version',\
-        action='version',\
-        version=version,\
-        help="Shows the version.")
+        "-v", "--version", action="version", version=version, help="Shows the version."
+    )
 
     authentication = parser.add_argument_group("Authentication")
     authentication.add_argument(
-        '-u', '--username',\
-        dest='username',\
-        type=str,\
-        help="Username in udemy.",metavar='')
+        "-u",
+        "--username",
+        dest="username",
+        type=str,
+        help="Username in udemy.",
+        metavar="",
+    )
     authentication.add_argument(
-        '-p', '--password',\
-        dest='password',\
-        type=str,\
-        help="Password of your account.",metavar='')
+        "-p",
+        "--password",
+        dest="password",
+        type=str,
+        help="Password of your account.",
+        metavar="",
+    )
     authentication.add_argument(
-        '-k', '--cookies',\
-        dest='cookies',\
-        type=str,\
-        help="Cookies to authenticate with.",metavar='')
+        "-k",
+        "--cookies",
+        dest="cookies",
+        type=str,
+        help="Cookies to authenticate with.",
+        metavar="",
+    )
 
     advance = parser.add_argument_group("Advance")
     advance.add_argument(
-        '-o', '--output',\
-        dest='output',\
-        type=str,\
-        help="Download to specific directory.",metavar='')
+        "-o",
+        "--output",
+        dest="output",
+        type=str,
+        default=os.getcwd(),
+        help="Download to specific directory.",
+        metavar="",
+    )
     advance.add_argument(
-        '-q', '--quality',\
-        dest='quality',\
-        type=int,\
-        help="Download specific video quality.",metavar='')
+        "-q",
+        "--quality",
+        dest="quality",
+        type=int,
+        help="Download specific video quality.",
+        metavar="",
+    )
     advance.add_argument(
-        '-c', '--chapter',\
-        dest='chapter',\
-        type=int,\
-        help="Download specific chapter from course.",metavar='')
+        "-c",
+        "--chapter",
+        dest="chapter",
+        type=int,
+        help="Download specific chapter from course.",
+        metavar="",
+    )
     advance.add_argument(
-        '-l', '--lecture',\
-        dest='lecture',\
-        type=int,\
-        help="Download specific lecture from chapter(s).",metavar='')
+        "-l",
+        "--lecture",
+        dest="lecture",
+        type=int,
+        help="Download specific lecture from chapter(s).",
+        metavar="",
+    )
     advance.add_argument(
-        '-s', '--sub-lang',\
-        dest='language',\
-        type=str,\
-        help="Download specific subtitle/caption (e.g:- en).",metavar='')
+        "-s",
+        "--sub-lang",
+        dest="language",
+        type=str,
+        help="Download specific subtitle/caption (e.g:- en).",
+        metavar="",
+        default="en",
+    )
     advance.add_argument(
-        '--chapter-start',\
-        dest='chapter_start',\
-        type=int,\
-        help="Download from specific position within course.",metavar='')
+        "--chapter-start",
+        dest="chapter_start",
+        type=int,
+        help="Download from specific position within course.",
+        metavar="",
+    )
     advance.add_argument(
-        '--chapter-end',\
-        dest='chapter_end',\
-        type=int,\
-        help="Download till specific position within course.",metavar='')
+        "--chapter-end",
+        dest="chapter_end",
+        type=int,
+        help="Download till specific position within course.",
+        metavar="",
+    )
     advance.add_argument(
-        '--lecture-start',\
-        dest='lecture_start',\
-        type=int,\
-        help="Download from specific position within chapter(s).",metavar='')
+        "--lecture-start",
+        dest="lecture_start",
+        type=int,
+        help="Download from specific position within chapter(s).",
+        metavar="",
+    )
     advance.add_argument(
-        '--lecture-end',\
-        dest='lecture_end',\
-        type=int,\
-        help="Download till specific position within chapter(s).",metavar='')
+        "--lecture-end",
+        dest="lecture_end",
+        type=int,
+        help="Download till specific position within chapter(s).",
+        metavar="",
+    )
 
     other = parser.add_argument_group("Others")
     other.add_argument(
-        '--save',\
-        dest='save',\
-        action='store_true',\
-        help="Do not download but save links to a file.")
+        "--info",
+        dest="info",
+        action="store_true",
+        help="List all lectures with available resolution.",
+    )
     other.add_argument(
-        '--info',\
-        dest='list',\
-        action='store_true',\
-        help="List all lectures with available resolution.")
+        "--keep-vtt",
+        dest="keep_vtt",
+        action="store_true",
+        help="Keep WebVTT caption(s).",
+    )
     other.add_argument(
-        '--cache',\
-        dest='cache',\
-        action='store_true',\
-        help="Cache your credentials to use it later.")
+        "--sub-only",
+        dest="caption_only",
+        action="store_true",
+        help="Download captions/subtitle only.",
+    )
     other.add_argument(
-        '--names',\
-        dest='names_only',\
-        action='store_true',\
-        help="Do not download but save lecture names to file.")
+        "--skip-sub",
+        dest="skip_captions",
+        action="store_true",
+        help="Download course but skip captions/subtitle.",
+    )
     other.add_argument(
-        '--unsafe',\
-        dest='unsafe',\
-        action='store_true',\
-        help="Download all course with unsafe names.")
+        "--skip-hls",
+        dest="skip_hls_stream",
+        action="store_true",
+        help="Download course but skip hls streams. (fast fetching).",
+    )
     other.add_argument(
-        '--sub-only',\
-        dest='caption_only',\
-        action='store_true',\
-        help="Download captions/subtitle only.")
+        "--assets-only",
+        dest="assets_only",
+        action="store_true",
+        help="Download asset(s) only.",
+    )
     other.add_argument(
-        '--skip-sub',\
-        dest='skip_captions',\
-        action='store_true',\
-        help="Download course but skip captions/subtitle.")
-
-    options = parser.parse_args()
-    if options.names_only:
-        options.save = True
-
-    if options.cookies:
-        f_in = open(options.cookies)
-        cookies = '\n'.join([line for line in (l.strip() for l in f_in) if line])
-        f_in.close()
-        if options.cache:
-            cache_credentials(username="", password="", quality=options.quality, output=options.output, language=options.language)
-        udemy = Udemy(url=options.course, cookies=cookies)
-        if not options.cache:
-            config = use_cached_credentials()
-            if config and isinstance(config, dict):
-                sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs..")
-                options.quality = config.get('quality')
-                options.output = config.get('output')
-                options.language = config.get('language')
-                time.sleep(1)
-                sys.stdout.write ("\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs.. (" + fc + sb + "done" + fg + sd + ")\n")
-                sys.stdout.flush()
-        if options.list and not options.save:
-                try:
-                    udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=options.unsafe)
-                except KeyboardInterrupt as e:
-                    sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
-                    sys.exit(0)
-        elif not options.list and options.save:
-            try:
-                udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions, names_only=options.names_only, unsafe=options.unsafe)
-            except KeyboardInterrupt as e:
-                sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
-                sys.exit(0)
-        elif not options.list and not options.save:
-
-            if options.chapter and not options.chapter_end and not options.chapter_start:
-
-                if options.lecture and not options.lecture_end and not options.lecture_start:
-
-
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.lecture_start and options.lecture_end and not options.lecture:
-
-
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.lecture_start and not options.lecture_end and not options.lecture:
-
-
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                else:
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_number=options.chapter, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-            elif options.chapter_start and options.chapter_end and not options.chapter:
-                
-                if options.lecture and not options.lecture_end and not options.lecture_start:
-
-
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.lecture_start and options.lecture_end and not options.lecture:
-
-
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.lecture_start and not options.lecture_end and not options.lecture:
-
-
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-                        
-                else:
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-            elif options.chapter_start and not options.chapter_end and not options.chapter:
-                
-                if options.lecture and not options.lecture_end and not options.lecture_start:
-
-
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.lecture_start and options.lecture_end and not options.lecture:
-
-
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.lecture_start and not options.lecture_end and not options.lecture:
-
-
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                else:
-                    if options.caption_only and not options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                    elif not options.caption_only and options.skip_captions:
-                        udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                    else:
-                        udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-            else:
-
-                if options.caption_only and not options.skip_captions:
-
-                    udemy.course_download(caption_only=options.caption_only, path=options.output, language=options.language, unsafe=options.unsafe)
-
-                elif not options.caption_only and options.skip_captions:
-
-                    udemy.course_download(skip_captions=options.skip_captions, path=options.output, quality=options.quality, unsafe=options.unsafe)
-
-                else:
-
-                    udemy.course_download(path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-    if not options.cookies:
-        if not options.username and not options.password:
-            username = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Username : " + fg + sb
-            password = fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Password : " + fc + sb
-            config = use_cached_credentials()
-            if config and isinstance(config, dict):
-                sys.stdout.write (fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs..")
-                email = config.get('username')
-                passwd = config.get('password')
-                options.quality = config.get('quality')
-                options.output = config.get('output')
-                options.language = config.get('language')
-                time.sleep(1)
-                if email and passwd:
-                    sys.stdout.write ("\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs.. (" + fc + sb + "done" + fg + sd + ")\n")
-                else:
-                    sys.stdout.write ("\r" + fc + sd + "[" + fm + sb + "*" + fc + sd + "] : " + fg + sd + "Loading configs.. (" + fr + sb + "failed" + fg + sd + ")\n")
-                    email = getpass.getuser(prompt=username)
-                    passwd = getpass.getpass(prompt=password)
-                    print("")
-            else:
-                email = getpass.getuser(prompt=username)
-                passwd = getpass.getpass(prompt=password)
-                print("")
-            if email and passwd:
-                if options.cache:
-                    cache_credentials(username=email, password=passwd, quality=options.quality, output=options.output, language=options.language)
-                udemy = Udemy(url=options.course, username=email, password=passwd)
-            else:
-                sys.stdout.write('\n' + fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sb + "Username and password is required.\n")
-                sys.exit(0)
-
-            if options.list and not options.save:
-                try:
-                    udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=options.unsafe)
-                except KeyboardInterrupt as e:
-                    sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
-                    sys.exit(0)
-            elif not options.list and options.save:
-                try:
-                    udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions, names_only=options.names_only, unsafe=options.unsafe)
-                except KeyboardInterrupt as e:
-                    sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
-                    sys.exit(0)
-            elif not options.list and not options.save:
-
-                if options.chapter and not options.chapter_end and not options.chapter_start:
-
-                    if options.lecture and not options.lecture_end and not options.lecture_start:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and not options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    else:
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.chapter_start and options.chapter_end and not options.chapter:
-                    
-                    if options.lecture and not options.lecture_end and not options.lecture_start:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and not options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-                            
-                    else:
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.chapter_start and not options.chapter_end and not options.chapter:
-                    
-                    if options.lecture and not options.lecture_end and not options.lecture_start:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and not options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    else:
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                else:
-
-                    if options.caption_only and not options.skip_captions:
-
-                        udemy.course_download(caption_only=options.caption_only, path=options.output, language=options.language, unsafe=options.unsafe)
-
-                    elif not options.caption_only and options.skip_captions:
-
-                        udemy.course_download(skip_captions=options.skip_captions, path=options.output, quality=options.quality, unsafe=options.unsafe)
-
-                    else:
-
-                        udemy.course_download(path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-        elif options.username and options.password:
-            
-            udemy = Udemy(url=options.course, username=options.username, password=options.password)
-            
-            if options.cache:
-                cache_credentials(username=options.username, password=options.password, quality=options.quality, output=options.output, language=options.language)
-
-            if options.list and not options.save:
-                try:
-                    udemy.course_list_down(chapter_number=options.chapter, lecture_number=options.lecture, unsafe=options.unsafe)
-                except KeyboardInterrupt as e:
-                    sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
-                    sys.exit(0)
-            elif not options.list and options.save:
-                # pprint(vars(options))
-                # exit(0)
-                try:
-                    udemy.course_save(path=options.output, quality=options.quality, caption_only=options.caption_only, skip_captions=options.skip_captions, names_only=options.names_only, unsafe=options.unsafe)
-                except KeyboardInterrupt as e:
-                    sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
-                    sys.exit(0)
-            elif not options.list and not options.save:
-
-                if options.chapter and not options.chapter_end and not options.chapter_start:
-
-                    if options.lecture and not options.lecture_end and not options.lecture_start:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_number=options.chapter,lecture_number=options.lecture, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and not options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_number=options.chapter, lecture_start=options.lecture_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    else:
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_number=options.chapter, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.chapter_start and options.chapter_end and not options.chapter:
-
-                    if options.lecture and not options.lecture_end and not options.lecture_start:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_number=options.lecture, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and not options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, lecture_start=options.lecture_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    else:
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, chapter_end=options.chapter_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                elif options.chapter_start and not options.chapter_end and not options.chapter:
-
-                    if options.lecture and not options.lecture_end and not options.lecture_start:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_number=options.lecture, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, lecture_end=options.lecture_end, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    elif options.lecture_start and not options.lecture_end and not options.lecture:
-
-
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, lecture_start=options.lecture_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                    else:
-                        if options.caption_only and not options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, language=options.language, caption_only=options.caption_only, unsafe=options.unsafe)
-                        elif not options.caption_only and options.skip_captions:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, quality=options.quality, skip_captions=options.skip_captions, unsafe=options.unsafe)
-                        else:
-                            udemy.chapter_download(chapter_start=options.chapter_start, path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-                else:
-
-                    if options.caption_only and not options.skip_captions:
-
-                        udemy.course_download(caption_only=options.caption_only, path=options.output, language=options.language, unsafe=options.unsafe)
-
-                    elif not options.caption_only and options.skip_captions:
-
-                        udemy.course_download(skip_captions=options.skip_captions, path=options.output, quality=options.quality, unsafe=options.unsafe)
-
-                    else:
-
-                        udemy.course_download(path=options.output, language=options.language, quality=options.quality, unsafe=options.unsafe)
-
-if __name__ == '__main__':
+        "--skip-assets",
+        dest="skip_assets",
+        action="store_true",
+        help="Download course but skip asset(s).",
+    )
+
+    args = parser.parse_args()
+    if args.cookies:
+        f_in = open(args.cookies)
+        with open(args.cookies) as f_in:
+            cookies = "\n".join([line for line in (l.strip() for l in f_in) if line])
+        args.cookies = cookies
+    if not args.username and not args.password and not args.cookies:
+        configs = load_configs()
+        if not configs:
+            args.username = getpass.getuser(prompt="Username : ")
+            args.password = getpass.getpass(prompt="Password : ")
+            print("\n")
+        if configs:
+            cookies = configs.get("cookies")
+            if not cookies:
+                args.username = configs.get("username")
+                args.password = configs.get("password")
+            if cookies:
+                args.cookies = cookies
+            args.quality = args.quality if args.quality else configs.get("quality")
+            args.output = args.output if args.output else configs.get("output")
+            args.language = args.language if args.language else configs.get("language")
+    url_or_courses = extract_url_or_courses(args.course)
+    udemy_obj = Udemy(
+        url_or_courses=url_or_courses,
+        username=args.username,
+        password=args.password,
+        cookies=args.cookies,
+    )
+    # setting the caching default so that we can avoid future login attemps.
+    _ = to_configs(
+        username=args.username,
+        password=args.password,
+        cookies=args.cookies,
+        quality=args.quality,
+        output=args.output,
+        language=args.language,
+    )
+    dl_assets = dl_lecture = dl_subtitles = True
+    if args.assets_only:
+        dl_lecture = False
+        dl_subtitles = False
+    if args.skip_assets:
+        dl_assets = False
+    if args.caption_only:
+        dl_lecture = False
+        dl_assets = False
+    if args.skip_captions:
+        dl_subtitles = False
+    if not args.info:
+        udemy_obj.course_download(
+            path=args.output,
+            quality=args.quality,
+            language=args.language,
+            dl_assets=dl_assets,
+            dl_lecture=dl_lecture,
+            dl_subtitles=dl_subtitles,
+            chapter_number=args.chapter,
+            chapter_start=args.chapter_start,
+            chapter_end=args.chapter_end,
+            lecture_number=args.lecture,
+            lecture_start=args.lecture_start,
+            lecture_end=args.lecture_end,
+            keep_vtt=args.keep_vtt,
+            skip_hls_stream=args.skip_hls_stream,
+        )
+    if args.info:
+        udemy_obj.course_listdown(
+            chapter_number=args.chapter,
+            chapter_start=args.chapter_start,
+            chapter_end=args.chapter_end,
+            lecture_number=args.lecture,
+            lecture_start=args.lecture_start,
+            lecture_end=args.lecture_end,
+            skip_hls_stream=args.skip_hls_stream,
+        )
+
+
+if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        sys.stdout.write (fc + sd + "[" + fr + sb + "-" + fc + sd + "] : " + fr + sd + "User Interrupted..\n")
+        logger.error(msg="User Interrupted..", new_line=True)
         sys.exit(0)

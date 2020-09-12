@@ -1,5 +1,20 @@
 # Change Log
 
+## 1.0 (2020-09-12)
+
+Features:
+  - Added proper session management.
+  - Restructure code to make it bit nicer.
+  - Added proper logging for errors and warning which fixes (#477).
+  - Added support to download multiple courses from file.
+  - Added support to download by default just EN subtitle. (could use `--sub-lang` to download others)
+  - Added switch to keep WebVTT subtitles (option: `--keep-vtt`).
+  - Added support to fetch/skip HLS streams such as 1080p etc. (option to skip `--skip-hls`).
+  - Removed `--names`, `--save` switches.
+  - Removed `--cache` switch as proper session management is added.
+  - Removed `--unsafe` switch now unicode characters are handled properly in code.
+  - Added support to download/skip all available assets for a video (options: `--assets-only, --skip-assets`).
+
 ## 0.5 (2018-05-21)
 
 Features:
