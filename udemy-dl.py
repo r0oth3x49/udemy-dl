@@ -255,6 +255,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
                             logger.info(
                                 indent=indent, msg=msg, new_line=True, cc=15,
                             )
+            print("")
 
     def course_download(
         self,
@@ -364,6 +365,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
                             language=language,
                             keep_vtt=keep_vtt,
                         )
+            print("")
 
 
 def main():
