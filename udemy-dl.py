@@ -369,7 +369,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
 def main():
     """main function"""
     sys.stdout.write(banner())
-    version = "%(prog)s {version}".format(version="0.6")
+    version = "%(prog)s {version}".format(version="1.0")
     description = "A cross-platform python based utility to download courses from udemy for personal offline use."
     parser = argparse.ArgumentParser(
         description=description, conflict_handler="resolve"
