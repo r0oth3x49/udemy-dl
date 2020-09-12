@@ -11,7 +11,7 @@
  - Don't share your credentials until the issue is properly tagged/labeled with **account-needed**.
  - Owner of this repository is not responsible for any miss use if you share your credentials with strangers.
 
-[![udemy-dl-0-5.png](https://s26.postimg.cc/67x3wfak9/udemy-dl-0-5.png)](https://postimg.cc/image/s73ijmred/)
+[![udemy-dl-v1-0.png](https://i.postimg.cc/4y0fH3Hq/udemy-dl-v1-0.png)](https://postimg.cc/Fkj52NZV)
 
 
 ### Before creating an issue, please do the following:
