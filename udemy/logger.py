@@ -60,8 +60,12 @@ class Logging(ProgressBar):
         Custom logging class for udemy
     """
 
+    def __init__(self, log_filepath=None):
+        self._log_filepath = log_filepath
+
     def set_log_filepath(self, log_filepath):
         file_handler = logging.FileHandler(log_filepath)
+        self._log_filepath = log_filepath
         logging.basicConfig(
             format="[%(asctime)s][%(name)s] %(levelname)-5.5s %(message)s",
             level=logging.INFO,
@@ -188,7 +192,8 @@ class Logging(ProgressBar):
             + Style.DIM
             + "] : "
         )
-        log.error(msg)
+        if self._log_filepath:
+            log.error(msg)
         msg = (
             set_color(f"{msg} (", level=70)
             + set_color("failed", level=40)
@@ -212,7 +217,8 @@ class Logging(ProgressBar):
             + Style.DIM
             + "] : "
         )
-        log.warning(msg)
+        if self._log_filepath:
+            log.warning(msg)
         msg = set_color(f"{msg}\n", level=70)
         string = prefix + msg
         sys.stdout.write(string)
@@ -232,7 +238,8 @@ class Logging(ProgressBar):
             + Style.DIM
             + "] : "
         )
-        log.error(msg)
+        if self._log_filepath:
+            log.error(msg)
         if not new_line:
             msg = set_color(f"{msg}\n", level=40)
             string = prefix + msg
@@ -281,7 +288,8 @@ class Logging(ProgressBar):
             + Style.DIM
             + "] : "
         )
-        log.warning(msg)
+        if self._log_filepath:
+            log.warning(msg)
         msg = (
             set_color(f"{msg} (", level=70)
             + set_color("download skipped", level=30)

@@ -81,7 +81,7 @@ class Udemy:
         # check if we already have session on udemy.
         auth = UdemyAuth()
         is_exists, conf = auth.is_session_exists()
-        if is_exists:
+        if is_exists and username and password:
             logger.info(
                 msg="Using existing session..", new_line=True,
             )
@@ -107,7 +107,6 @@ class Udemy:
             self._cookies = extract_cookie_string(raw_cookies=cookies)
             self._access_token = self._cookies.get("access_token")
             client_id = self._cookies.get("client_id")
-            time.sleep(0.3)
             self._session, _ = auth.authenticate(
                 access_token=self._access_token, client_id=client_id
             )
