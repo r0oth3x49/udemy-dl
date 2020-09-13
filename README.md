@@ -7,58 +7,16 @@
 # udemy-dl
 **A cross-platform python based utility to download courses from udemy for personal offline use.**
 
-### Important Note:
- - Don't share your credentials until the issue is properly tagged/labeled with **account-needed**.
- - Owner of this repository is not responsible for any miss use if you share your credentials with strangers.
-
 [![udemy-dl-v1-0.png](https://i.postimg.cc/4y0fH3Hq/udemy-dl-v1-0.png)](https://postimg.cc/Fkj52NZV)
 
 
-### Before creating an issue, please do the following:
-
-1. **Use the GitHub issue search** &mdash; check if the issue is already reported.
-2. **Check if the issue is already fixed** &mdash; try to reproduce it using the latest `master` in the repository.
-3. Make sure, that information you are about to report is related to this repository 
-   and not the one available on ***Python's repository, PyPi***, Because this repository cannot be downloaded/installed via pip command.
-
-
-## ***Features***
-- Added proper session management.
-- Resume capability for a course video.
-- Added proper logging errors and warnings.
-- Support multiple courses download from file.
-- Supports organization and individual udemy users both.
-- Added support to download hls based streams if available.
-- Convert WebVTT to SRT but donot delete WebVTT. (option: `--keep-vtt`)
-- Skip fetching HLS streams, This will make the fetching fast. (option: `--skip-hls`)
-- List down course contents and video resolution, suggest the best resolution (option: `--info`).
-- Download/skip all available subtitles for a video (options: `--sub-only, --skip-sub`).
-- Download/skip all available assets for a video (options: `--assets-only, --skip-assets`).
-- Download specific chapter in a course (option: `-c / --chapter`).
-- Download specific lecture in a chapter (option: `-l / --lecture`).
-- Download specific subtitle for a lecture (option: `-s / --sub-lang`).
-- Download chapter(s) by providing range in a course (option: `--chapter-start, --chapter-end`).
-- Download lecture(s) by providing range in a chapter (option: `--lecture-start, --lecture-end`).
-- Download lecture(s) in requested resolution (option: `-q / --quality`).
-- Download course to user requested path (option: `-o / --output`).
-- Authentication using cookies (option: `-k / --cookies`).
-
-## ***How to login with cookie***
-
-The `cookies.txt` file should have the following simple format, eg:
-
-```ini
-access_token=JKU9QNs2IQDBKoYKvOBclSPXN97baf32o1Jo2L9vX
-```
-
-### Finding your access token value
-
- - ***Firefox*** users : [guide by @01ttouch](https://github.com/r0oth3x49/udemy-dl/issues/389#issuecomment-491903900)
- - ***Chrome*** users : [guide by @01ttouch](https://github.com/r0oth3x49/udemy-dl/issues/389#issuecomment-492569372)
+### ***Important Note***:
+ - Don't share your credentials until the issue is properly tagged/labeled with **account-needed**.
+ - Owner of this repository is not responsible for any misuse if you share your credentials with strangers.
 
 ## ***Requirements***
 
-- Python 3
+- Python 3 only (`Now udemy-dl doesn't support python 2`)
 - Python `pip`
 - Python module `requests`
 - Python module `colorama`
@@ -83,14 +41,56 @@ access_token=JKU9QNs2IQDBKoYKvOBclSPXN97baf32o1Jo2L9vX
 - Windows 7/8/8.1/10
 - Kali linux (2017.2)
 - Ubuntu-LTS (64-bit) (tested with super user)
-- Mac OSX 10.9.5 (tested with super user)
+
+## ***Features***
+- Added proper session management.
+- Resume capability for a course video.
+- Added proper logging errors and warnings.
+- Support multiple courses download from file.
+- Supports organization and individual udemy users both.
+- Added support to download hls based streams if available.
+- Convert WebVTT to SRT but donot delete WebVTT. (option: `--keep-vtt`)
+- Skip fetching HLS streams, This will make the fetching fast. (option: `--skip-hls`)
+- List down course contents and video resolution, suggest the best resolution (option: `--info`).
+- Download/skip all available subtitles for a video (options: `--sub-only, --skip-sub`).
+- Download/skip all available assets for a video (options: `--assets-only, --skip-assets`).
+- Download specific chapter in a course (option: `-c / --chapter`).
+- Download specific lecture in a chapter (option: `-l / --lecture`).
+- Download specific subtitle for a lecture (option: `-s / --sub-lang`).
+- Download chapter(s) by providing range in a course (option: `--chapter-start, --chapter-end`).
+- Download lecture(s) by providing range in a chapter (option: `--lecture-start, --lecture-end`).
+- Download lecture(s) in requested resolution (option: `-q / --quality`).
+- Download course to user requested path (option: `-o / --output`).
+- Authentication using cookies (option: `-k / --cookies`).
+
+### Before creating an issue, please do the following:
+
+ 1. **Use the GitHub issue search** &mdash; check if the issue is already reported.
+ 2. **Check if the issue is already fixed** &mdash; try to reproduce it using the latest `master` in the repository.
+ 3. Make sure, that information you are about to report is related to this repository 
+   and not the one available on ***Python's repository, PyPi***, Because this repository cannot be downloaded/installed via pip command.
+ 4. Follow issue reporting template properly otherwise the issue will be closed.
+
+
+## ***How to login with cookie***
+
+The `cookies.txt` file should have the following simple format, eg:
+
+```ini
+access_token=JKU9QNs2IQDBKoYKvOBclSPXN97baf32o1Jo2L9vX
+```
+
+### Finding your access token value
+
+ - ***Firefox*** users : [guide by @01ttouch](https://github.com/r0oth3x49/udemy-dl/issues/389#issuecomment-491903900)
+ - ***Chrome*** users : [guide by @01ttouch](https://github.com/r0oth3x49/udemy-dl/issues/389#issuecomment-492569372)
+
  
 ## ***Download udemy-dl***
 
 You can download the latest version of udemy-dl by cloning the GitHub repository.
 
     git clone https://github.com/r0oth3x49/udemy-dl.git
-
 
 ## ***Usage***
 
