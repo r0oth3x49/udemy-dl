@@ -39,8 +39,7 @@
 ## ***Tested on***
 
 - Windows 7/8/8.1/10
-- Kali linux (2017.2)
-- Ubuntu-LTS (64-bit) (tested with super user)
+- Ubuntu-LTS (tested with super user)
 
 ## ***Features***
 - Added proper session management.
