@@ -81,10 +81,11 @@ def to_human_readable(content_length):
 
 
 def to_filepath(base, name):
+    base = re.sub(r'"', "", base.strip())
     filepath = os.path.join(base, name)
     try:
         os.makedirs(filepath)
-    except Exception as e:
+    except:
         pass
     return filepath
 
@@ -142,6 +143,8 @@ def to_configs(
         cfq = configs.get("quality")
         cfl = configs.get("language")
         cfo = configs.get("output")
+        if cfo:
+            cfo = re.sub(r'"', "", cfo.strip())
         if username and cfu != username:
             configs.update({"username": username})
         if password and cfp != password:
@@ -153,10 +156,13 @@ def to_configs(
         if language and cfl != language:
             configs.update({"language": language})
         if output and cfo != output:
+            output = re.sub(r'"', "", output.strip())
             configs.update({"output": output})
         with open(fname, fmode) as fd:
             json.dump(configs, fd, indent=4)
     if not configs:
+        if output:
+            output = re.sub(r'"', "", output.strip())
         creds = {
             "username": username,
             "password": password,

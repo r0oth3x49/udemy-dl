@@ -25,6 +25,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import sys
 import logging
+from udemy.compat import os, re
 from colorama import init, Fore, Style
 from udemy.progress import ProgressBar
 
@@ -60,17 +61,19 @@ class Logging(ProgressBar):
         Custom logging class for udemy
     """
 
-    def __init__(self, log_filepath=None):
-        self._log_filepath = log_filepath
+    def __init__(self):
+        self._log_filepath = None
 
-    def set_log_filepath(self, log_filepath):
-        file_handler = logging.FileHandler(log_filepath)
-        self._log_filepath = log_filepath
-        logging.basicConfig(
-            format="[%(asctime)s][%(name)s] %(levelname)-5.5s %(message)s",
-            level=logging.INFO,
-            handlers=[file_handler],
-        )
+    def set_log_filepath(self, course_path):
+        course_path = re.sub(r'"', "", course_path.strip())
+        if os.path.exists(course_path):
+            self._log_filepath = os.path.join(course_path, "udemy-dl.log")
+            file_handler = logging.FileHandler(self._log_filepath)
+            logging.basicConfig(
+                format="[%(asctime)s][%(name)s] %(levelname)-5.5s %(message)s",
+                level=logging.INFO,
+                handlers=[file_handler],
+            )
 
     def info(
         self,
@@ -193,7 +196,7 @@ class Logging(ProgressBar):
             + "] : "
         )
         if self._log_filepath:
-            log.error(msg)
+            log.error(f"{msg} (failed)")
         msg = (
             set_color(f"{msg} (", level=70)
             + set_color("failed", level=40)
@@ -289,7 +292,7 @@ class Logging(ProgressBar):
             + "] : "
         )
         if self._log_filepath:
-            log.warning(msg)
+            log.warning(f"{msg} (download skipped)")
         msg = (
             set_color(f"{msg} (", level=70)
             + set_color("download skipped", level=30)

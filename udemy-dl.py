@@ -271,7 +271,6 @@ class Udemy(WebVtt2Srt, ProgressBar):
         lecture_number=None,
         lecture_start=None,
         lecture_end=None,
-        logs_filepath=None,
         keep_vtt=False,
         skip_hls_stream=False,
     ):
@@ -293,8 +292,6 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 if "~" in path:
                     path = os.path.expanduser(path)
             course_path = os.path.join(path, course_name)
-            if not logs_filepath:
-                logs_filepath = os.path.join(course_path, "udemy-dl.log")
             chapters = course.get_chapters(
                 chapter_number=chapter_number,
                 chapter_start=chapter_start,
@@ -315,7 +312,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 )
                 lectures_count = chapter.lectures
                 filepath = to_filepath(course_path, chapter_title)
-                logger.set_log_filepath(logs_filepath)
+                logger.set_log_filepath(course_path)
                 chapter_progress = (
                     chapter_index
                     if chapter_number
