@@ -564,11 +564,13 @@ def main():
     if args.assets_only:
         dl_lecture = False
         dl_subtitles = False
+        args.skip_hls_stream = True
     if args.skip_assets:
         dl_assets = False
     if args.caption_only:
         dl_lecture = False
         dl_assets = False
+        args.skip_hls_stream = True
     if args.skip_captions:
         dl_subtitles = False
     if not args.info:

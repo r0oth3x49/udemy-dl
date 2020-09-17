@@ -24,7 +24,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
 from udemy.utils import unescapeHTML
-from udemy.compat import os, re, codecs
+from udemy.compat import os, re  # , codecs
 
 
 class WebVtt2Srt(object):
@@ -33,21 +33,24 @@ class WebVtt2Srt(object):
     _TIMECODE = r"(?i)(?P<appeartime>(?:(?:\d{1,2}:)){1,2}\d{2}[\.,]\d+)\s*-->\s*(?i)(?P<disappertime>(?:(?:\d{1,2}:)){1,2}\d{2}[\.,]\d+)"
 
     def _vttcontents(self, fname):
+        content = []
         try:
-            f = codecs.open(filename=fname, encoding="utf-8", errors="ignore")
+            # f = codecs.open(filename=fname, encoding="utf-8", errors="ignore")
+            with open(fname, encoding="utf-8", errors="ignore") as f:
+                content = [line for line in (l.strip() for l in f)]
         except Exception as error:  # pylint: disable=W
             return {
                 "status": "False",
                 "msg": f"failed to open file : error: {error} ..",
             }
-        content = [line for line in (l.strip() for l in f)]
-        f.close()
+        # content = [line for line in (l.strip() for l in f)]
+        # f.close()
         return content
 
     def _write_srtcontent(self, fname, content):
-        with codecs.open(filename=fname, mode="a", encoding="utf-8") as fd:
+        with open(fname, mode="a", encoding="utf-8", errors="ignore") as fd:
             fd.write(content)
-        fd.close()
+        # fd.close()
 
     def _locate_timecode(self, content):
         loc = ""
