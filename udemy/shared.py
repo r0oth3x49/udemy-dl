@@ -490,7 +490,7 @@ class UdemyLectures(object):
             retVal = {"status": "True", "msg": "already downloaded"}
             return retVal
         contents = prepare_html(self.title, self.html)
-        retVal = to_file(filename, "wb", contents)
+        retVal = to_file(filename, "wb", contents, None, None)
         return retVal
 
 

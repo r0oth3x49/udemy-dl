@@ -77,7 +77,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
 
     def download_lecture(self, lecture, filepath, current, total, quality):
         """This function will simply download the lectures.."""
-        if quality:
+        if quality and lecture:
             lecture = lecture.get_quality(quality)
         if lecture:
             title = lecture.title
@@ -345,7 +345,11 @@ class Udemy(WebVtt2Srt, ProgressBar):
                     if dl_lecture:
                         lecture_index = lecture_index + 1
                         if lecture.html:
-                            lecture.dump(filepath=filepath)
+                            retval = lecture.dump(filepath=filepath)
+                            msg = retval.get("msg")
+                            if msg not in ["download", "already downloaded"]:
+                                msg = f"Lecture: '{lecture.title}.{lecture.extension}' failed to dump, reason: {msg}"
+                                logger.warning(msg=msg, silent=True)
                         self.download_lecture(
                             lecture_best,
                             filepath,

@@ -58,6 +58,7 @@ def extract_cookie_string(raw_cookies):
     cookies.update({"access_token": access_token})
     return cookies
 
+
 def extract_url_or_courses(url_or_filepath):
     courses = []
     if os.path.isfile(url_or_filepath):
@@ -65,6 +66,7 @@ def extract_url_or_courses(url_or_filepath):
     if not os.path.isfile(url_or_filepath):
         courses = [url_or_filepath]
     return courses
+
 
 def to_human_readable(content_length):
     hr = ""
@@ -115,13 +117,11 @@ def prepare_html(title, html):
     return data.encode("utf-8")
 
 
-def to_file(
-    filename, fmode, content
-):  # filepath="", lecture="", fmode="a", names_only=False):
+def to_file(filename, fmode, content, encoding="utf-8", errors="ignore"):
     retVal = {}
 
     try:
-        with open(filename, fmode, encoding="utf-8", errors="ignore") as fd:
+        with open(filename, fmode, encoding=encoding, errors=errors) as fd:
             fd.write(content)
         retVal = {"status": "True", "msg": "download"}
     except (OSError, Exception, UnicodeDecodeError) as e:

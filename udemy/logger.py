@@ -206,7 +206,7 @@ class Logging(ProgressBar):
         sys.stdout.write(string)
         sys.stdout.flush()
 
-    def warning(self, msg):
+    def warning(self, msg, silent=False):
         """This function prints already downloaded msg"""
         prefix = (
             "\033[2K\033[1G\r\r"
@@ -224,8 +224,9 @@ class Logging(ProgressBar):
             log.warning(msg)
         msg = set_color(f"{msg}\n", level=70)
         string = prefix + msg
-        sys.stdout.write(string)
-        sys.stdout.flush()
+        if not silent:
+            sys.stdout.write(string)
+            sys.stdout.flush()
 
     def error(self, msg, new_line=False):
         """This function prints already downloaded msg"""
