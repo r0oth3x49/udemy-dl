@@ -24,7 +24,7 @@
 - Python module `six`
 - Python module `cloudscraper`
 - Python module `requests[security]` or `pyOpenSSL`
-- FFmpeg (to downlaod hls based streams properly)
+- FFmpeg (to download hls based streams properly)
 
 ## ***Module Installation***
 
