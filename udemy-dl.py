@@ -360,7 +360,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
                     if dl_assets:
                         self.download_assets(lecture_assets, filepath)
                     if dl_subtitles:
-                        self.downalod_subtitles(
+                        self.download_subtitles(
                             lecture_subtitles,
                             filepath,
                             language=language,
