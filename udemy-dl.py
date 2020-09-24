@@ -100,7 +100,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 logger.error(msg="User Interrupted..", new_line=True)
                 sys.exit(0)
 
-    def downalod_subtitles(self, subtitles, filepath, language="en", keep_vtt=False):
+    def download_subtitles(self, subtitles, filepath, language="en", keep_vtt=False):
         """This function will simply download the subtitles.."""
         if language and subtitles:
             subtitle = subtitles.pop()
