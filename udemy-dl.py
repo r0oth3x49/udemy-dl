@@ -44,7 +44,7 @@ from udemy.utils import (
 
 
 class Udemy(WebVtt2Srt, ProgressBar):
-    """Udemy is class which implements downloading/lising and all"""
+    """Udemy is class which implements downloading/listing and all"""
 
     def __init__(self, url_or_courses, username="", password="", cookies=""):
         self.username = username
@@ -54,7 +54,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
         super(Udemy, self).__init__()
 
     def download_assets(self, assets, filepath):
-        """This function will simply download the asstes.."""
+        """This function will simply download the assets.."""
         if assets:
             for asset in assets:
                 title = asset.filename
@@ -360,7 +360,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
                     if dl_assets:
                         self.download_assets(lecture_assets, filepath)
                     if dl_subtitles:
-                        self.downalod_subtitles(
+                        self.download_subtitles(
                             lecture_subtitles,
                             filepath,
                             language=language,
