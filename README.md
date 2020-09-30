@@ -5,7 +5,7 @@
 [![GitHub license](https://img.shields.io/github/license/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/blob/master/LICENSE)
 
 # udemy-dl
-**A cross-platform python based utility to download courses from udemy for personal offline use.**
+**A cross-platform python based utility to easily download courses from udemy for personal offline use.**
 
 [![udemy-dl-v1-0.png](https://i.postimg.cc/4y0fH3Hq/udemy-dl-v1-0.png)](https://postimg.cc/Fkj52NZV)
 
