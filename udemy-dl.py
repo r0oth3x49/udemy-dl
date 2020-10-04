@@ -103,7 +103,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
     def download_subtitles(self, subtitles, filepath, language="en", keep_vtt=False):
         """This function will simply download the subtitles.."""
         if language and subtitles:
-            subtitle = subtitles.pop()
+            subtitle = subtitles[0]
             subtitles = subtitle.get_subtitle(language)
         if subtitles:
             for sub in subtitles:
