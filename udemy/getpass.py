@@ -51,6 +51,15 @@ class GetPass(object):
         username = input()
         return username
 
+    def get_access_token(self, prompt="Access Token : "):
+        """Prompt for Access Token """
+        sys.stdout.write("{}".format(prompt))
+        sys.stdout.flush()
+        access_token = input()
+        if access_token and "access_token=" not in access_token:
+            access_token = f"access_token={access_token}"
+        return access_token
+
     def getpass(self, prompt="Password : "):
         """Prompt for password and replace each character by asterik (*)"""
         sys.stdout.write("{}".format(prompt))

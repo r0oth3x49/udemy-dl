@@ -222,7 +222,7 @@ class Logging(ProgressBar):
         )
         if self._log_filepath:
             log.warning(msg)
-        msg = set_color(f"{msg}\n", level=70)
+        msg = set_color(f"{msg}\n", level=10)
         string = prefix + msg
         if not silent:
             sys.stdout.write(string)

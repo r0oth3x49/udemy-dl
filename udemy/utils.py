@@ -199,7 +199,13 @@ class HTMLAttributeParser(compat_HTMLParser):  # pylint: disable=W
 
 def unescapeHTML(s):
     clean = compat_HTMLParser()
-    data = clean.unescape(s)
+    if hasattr(clean, "unescape"):
+        data = clean.unescape(s)
+    if not hasattr(clean, "unescape"):
+        # Python 3.9.0 HTML_Parser unescape attribute deprecated
+        # https://github.com/pypa/setuptools/pull/1788/files
+        import html
+        data = html.unescape(s)
     return data
 
 

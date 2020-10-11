@@ -94,11 +94,16 @@ class Udemy:
                 )
                 username = conf.get("username")
                 password = conf.get("password")
-            if not username and not password:
+            if not username and not password and not cookies:
                 print("")
-                username = getpass.getuser(prompt="Username : ")
-                password = getpass.getpass(prompt="Password : ")
+                cookies = getpass.get_access_token(prompt="Access Token : ")
+                if not cookies:
+                    username = getpass.getuser(prompt="Username : ")
+                    password = getpass.getpass(prompt="Password : ")
                 print("\n")
+                if not cookies and not username and not password:
+                    logger.error(msg=f"You should either provide Fresh Access Token or Username/Password to create new udemy session..")
+                    sys.exit(0)
         if not cookies:
             auth.username = username
             auth.password = password

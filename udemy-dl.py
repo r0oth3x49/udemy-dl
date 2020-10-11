@@ -578,6 +578,9 @@ def main():
     if args.skip_captions:
         dl_subtitles = False
     if not args.info:
+        if args.quality and args.quality > 720 and args.skip_hls_stream:
+            args.quality = ""
+            logger.warning(msg="You cannot use --skip-hls and -q/--quality options togather, considering --skip-hls only..")
         udemy_obj.course_download(
             path=args.output,
             quality=args.quality,
