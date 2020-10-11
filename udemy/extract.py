@@ -306,7 +306,7 @@ class Udemy:
             sys.exit(0)
 
     def _extract_large_course_content(self, url):
-        url = url.replace("10000", "300") if url.endswith("10000") else url
+        url = url.replace("10000", "50") if url.endswith("10000") else url
         try:
             data = self._session._get(url).json()
         except conn_error as error:
@@ -316,6 +316,7 @@ class Udemy:
         else:
             _next = data.get("next")
             while _next:
+                logger.progress(msg="Downloading course information .. ")
                 try:
                     resp = self._session._get(_next).json()
                 except conn_error as error:

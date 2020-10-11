@@ -52,12 +52,12 @@ COURSE_URL = "https://{portal_name}.udemy.com/api-2.0/courses/{course_id}/cached
 SUBSCRIBED_COURSES = "https://www.udemy.com/api-2.0/users/me/subscribed-courses/?ordering=-last_accessed&fields[course]=id,url&page=1&page_size=12"
 HEADERS = {
     "Origin": "www.udemy.com",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0",
-    "Referer": "https://www.udemy.com/join/login-popup/",
+    "User-Agent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0",
+    # "Referer": "https://www.udemy.com/join/login-popup/",
     "Accept": "*/*",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
+    # "Accept-Language": "en-US,en;q=0.5",
+    "Accept-Encoding": None,
+    # "Connection": "keep-alive",
 }
 
 
