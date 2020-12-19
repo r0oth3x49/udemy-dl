@@ -34,7 +34,7 @@
 - You would need FFmpeg to be installed and added to environment variable so that udemy-dl can access.
 - Download [FFmpeg from here](https://ffmpeg.org/download.html)
 - On ubuntu you can install it via `apt install ffmpeg`.
-- Add to environment variables then udemy-dl will be able to use it when download HLS streams.
+- Add to environment variables then udemy-dl will be able to use it when downloading HLS streams.
   
 ## ***Tested on***
 

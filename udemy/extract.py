@@ -83,14 +83,16 @@ class Udemy:
         is_exists, conf = auth.is_session_exists()
         if is_exists and username and password:
             logger.info(
-                msg="Using existing session..", new_line=True,
+                msg="Using existing session..",
+                new_line=True,
             )
             cookies = conf.get("cookies")
         if not is_exists:
             cookies = None
             if not username and not password:
                 logger.info(
-                    msg="Updating session cookie..", new_line=True,
+                    msg="Updating session cookie..",
+                    new_line=True,
                 )
                 username = conf.get("username")
                 password = conf.get("password")
@@ -102,7 +104,9 @@ class Udemy:
                     password = getpass.getpass(prompt="Password : ")
                 print("\n")
                 if not cookies and not username and not password:
-                    logger.error(msg=f"You should either provide Fresh Access Token or Username/Password to create new udemy session..")
+                    logger.error(
+                        msg=f"You should either provide Fresh Access Token or Username/Password to create new udemy session.."
+                    )
                     sys.exit(0)
         if not cookies:
             auth.username = username
@@ -301,12 +305,14 @@ class Udemy:
                 new_line=True,
             )
             logger.info(
-                msg="Trying to logout now...", new_line=True,
+                msg="Trying to logout now...",
+                new_line=True,
             )
             if not self._cookies:
                 self._logout()
             logger.info(
-                msg="Logged out successfully.", new_line=True,
+                msg="Logged out successfully.",
+                new_line=True,
             )
             sys.exit(0)
 
@@ -419,7 +425,7 @@ class Udemy:
     def _extract_ppt(self, assets):
         _temp = []
         download_urls = assets.get("download_urls")
-        filename = self._sanitize(assets.get("filename"))
+        filename = assets.get("filename")
         if download_urls and isinstance(download_urls, dict):
             extension = filename.rsplit(".", 1)[-1] if "." in filename else ""
             download_url = download_urls.get("Presentation", [])[0].get("file")
@@ -436,7 +442,7 @@ class Udemy:
     def _extract_file(self, assets):
         _temp = []
         download_urls = assets.get("download_urls")
-        filename = self._sanitize(assets.get("filename"))
+        filename = assets.get("filename")
         if download_urls and isinstance(download_urls, dict):
             extension = filename.rsplit(".", 1)[-1] if "." in filename else ""
             download_url = download_urls.get("File", [])[0].get("file")
@@ -453,7 +459,7 @@ class Udemy:
     def _extract_ebook(self, assets):
         _temp = []
         download_urls = assets.get("download_urls")
-        filename = self._sanitize(assets.get("filename"))
+        filename = assets.get("filename")
         if download_urls and isinstance(download_urls, dict):
             extension = filename.rsplit(".", 1)[-1] if "." in filename else ""
             download_url = download_urls.get("E-Book", [])[0].get("file")
@@ -470,7 +476,7 @@ class Udemy:
     def _extract_audio(self, assets):
         _temp = []
         download_urls = assets.get("download_urls")
-        filename = self._sanitize(assets.get("filename"))
+        filename = assets.get("filename")
         if download_urls and isinstance(download_urls, dict):
             extension = filename.rsplit(".", 1)[-1] if "." in filename else ""
             download_url = download_urls.get("Audio", [])[0].get("file")
@@ -563,7 +569,8 @@ class Udemy:
     def _extract_supplementary_assets(self, supp_assets):
         _temp = []
         for entry in supp_assets:
-            filename = self._sanitize(entry.get("filename"))
+            title = self._clean(entry.get("title"))
+            filename = entry.get("filename")
             download_urls = entry.get("download_urls")
             external_url = entry.get("external_url")
             asset_type = entry.get("asset_type").lower()
@@ -574,6 +581,7 @@ class Udemy:
                     _temp.append(
                         {
                             "type": "file",
+                            "title": title,
                             "filename": filename,
                             "extension": extension,
                             "download_url": download_url,
@@ -586,6 +594,7 @@ class Udemy:
                     _temp.append(
                         {
                             "type": "source_code",
+                            "title": title,
                             "filename": filename,
                             "extension": extension,
                             "download_url": download_url,
@@ -595,6 +604,7 @@ class Udemy:
                 _temp.append(
                     {
                         "type": "external_link",
+                        "title": title,
                         "filename": filename,
                         "extension": "txt",
                         "download_url": external_url,
@@ -625,12 +635,14 @@ class Udemy:
                     msg=f"Udemy Says : '{resource}' cookies seems to be expired"
                 )
             logger.info(
-                msg="Trying to logout now...", new_line=True,
+                msg="Trying to logout now...",
+                new_line=True,
             )
             if not self._cookies:
                 self._logout()
             logger.info(
-                msg="Logged out successfully.", new_line=True,
+                msg="Logged out successfully.",
+                new_line=True,
             )
             sys.exit(0)
 

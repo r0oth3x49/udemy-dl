@@ -62,7 +62,9 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 logger.info(msg=f"Downloading ({title})", new_line=True)
                 try:
                     retval = asset.download(
-                        filepath=filepath, quiet=True, callback=self.show_progress,
+                        filepath=filepath,
+                        quiet=True,
+                        callback=self.show_progress,
                     )
                     msg = retval.get("msg")
                     if msg == "already downloaded":
@@ -87,7 +89,9 @@ class Udemy(WebVtt2Srt, ProgressBar):
             logger.info(msg=f"Downloading ({title})", new_line=True)
             try:
                 retval = lecture.download(
-                    filepath=filepath, quiet=True, callback=self.show_progress,
+                    filepath=filepath,
+                    quiet=True,
+                    callback=self.show_progress,
                 )
                 msg = retval.get("msg")
                 if msg == "already downloaded":
@@ -102,7 +106,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
 
     def download_subtitles(self, subtitles, filepath, language="en", keep_vtt=False):
         """This function will simply download the subtitles.."""
-        if language and subtitles:
+        if language and subtitles and language != "all":
             subtitle = subtitles[0]
             subtitles = subtitle.get_subtitle(language)
         if subtitles:
@@ -113,7 +117,9 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 logger.info(msg=f"Downloading ({title})", new_line=True)
                 try:
                     retval = sub.download(
-                        filepath=filepath, quiet=True, callback=self.show_progress,
+                        filepath=filepath,
+                        quiet=True,
+                        callback=self.show_progress,
                     )
                     msg = retval.get("msg")
                     if msg == "already downloaded":
@@ -241,7 +247,10 @@ class Udemy(WebVtt2Srt, ProgressBar):
                                 f"{asset}", asset.extension, human_readable
                             )
                             logger.info(
-                                indent=indent, msg=msg, new_line=True, cc=15,
+                                indent=indent,
+                                msg=msg,
+                                new_line=True,
+                                cc=15,
                             )
                     if lecture_subtitles:
                         for sub in lecture_subtitles:
@@ -253,7 +262,10 @@ class Udemy(WebVtt2Srt, ProgressBar):
                                 f"{sub}", sub.extension, human_readable
                             )
                             logger.info(
-                                indent=indent, msg=msg, new_line=True, cc=15,
+                                indent=indent,
+                                msg=msg,
+                                new_line=True,
+                                cc=15,
                             )
             print("")
 
@@ -329,7 +341,8 @@ class Udemy(WebVtt2Srt, ProgressBar):
                     msg=f"Chapter ({chapter_title})", new_line=True, cc=15, cc_msg=60
                 )
                 logger.info(
-                    msg=f"Found ({lectures_count}) lecture(s).", new_line=True,
+                    msg=f"Found ({lectures_count}) lecture(s).",
+                    new_line=True,
                 )
                 lecture_index = 0
                 if lecture_number:
@@ -580,7 +593,9 @@ def main():
     if not args.info:
         if args.quality and args.quality > 720 and args.skip_hls_stream:
             args.quality = ""
-            logger.warning(msg="You cannot use --skip-hls and -q/--quality options togather, considering --skip-hls only..")
+            logger.warning(
+                msg="You cannot use --skip-hls and -q/--quality options togather, considering --skip-hls only.."
+            )
         udemy_obj.course_download(
             path=args.output,
             quality=args.quality,

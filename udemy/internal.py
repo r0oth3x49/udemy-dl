@@ -75,7 +75,9 @@ class InternUdemyCourse(UdemyCourse, Udemy):
         if auth.get("login") == "successful":
             logger.info(msg="Logged in successfully.", new_line=True)
             logger.info(msg="Downloading course information ..")
-            self._info = self._real_extract(self._url, skip_hls_stream=self._skip_hls_stream)
+            self._info = self._real_extract(
+                self._url, skip_hls_stream=self._skip_hls_stream
+            )
             time.sleep(1)
             logger.success(msg="Downloaded course information .. ")
             access_token = self._info["access_token"]
@@ -88,12 +90,14 @@ class InternUdemyCourse(UdemyCourse, Udemy):
                 for z in self._info["chapters"]
             ]
             logger.info(
-                msg="Trying to logout now...", new_line=True,
+                msg="Trying to logout now...",
+                new_line=True,
             )
             if not self._cookies:
                 self._logout()
             logger.info(
-                msg="Logged out successfully.", new_line=True,
+                msg="Logged out successfully.",
+                new_line=True,
             )
             self._have_basic = True
         if auth.get("login") == "failed":
@@ -192,9 +196,15 @@ class InternUdemyLectureAssets(UdemyLectureAssets):
 
         self._mediatype = assets.get("type")
         self._extension = assets.get("extension")
-        self._filename = "{0:03d} {1!s}".format(
-            parent._lecture_index, assets.get("filename")
-        )
+        title = assets.get("title", "")
+        if not title:
+            title = assets.get("filename")
+        if title and title.endswith(self._extension):
+            ok = "{0:03d} ".format(parent._lecture_index) + title
+            self._filename = ok
+        else:
+            ok = "{0:03d} ".format(parent._lecture_index) + assets.get("filename")
+            self._filename = ok
         self._url = assets.get("download_url")
 
 
