@@ -385,7 +385,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
 def main():
     """main function"""
     sys.stdout.write(banner())
-    version = "%(prog)s {version}".format(version="1.0")
+    version = "%(prog)s {version}".format(version=udemy.__version__)
     description = "A cross-platform python based utility to download courses from udemy for personal offline use."
     parser = argparse.ArgumentParser(
         description=description, conflict_handler="resolve"
@@ -503,6 +503,12 @@ def main():
         help="List all lectures with available resolution.",
     )
     other.add_argument(
+        "--cache",
+        dest="cache_session",
+        action="store_true",
+        help="Cache your session to avoid providing again.",
+    )
+    other.add_argument(
         "--keep-vtt",
         dest="keep_vtt",
         action="store_true",
@@ -546,11 +552,19 @@ def main():
             cookies = "\n".join([line for line in (l.strip() for l in f_in) if line])
         args.cookies = cookies
     if not args.username and not args.password and not args.cookies:
+        # check if we already have a session..
         configs = load_configs()
         if not configs:
+            # if not ask user for user/pass or access token (cookie)
             args.username = getpass.getuser(prompt="Username : ")
             args.password = getpass.getpass(prompt="Password : ")
-            print("\n")
+            if args.username and args.password:
+                print("\n")
+            if not args.username and not args.password:
+                print("")
+                args.cookies = getpass.get_access_token(prompt="Access Token : ")
+                if args.cookies:
+                    print("\n")
         if configs:
             cookies = configs.get("cookies")
             if not cookies:
@@ -562,6 +576,12 @@ def main():
             args.output = args.output if args.output else configs.get("output")
             args.language = args.language if args.language else configs.get("language")
     url_or_courses = extract_url_or_courses(args.course)
+    if not args.username and not args.password and not args.cookies:
+        print("\n")
+        logger.error(
+            msg=f"You should either provide fresh access token or username/password for udemy.."
+        )
+        sys.exit(0)
     udemy_obj = Udemy(
         url_or_courses=url_or_courses,
         username=args.username,
@@ -569,14 +589,15 @@ def main():
         cookies=args.cookies,
     )
     # setting the caching default so that we can avoid future login attemps.
-    _ = to_configs(
-        username=args.username,
-        password=args.password,
-        cookies=args.cookies,
-        quality=args.quality,
-        output=args.output,
-        language=args.language,
-    )
+    if args.cache_session:
+        _ = to_configs(
+            username=args.username,
+            password=args.password,
+            cookies=args.cookies,
+            quality=args.quality,
+            output=args.output,
+            language=args.language,
+        )
     dl_assets = dl_lecture = dl_subtitles = True
     if args.assets_only:
         dl_lecture = False

@@ -618,6 +618,7 @@ class Udemy:
         course_id, course_info = self._extract_course_info(url)
 
         if course_info and isinstance(course_info, dict):
+            title = self._clean(course_info.get("title"))
             course_title = course_info.get("published_title")
             portal_name = course_info.get("portal_name")
 
@@ -648,19 +649,21 @@ class Udemy:
 
         _udemy["access_token"] = self._access_token
         _udemy["course_id"] = course_id
+        _udemy["title"] = title
         _udemy["course_title"] = course_title
         _udemy["chapters"] = []
 
         counter = -1
 
         if course:
+            lecture_counter = 0
             for entry in course:
-
                 clazz = entry.get("_class")
                 asset = entry.get("asset")
                 supp_assets = entry.get("supplementary_assets")
 
                 if clazz == "chapter":
+                    lecture_counter = 0
                     lectures = []
                     chapter_index = entry.get("object_index")
                     chapter_title = "{0:02d} ".format(chapter_index) + self._clean(
@@ -677,7 +680,7 @@ class Udemy:
                         )
                         counter += 1
                 elif clazz == "lecture":
-
+                    lecture_counter += 1
                     lecture_id = entry.get("id")
                     if len(_udemy["chapters"]) == 0:
                         lectures = []
@@ -732,9 +735,9 @@ class Udemy:
 
                         logger.progress(msg="Downloading course information .. ")
                         lecture_index = entry.get("object_index")
-                        lecture_title = "{0:03d} ".format(lecture_index) + self._clean(
-                            entry.get("title")
-                        )
+                        lecture_title = "{0:03d} ".format(
+                            lecture_counter
+                        ) + self._clean(entry.get("title"))
                         data = asset.get("stream_urls")
                         if data and isinstance(data, dict):
                             sources = data.get("Video")
@@ -748,6 +751,7 @@ class Udemy:
                             subtitle_count = len(subtitles)
                             lectures.append(
                                 {
+                                    "index": lecture_counter,
                                     "lecture_index": lecture_index,
                                     "lectures_id": lecture_id,
                                     "lecture_title": lecture_title,
@@ -763,6 +767,7 @@ class Udemy:
                         else:
                             lectures.append(
                                 {
+                                    "index": lecture_counter,
                                     "lecture_index": lecture_index,
                                     "lectures_id": lecture_id,
                                     "lecture_title": lecture_title,
@@ -786,6 +791,7 @@ class Udemy:
                             entry.get("title")
                         )
                         if chapter_title not in _udemy["chapters"]:
+                            lecture_counter = 0
                             _udemy["chapters"].append(
                                 {
                                     "chapter_title": chapter_title,

@@ -1,4 +1,4 @@
-[![GitHub release](https://img.shields.io/badge/release-v1.0-brightgreen?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/releases/tag/v1.0)
+[![GitHub release](https://img.shields.io/badge/release-v1.1-brightgreen?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/releases/tag/v1.0)
 [![GitHub stars](https://img.shields.io/github/stars/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/network)
 [![GitHub issues](https://img.shields.io/github/issues/r0oth3x49/udemy-dl.svg?style=flat-square)](https://github.com/r0oth3x49/udemy-dl/issues)
@@ -7,7 +7,7 @@
 # udemy-dl
 **A cross-platform python based utility to download courses from udemy for personal offline use.**
 
-[![udemy-dl-v1-0.png](https://i.postimg.cc/4y0fH3Hq/udemy-dl-v1-0.png)](https://postimg.cc/Fkj52NZV)
+[![udemy-dl-v1-1.png](https://i.postimg.cc/X7QpzY8q/udemy-dl-v1-1.png)](https://postimg.cc/zVHzL54Y)
 
 
 ### ***Important Note***:
@@ -48,6 +48,8 @@
 - Support multiple courses download from file.
 - Supports organization and individual udemy users both.
 - Added support to download hls based streams if available.
+- Added functionality to reset lecture number to start from 1.
+- Added switch for session caching on demand. (option: `--cache`)
 - Convert WebVTT to SRT but donot delete WebVTT. (option: `--keep-vtt`)
 - Skip fetching HLS streams, This will make the fetching fast. (option: `--skip-hls`)
 - List down course contents and video resolution, suggest the best resolution (option: `--info`).
@@ -155,7 +157,7 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 <pre><code>
 Author: Nasir khan (<a href="http://r0oth3x49.herokuapp.com/">r0ot h3x49</a>)
 
-usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l] [-s] [--chapter-start] [--chapter-end] [--lecture-start] [--lecture-end] [--info]
+usage: udemy-dl.py [-h] [-v] [-u] [-p] [-k] [-o] [-q] [-c] [-l] [-s] [--chapter-start] [--chapter-end] [--lecture-start] [--lecture-end] [--info] [--cache]
                    [--keep-vtt] [--sub-only] [--skip-sub] [--skip-hls] [--assets-only] [--skip-assets]
                    course
 
@@ -186,6 +188,7 @@ Advance:
 
 Others:
   --info            List all lectures with available resolution.
+  --cache           Cache your session to avoid providing again.
   --keep-vtt        Keep WebVTT caption(s).
   --sub-only        Download captions/subtitle only.
   --skip-sub        Download course but skip captions/subtitle.

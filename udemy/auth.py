@@ -103,11 +103,11 @@ class UdemyAuth(object):
 
         if access_token:
             # dump cookies to configs
-            _ = to_configs(
-                username=self.username,
-                password=self.password,
-                cookies=f"access_token={access_token}",
-            )
+            # _ = to_configs(
+            #     username=self.username,
+            #     password=self.password,
+            #     cookies=f"access_token={access_token}",
+            # )
             self._session._set_auth_headers(  # pylint: disable=W
                 access_token=access_token, client_id=client_id
             )
