@@ -46,10 +46,13 @@ from udemy.utils import (
 class Udemy(WebVtt2Srt, ProgressBar):
     """Udemy is class which implements downloading/lising and all"""
 
-    def __init__(self, url_or_courses, username="", password="", cookies=""):
+    def __init__(
+        self, url_or_courses, username="", password="", cookies="", cache_session=False
+    ):
         self.username = username
         self.password = password
         self.cookies = cookies
+        self._cache_session = cache_session
         self.url_or_courses = url_or_courses
         super(Udemy, self).__init__()
 
@@ -157,6 +160,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 password=self.password,
                 cookies=self.cookies,
                 skip_hls_stream=skip_hls_stream,
+                cache_session=self._cache_session,
             )
             course_name = course.title
             chapters = course.get_chapters(
@@ -298,6 +302,7 @@ class Udemy(WebVtt2Srt, ProgressBar):
                 password=self.password,
                 cookies=self.cookies,
                 skip_hls_stream=skip_hls_stream,
+                cache_session=self._cache_session,
             )
             course_name = course.title
             if path:
@@ -390,7 +395,11 @@ def main():
     parser = argparse.ArgumentParser(
         description=description, conflict_handler="resolve"
     )
-    parser.add_argument("course", help="Udemy course.", type=str)
+    parser.add_argument(
+        "course",
+        help="Udemy course or file containing list of course URL(s).",
+        type=str,
+    )
     general = parser.add_argument_group("General")
     general.add_argument("-h", "--help", action="help", help="Shows the help.")
     general.add_argument(
@@ -587,6 +596,7 @@ def main():
         username=args.username,
         password=args.password,
         cookies=args.cookies,
+        cache_session=args.cache_session,
     )
     # setting the caching default so that we can avoid future login attemps.
     if args.cache_session:

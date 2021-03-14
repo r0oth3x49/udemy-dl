@@ -95,7 +95,10 @@ class Downloader(object):
         return retVal
 
     def download(
-        self, filepath="", quiet=False, callback=lambda *x: None,
+        self,
+        filepath="",
+        quiet=False,
+        callback=lambda *x: None,
     ):
         savedir = filename = ""
         retVal = {}
@@ -277,17 +280,25 @@ class UdemyCourses(object):
 
 class UdemyCourse(object):
     def __init__(
-        self, url, username="", password="", cookies="", basic=True, skip_hls_stream=False, callback=None
+        self,
+        url,
+        username="",
+        password="",
+        cookies="",
+        basic=True,
+        skip_hls_stream=False,
+        cache_session=False,
+        callback=None,
     ):
 
         self._url = url
         self._username = username
         self._password = password
         self._cookies = cookies
+        self._cache_session = cache_session
         self._skip_hls_stream = skip_hls_stream
         self._callback = callback or (lambda x: None)
         self._have_basic = False
-
 
         self._id = None
         self._title = None

@@ -2,10 +2,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-'''
+"""
 
-Author 	: Nasir Khan (r0ot h3x49)
-Github 	: https://github.com/r0oth3x49
+Author  : Nasir Khan (r0ot h3x49)
+Github  : https://github.com/r0oth3x49
 License : MIT
 
 
@@ -22,13 +22,22 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVE
 ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-'''
+"""
 
 from udemy.internal import InternUdemyCourse as Udemy
 from udemy.internal import InternUdemyCourses as UdemyCourses
 
 
-def course(url, username='', password='', cookies='', basic=True, skip_hls_stream=False, callback=None):
+def course(
+    url,
+    username="",
+    password="",
+    cookies="",
+    basic=True,
+    skip_hls_stream=False,
+    cache_session=False,
+    callback=None,
+):
     """Returns udemy course instance.
 
     @params:
@@ -37,9 +46,19 @@ def course(url, username='', password='', cookies='', basic=True, skip_hls_strea
         password : Udemy account password required : type (string)
         cookies  : Udemy account logged in browser cookies optional : type (string)
     """
-    return Udemy(url, username, password, cookies, basic, skip_hls_stream, callback)
+    return Udemy(
+        url,
+        username,
+        password,
+        cookies,
+        basic,
+        skip_hls_stream,
+        cache_session,
+        callback,
+    )
 
-def fetch_enrolled_courses(username='', password='', cookies='', basic=True):
+
+def fetch_enrolled_courses(username="", password="", cookies="", basic=True):
     """Returns udemy course instance.
 
     @params:

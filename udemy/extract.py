@@ -77,9 +77,9 @@ class Udemy:
         if mobj:
             return mobj.group("portal_name"), mobj.group("name_or_id")
 
-    def _login(self, username="", password="", cookies=""):
+    def _login(self, username="", password="", cookies="", cache_session=False):
         # check if we already have session on udemy.
-        auth = UdemyAuth()
+        auth = UdemyAuth(cache_session=cache_session)
         is_exists, conf = auth.is_session_exists()
         if is_exists and username and password:
             logger.info(
@@ -87,7 +87,7 @@ class Udemy:
                 new_line=True,
             )
             cookies = conf.get("cookies")
-        if not is_exists:
+        if not is_exists and not cookies:
             cookies = None
             if not username and not password:
                 logger.info(

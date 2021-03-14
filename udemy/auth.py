@@ -36,9 +36,10 @@ from udemy.utils import (
 
 
 class UdemyAuth(object):
-    def __init__(self, username="", password=""):
+    def __init__(self, username="", password="", cache_session=False):
         self.username = username
         self.password = password
+        self._cache = cache_session
         self._session = Session()
         self._cloudsc = cloudscraper.create_scraper()
 
@@ -103,11 +104,12 @@ class UdemyAuth(object):
 
         if access_token:
             # dump cookies to configs
-            # _ = to_configs(
-            #     username=self.username,
-            #     password=self.password,
-            #     cookies=f"access_token={access_token}",
-            # )
+            if self._cache:
+                _ = to_configs(
+                    username=self.username,
+                    password=self.password,
+                    cookies=f"access_token={access_token}",
+                )
             self._session._set_auth_headers(  # pylint: disable=W
                 access_token=access_token, client_id=client_id
             )

@@ -69,9 +69,13 @@ class InternUdemyCourse(UdemyCourse, Udemy):
             return
         auth = {}
         if not self._cookies:
-            auth = self._login(username=self._username, password=self._password)
+            auth = self._login(
+                username=self._username,
+                password=self._password,
+                cache_session=self._cache_session,
+            )
         if not auth and self._cookies:
-            auth = self._login(cookies=self._cookies)
+            auth = self._login(cookies=self._cookies, cache_session=self._cache_session)
         if auth.get("login") == "successful":
             logger.info(msg="Logged in successfully.", new_line=True)
             logger.info(msg="Downloading course information ..")
