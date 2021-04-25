@@ -97,59 +97,59 @@ You can download the latest version of udemy-dl by cloning the GitHub repository
 
 ***Download a course***
 
-    python udemy-dl.py COURSE_URL
+    python3 udemy-dl.py COURSE_URL
 
 ***Download a courses from file***
 
-    python udemy-dl.py FILE-CONTAINING-COURSE-URLs
+    python3 udemy-dl.py FILE-CONTAINING-COURSE-URLs
   
 ***Download course with specific resolution***
 
-    python udemy-dl.py COURSE_URL -q 720
+    python3 udemy-dl.py COURSE_URL -q 720
   
 ***Download course to a specific location***
 
-    python udemy-dl.py COURSE_URL -o "/path/to/directory/"
+    python3 udemy-dl.py COURSE_URL -o "/path/to/directory/"
   
 ***Download course with specific resolution to a specific location***
 
-    python udemy-dl.py COURSE_URL -q 720 -o "/path/to/directory/"
+    python3 udemy-dl.py COURSE_URL -q 720 -o "/path/to/directory/"
 
 ***Download specific chapter from a course***
 
-    python udemy-dl.py COURSE_URL -c NUMBER
+    python3 udemy-dl.py COURSE_URL -c NUMBER
 
 ***Download specific lecture from a chapter***
 
-    python udemy-dl.py COURSE_URL -c NUMBER -l NUMBER
+    python3 udemy-dl.py COURSE_URL -c NUMBER -l NUMBER
 
 ***Download lecture(s) range from a specific chapter***
 
-    python udemy-dl.py COURSE_URL -c NUMBER --lecture-start NUMBER --lecture-end NUMBER
+    python3 udemy-dl.py COURSE_URL -c NUMBER --lecture-start NUMBER --lecture-end NUMBER
 
 ***Download chapter(s) range from a course***
 
-    python udemy-dl.py COURSE_URL --chapter-start NUMBER --chapter-end NUMBER
+    python3 udemy-dl.py COURSE_URL --chapter-start NUMBER --chapter-end NUMBER
 
 ***Download specific lecture from chapter(s) range***
 
-    python udemy-dl.py COURSE_URL --chapter-start NUMBER --chapter-end NUMBER --lecture NUMBER
+    python3 udemy-dl.py COURSE_URL --chapter-start NUMBER --chapter-end NUMBER --lecture NUMBER
 
 ***Download lecture(s) range from chapter(s) range***
 
-    python udemy-dl.py COURSE_URL --chapter-start NUMBER --chapter-end NUMBER --lecture-start NUMBER --lecture-end NUMBER
+    python3 udemy-dl.py COURSE_URL --chapter-start NUMBER --chapter-end NUMBER --lecture-start NUMBER --lecture-end NUMBER
 
 ***List down specific chapter from a course***
 
-    python udemy-dl.py COURSE_URL -c NUMBER --info
+    python3 udemy-dl.py COURSE_URL -c NUMBER --info
 
 ***List down specific lecture from a chapter***
 
-    python udemy-dl.py COURSE_URL -c NUMBER -l NUMBER --info
+    python3 udemy-dl.py COURSE_URL -c NUMBER -l NUMBER --info
 
 ***Download specific subtite by using language code such as (en, es) if lang switch is not specified then default will be all subtitles***
 
-    python udemy-dl.py COURSE_URL --sub-lang en
+    python3 udemy-dl.py COURSE_URL --sub-lang en
 
 
 ## **Advanced Usage**
@@ -197,9 +197,9 @@ Others:
   --skip-assets     Download course but skip asset(s).
 
 Example:
-  python udemy-dl.py  COURSE_URL
-  python udemy-dl.py  COURSE_URL -k cookies.txt
-  python udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL
+  python3 udemy-dl.py  COURSE_URL
+  python3 udemy-dl.py  COURSE_URL -k cookies.txt
+  python3 udemy-dl.py -u user@domain.com -p p4ssw0rd COURSE_URL
 </code></pre>
 
 
