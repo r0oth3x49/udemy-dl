@@ -97,3 +97,6 @@ pip-selfcheck.json
 
 # Rope project settings
 .ropeproject
+
+/configuration
+/.envrc.local
