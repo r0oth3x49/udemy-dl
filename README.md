@@ -13,7 +13,7 @@
 
 **Udemy has started to encrypt many of the course videos, so downloading them may be impossible/illegal because it involves decrypting DRM'd videos which opens up the author to DMCA takedowns/lawsuits.  If you use udemy-dl and some/all videos are skipped, please don't open a new issue or comment that the issue still exists.  All requests to bypass DRM/encryption will be ignored.**
 
-If you'd like to see the full context, then read (issue 627)[https://github.com/r0oth3x49/udemy-dl/issues/627].
+If you'd like to see the full context, then read [issue 627](https://github.com/r0oth3x49/udemy-dl/issues/627).
 
 
 ### ***Important Note***:
